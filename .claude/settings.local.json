@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(/Users/miguelangelsaraviabelmonte/dev-web/medical-web-repo/.env.local:*)"
+      "Bash(/Users/miguelangelsaraviabelmonte/dev-web/medical-web-repo/.env.local:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(node:*)",
+      "Bash(npx next:*)"
     ]
   }
 }
