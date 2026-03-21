@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm install && next build --webpack",
+    "build": "npm install && next build --webpack && cp -r out dist",
     "start": "next start",
     "lint": "eslint"
   },
