@@ -2,31 +2,10 @@ import { Youtube, Instagram, Linkedin, Twitter } from "lucide-react"
 import type { NavLink, FooterGroup, SocialLink } from "@/types"
 
 export const navLinks: NavLink[] = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "#about" },
-  { label: "Mono Course", href: "#course" },
-  {
-    label: "Academy",
-    href: "#",
-    children: [
-      { label: "Website & SEO Reviews", href: "#" },
-      { label: "Portfolio Reviews", href: "#" },
-    ],
-  },
-  { label: "Lightroom Presets", href: "#presets" },
-  {
-    label: "Store",
-    href: "#",
-    children: [
-      { label: "MonoChrome Conversion Course", href: "#course" },
-      { label: "Portfolio Reviews", href: "#" },
-      { label: "Freebies", href: "#free" },
-      { label: "Free PDF", href: "#free" },
-      { label: "Free Articles", href: "#" },
-    ],
-  },
-  { label: "Contact", href: "#contact" },
-  { label: "PhotoBlog", href: "#", external: true },
+  { label: "Inicio", href: "/" },
+  { label: "Acerca de nosotros", href: "#acerca" },
+  { label: "Tratamientos", href: "#tratamientos" },
+  { label: "Blog", href: "#blog" },
 ]
 
 export const footerGroups: FooterGroup[] = [
