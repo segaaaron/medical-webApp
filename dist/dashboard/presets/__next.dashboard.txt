@@ -1,5 +1,0 @@
-1:"$Sreact.fragment"
-2:I[44,["954","static/chunks/app/dashboard/layout-3f2d893f1cdf4764.js"],"Sidebar"]
-3:I[7121,[],""]
-4:I[4581,[],""]
-0:{"buildId":"xz16nPtRzmnEuDkVf2RBK","rsc":["$","$1","c",{"children":[null,["$","div",null,{"className":"flex h-screen bg-gray-50 overflow-hidden","children":[["$","div",null,{"className":"w-56 shrink-0 h-full","children":["$","$L2",null,{}]}],["$","main",null,{"className":"flex-1 overflow-y-auto","children":["$","div",null,{"className":"max-w-4xl mx-auto px-8 py-8","children":["$","$L3",null,{"parallelRouterKey":"children","template":["$","$L4",null,{}]}]}]}]]}]]}],"loading":null,"isPartial":false}
