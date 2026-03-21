@@ -2,7 +2,27 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1d1e20;
+
+  --primary: #673de6;
+  --primary-dark: #5025d1;
+  --primary-darker: #2f1c6a;
+  --primary-darkest: #1F1346;
+  --primary-light: #ebe4ff;
+  --meteorite: #8c85ff;
+  --meteorite-light: #d5dfff;
+
+  --success: #00b090;
+  --warning: #ffcd35;
+  --warning-dark: #fea419;
+  --danger: #fc5185;
+  --danger-dark: #d63163;
+
+  --gray-dark: #36344d;
+  --gray-mid: #727586;
+  --gray-border: #dadce0;
+  --gray-light: #f2f3f6;
+  --dark: #1d1e20;
 }
 
 @theme inline {
@@ -12,15 +32,76 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.bg-primary { background-color: var(--primary); }
+.bg-primary-dark { background-color: var(--primary-dark); }
+.bg-primary-darker { background-color: var(--primary-darker); }
+.bg-primary-darkest { background-color: var(--primary-darkest); }
+.text-primary { color: var(--primary); }
+.text-warning { color: var(--warning); }
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+.border-primary { border-color: var(--primary); }
+
+.btn-primary {
+  background-color: var(--primary);
+  color: white;
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: background-color 0.2s;
+  display: inline-block;
+  cursor: pointer;
+  border: none;
+}
+.btn-primary:hover { background-color: var(--primary-dark); }
+
+.btn-warning {
+  background-color: var(--warning);
+  color: var(--dark);
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: background-color 0.2s;
+  display: inline-block;
+  cursor: pointer;
+  border: none;
+}
+.btn-warning:hover { background-color: var(--warning-dark); }
+
+.section-dark {
+  background-color: var(--primary-darkest);
+  color: white;
+}
+
+.section-purple {
+  background-color: var(--primary-darker);
+  color: white;
+}
+
+.container-xl {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.gradient-hero {
+  background: linear-gradient(135deg, var(--primary-darkest) 0%, var(--primary-darker) 50%, #3d2080 100%);
 }

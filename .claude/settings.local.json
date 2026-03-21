@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(/Users/miguelangelsaraviabelmonte/dev-web/medical-web-repo/.env.local:*)"
+    ]
+  }
+}
