@@ -1,5 +1,11 @@
-import { redirect } from "next/navigation"
+"use client"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function DashboardRoot() {
-  redirect("/dashboard/hero")
+  const router = useRouter()
+  useEffect(() => {
+    router.replace("/dashboard/hero")
+  }, [router])
+  return null
 }
