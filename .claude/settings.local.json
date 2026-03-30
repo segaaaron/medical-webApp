@@ -28,7 +28,8 @@
       "WebFetch(domain:www.saebolivia.com)",
       "WebFetch(domain:www.cursosginecoestetica.com)",
       "WebFetch(domain:doctorplace.com.bo)",
-      "WebFetch(domain:www.soarme.com)"
+      "WebFetch(domain:www.soarme.com)",
+      "Bash(rm:*)"
     ]
   }
 }
