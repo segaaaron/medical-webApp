@@ -29,7 +29,8 @@
       "WebFetch(domain:www.cursosginecoestetica.com)",
       "WebFetch(domain:doctorplace.com.bo)",
       "WebFetch(domain:www.soarme.com)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(wc:*)"
     ]
   }
 }

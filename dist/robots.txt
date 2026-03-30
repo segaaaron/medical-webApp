@@ -3,5 +3,5 @@ Allow: /
 Disallow: /dashboard/
 Disallow: /api/
 
-Host: https://drayasminmedrano.com
-Sitemap: https://drayasminmedrano.com/sitemap.xml
+Host: https://yasminmedrano.com
+Sitemap: https://yasminmedrano.com/sitemap.xml
