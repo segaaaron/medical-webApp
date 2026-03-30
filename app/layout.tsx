@@ -18,28 +18,34 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "Dra. Yasmin Medrano Avila | Medicina Estética Avanzada",
+    default: "Medicina Estética | Dra. Yasmin Medrano Avila",
     template: "%s | Dra. Yasmin Medrano Avila",
   },
   description:
-    "Consultorio de medicina estética de la Dra. Yasmin Medrano Avila. Especialista en botox, rellenos con ácido hialurónico, rejuvenecimiento facial, depilación láser y tratamientos corporales. Agenda tu consulta de valoración gratis.",
+    "Dra. Yasmin Medrano Avila — 10+ años en medicina estética. Botox, rellenos, bioestimulación y más. Resultados naturales, seguros y duraderos. ¡Consulta gratis!",
   keywords: [
-    "medicina estética",
+    // Transaccionales locales — alta intención de compra
+    "médico estético consulta gratis",
+    "botox precio consulta",
+    "rellenos labios ácido hialurónico",
+    "armonización facial médico especialista",
+    "bioestimuladores faciales polinucleótidos",
+    "depilación láser definitiva mujer",
+    "tratamiento manchas faciales médico",
+    "rejuvenecimiento facial sin cirugía",
+    "mesoterapia corporal reducción medidas",
+    "medicina estética resultados naturales",
+    // Informacionales / marca
     "Dra. Yasmin Medrano Avila",
-    "botox",
-    "ácido hialurónico",
-    "rejuvenecimiento facial",
-    "depilación láser",
-    "rellenos faciales",
-    "tratamientos corporales",
-    "mesoterapia",
-    "radiofrecuencia",
-    "eliminación de manchas",
-    "consultorio medicina estética",
     "medicina estética avanzada",
     "toxina botulínica",
     "bioestimulación",
     "peeling químico",
+    "radiofrecuencia facial",
+    "eliminación de manchas",
+    "tratamiento celulitis",
+    "tratamiento estrías",
+    "consultorio medicina estética",
   ],
   authors: [{ name: "Dra. Yasmin Medrano Avila" }],
   creator: "Dra. Yasmin Medrano Avila",
@@ -59,10 +65,10 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_MX",
     url: BASE_URL,
-    siteName: "Dra. Yasmin Medrano Avila — Medicina Estética Avanzada",
-    title: "Dra. Yasmin Medrano Avila | Medicina Estética Avanzada",
+    siteName: "Dra. Yasmin Medrano Avila — Medicina Estética",
+    title: "Medicina Estética | Dra. Yasmin Medrano Avila",
     description:
-      "Especialista en medicina estética: botox, rellenos, rejuvenecimiento facial, depilación láser y tratamientos corporales. Consulta de valoración gratis. ¡Agenda hoy!",
+      "10+ años de experiencia en botox, rellenos, armonización facial y bioestimulación. Resultados naturales y seguros. ¡Agenda tu consulta gratis hoy!",
     images: [
       {
         url: "/og-image.jpg",
@@ -74,9 +80,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dra. Yasmin Medrano Avila | Medicina Estética Avanzada",
+    title: "Medicina Estética | Dra. Yasmin Medrano Avila",
     description:
-      "Tratamientos estéticos seguros y efectivos: botox, rellenos, rejuvenecimiento, depilación láser y más. Consulta de valoración gratis este mes.",
+      "Botox, rellenos, armonización facial y bioestimulación con una especialista de confianza. +5000 pacientes satisfechos. Consulta gratis este mes.",
     images: ["/og-image.jpg"],
   },
   alternates: {
@@ -115,7 +121,11 @@ const jsonLd = {
         { "@type": "MedicalProcedure", name: "Bioestimulación con Polinucleótidos" },
         { "@type": "MedicalProcedure", name: "Tratamiento de Estrías" },
       ],
-      sameAs: [],
+      telephone: "+59178751894",
+      sameAs: [
+        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+        "https://www.instagram.com/dra_yasmin.medrano",
+      ],
     },
     {
       "@type": "Physician",
@@ -123,10 +133,15 @@ const jsonLd = {
       name: "Dra. Yasmin Medrano Avila",
       jobTitle: "Médica Especialista en Medicina Estética",
       description:
-        "Médica especialista en medicina estética con más de 10 años de experiencia en tratamientos faciales y corporales. Experta en toxina botulínica, ácido hialurónico, rejuvenecimiento y técnicas de vanguardia.",
+        "Médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, armonización facial, bioestimulación y técnicas de vanguardia.",
       url: BASE_URL,
+      telephone: "+59178751894",
       worksFor: { "@id": `${BASE_URL}/#business` },
       medicalSpecialty: "https://schema.org/PlasticSurgery",
+      sameAs: [
+        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+        "https://www.instagram.com/dra_yasmin.medrano",
+      ],
     },
     {
       "@type": "WebSite",

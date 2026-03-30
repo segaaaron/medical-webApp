@@ -41,4 +41,14 @@ export const faqs: FAQ[] = [
     answer:
       "Durante este mes especial, la consulta inicial de valoración es completamente gratuita. Agenda tu cita hoy y recibe una evaluación personalizada con la Dra. Yasmin Medrano Avila, donde podrás conocer todos los tratamientos disponibles y el plan más adecuado para tus necesidades.",
   },
+  {
+    question: "¿Cuál es la formación y experiencia de la Dra. Yasmin Medrano Avila?",
+    answer:
+      "La Dra. Yasmin Medrano Avila es médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Cuenta con formación especializada en toxina botulínica, rellenos con ácido hialurónico, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento avanzado. Su práctica se basa en protocolos médicos certificados que garantizan seguridad y resultados naturales.",
+  },
+  {
+    question: "¿Qué diferencia a la Dra. Yasmin de otros centros de estética?",
+    answer:
+      "A diferencia de los centros de estética convencionales, todos los procedimientos son realizados directamente por una médica especialista —no por técnicos o esteticistas. Esto garantiza diagnóstico médico preciso, manejo seguro de productos inyectables certificados y atención ante cualquier eventualidad. Además, cada plan de tratamiento es 100% personalizado según la anatomía y objetivos de cada paciente.",
+  },
 ]
