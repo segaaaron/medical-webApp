@@ -1,0 +1,7 @@
+User-Agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /api/
+
+Host: https://drayasminmedrano.com
+Sitemap: https://drayasminmedrano.com/sitemap.xml
