@@ -12,25 +12,26 @@ interface HeroSectionProps {
 export function HeroSection({ stats, ctas }: HeroSectionProps) {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-      {/* Background */}
+      {/* Background image */}
       <div
         className="absolute inset-0 z-0"
         style={{
-          background:
-            "linear-gradient(135deg, #1F1346 0%, #2f1c6a 40%, #3d1a8a 70%, #1F1346 100%)",
+          backgroundImage: "url('https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1920&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
         }}
       />
-      {/* Pattern overlay */}
+      {/* Dark overlay */}
       <div
-        className="absolute inset-0 z-0 opacity-20"
+        className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          background: "linear-gradient(135deg, rgba(58,15,32,0.92) 0%, rgba(92,31,53,0.80) 50%, rgba(122,42,74,0.70) 100%)",
         }}
       />
 
       {/* Decorative circles */}
-      <div className="absolute top-20 right-10 w-72 h-72 rounded-full opacity-10" style={{ background: "#673de6" }} />
-      <div className="absolute bottom-20 left-10 w-48 h-48 rounded-full opacity-10" style={{ background: "#8c85ff" }} />
+      <div className="absolute top-20 right-10 w-72 h-72 rounded-full opacity-10" style={{ background: "#b5496a" }} />
+      <div className="absolute bottom-20 left-10 w-48 h-48 rounded-full opacity-10" style={{ background: "#e8a0b4" }} />
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-6 max-w-5xl mx-auto py-20">
@@ -39,9 +40,9 @@ export function HeroSection({ stats, ctas }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-sm md:text-base uppercase tracking-[0.3em] mb-4 font-medium"
-          style={{ color: "#8c85ff" }}
+          style={{ color: "#e8a0b4" }}
         >
-          Photography · Courses · Workshops · Tutorials · Presets
+          Medicina Estética · Rejuvenecimiento · Tratamientos Corporales
         </motion.p>
 
         <motion.h1
@@ -50,10 +51,10 @@ export function HeroSection({ stats, ctas }: HeroSectionProps) {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="font-bold text-4xl md:text-6xl lg:text-7xl mb-6 leading-tight"
         >
-          James Nader
+          Dra. Yasmin Medrano Avila
           <br />
-          <span className="italic font-light" style={{ color: "#d5dfff" }}>
-            Photography Academy
+          <span className="italic font-light text-3xl md:text-4xl lg:text-5xl" style={{ color: "#fce4ec" }}>
+            Medicina Estética Avanzada
           </span>
         </motion.h1>
 
@@ -62,7 +63,7 @@ export function HeroSection({ stats, ctas }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
           className="w-24 h-1 mx-auto mb-8"
-          style={{ backgroundColor: "#ffcd35" }}
+          style={{ backgroundColor: "#c9a96e" }}
         />
 
         <motion.p
@@ -70,11 +71,11 @@ export function HeroSection({ stats, ctas }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
           className="text-lg md:text-2xl mb-10 max-w-3xl mx-auto font-light leading-relaxed"
-          style={{ color: "#d5dfff" }}
+          style={{ color: "#fce4ec" }}
         >
-          Most photographers never cross the{" "}
-          <span className="font-bold text-yellow-300">£1K barrier</span> and it has nothing to do
-          with their gear.
+          Realza tu belleza natural con{" "}
+          <span className="font-bold" style={{ color: "#c9a96e" }}>tratamientos seguros y efectivos</span>
+          {" "}diseñados especialmente para ti.
         </motion.p>
 
         <motion.div
@@ -108,8 +109,8 @@ export function HeroSection({ stats, ctas }: HeroSectionProps) {
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 1.5, repeat: Infinity }}
       >
-        <span className="text-xs uppercase tracking-widest text-purple-300">Scroll</span>
-        <div className="w-px h-8 bg-gradient-to-b from-purple-300 to-transparent" />
+        <span className="text-xs uppercase tracking-widest" style={{ color: "#e8a0b4" }}>Descubre más</span>
+        <div className="w-px h-8 bg-gradient-to-b from-pink-300 to-transparent" />
       </motion.div>
     </section>
   )

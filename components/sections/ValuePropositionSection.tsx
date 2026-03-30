@@ -18,7 +18,7 @@ interface ValuePropositionSectionProps {
 
 export function ValuePropositionSection({ features }: ValuePropositionSectionProps) {
   return (
-    <section className="py-20 px-6" style={{ backgroundColor: "#f2f3f6" }}>
+    <section className="py-20 px-6" style={{ backgroundColor: "#faf5f7" }}>
       <div className="container-xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -27,9 +27,9 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
           transition={{ duration: 0.7 }}
         >
           <SectionHeader
-            eyebrow="The Hidden System"
-            title="Most photographers never cross the £1K barrier"
-            subtitle="It has nothing to do with their gear. It&apos;s about vision, technique, and a <span style='color:#673de6;font-weight:700;'>system that works</span>. That&apos;s exactly what James Nader teaches."
+            eyebrow="¿Por Qué Elegirnos?"
+            title="Tu bienestar y belleza son nuestra prioridad"
+            subtitle="En el consultorio de la Dra. Yasmin Medrano Avila encontrarás un espacio dedicado exclusivamente a <span style='color:#b5496a;font-weight:700;'>realzar tu belleza natural</span> con los más altos estándares médicos."
           />
         </motion.div>
 
@@ -47,14 +47,14 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
               >
                 <div
                   className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                  style={{ backgroundColor: "#ebe4ff" }}
+                  style={{ backgroundColor: "#fde8ef" }}
                 >
-                  <Icon size={26} style={{ color: "#673de6" }} />
+                  <Icon size={26} style={{ color: "#b5496a" }} />
                 </div>
-                <h3 className="font-bold text-lg mb-3" style={{ color: "#1F1346" }}>
+                <h3 className="font-bold text-lg mb-3" style={{ color: "#3a0f20" }}>
                   {feature.title}
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#727586" }}>
+                <p className="text-sm leading-relaxed" style={{ color: "#7a6570" }}>
                   {feature.description}
                 </p>
               </motion.div>

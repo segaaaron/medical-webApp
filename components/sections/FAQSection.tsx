@@ -13,7 +13,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   return (
-    <section className="py-20 px-6" style={{ backgroundColor: "#f2f3f6" }}>
+    <section id="faq" className="py-20 px-6" style={{ backgroundColor: "#faf5f7" }}>
       <div className="container-xl max-w-3xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -21,7 +21,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <SectionHeader eyebrow="Got Questions?" title="Frequently Asked Questions" />
+          <SectionHeader eyebrow="¿Tienes Preguntas?" title="Preguntas Frecuentes" />
         </motion.div>
 
         <div className="flex flex-col gap-3">
@@ -39,7 +39,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 aria-expanded={openIndex === i}
               >
-                <span className="font-semibold text-base" style={{ color: "#1F1346" }}>
+                <span className="font-semibold text-base" style={{ color: "#3a0f20" }}>
                   {faq.question}
                 </span>
                 <motion.span
@@ -47,7 +47,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
                   transition={{ duration: 0.2 }}
                   className="shrink-0"
                 >
-                  <ChevronDown size={20} style={{ color: "#673de6" }} />
+                  <ChevronDown size={20} style={{ color: "#b5496a" }} />
                 </motion.span>
               </button>
 

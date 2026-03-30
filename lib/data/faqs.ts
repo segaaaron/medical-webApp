@@ -2,43 +2,43 @@ import type { FAQ } from "@/types"
 
 export const faqs: FAQ[] = [
   {
-    question: "What makes monochrome photography so powerful?",
+    question: "¿Los tratamientos de medicina estética son seguros?",
     answer:
-      "Monochrome photography strips away colour distractions, forcing the viewer to engage with form, texture, light, and emotion. It creates a timeless quality that colour images rarely achieve, and it&apos;s a medium where mastery of tone is everything.",
+      "Sí. Todos los tratamientos que ofrecemos en el consultorio de la Dra. Yasmin Medrano Avila están avalados médicamente y se realizan con productos certificados y equipos de última tecnología. La Dra. Yasmin tiene una formación especializada en medicina estética, lo que garantiza procedimientos seguros, efectivos y adaptados a cada paciente.",
   },
   {
-    question: "How does the Zone System improve my images?",
+    question: "¿Cuánto tiempo duran los resultados del botox?",
     answer:
-      "The Zone System, developed by Ansel Adams, gives you a structured way to understand and control the full tonal range of your image — from pure black to pure white. James teaches it in a modern, practical way that translates directly into your Lightroom editing workflow.",
+      "Los resultados de la toxina botulínica (botox) duran generalmente entre 4 y 6 meses, dependiendo del metabolismo de cada paciente, la zona tratada y el estilo de vida. Con sesiones de mantenimiento regulares, los resultados pueden prolongarse con el tiempo.",
   },
   {
-    question: "What equipment do I need for this course?",
+    question: "¿El procedimiento con ácido hialurónico duele?",
     answer:
-      "Any camera — DSLR, mirrorless, or even smartphone — and Adobe Lightroom (Classic or CC). The course is about vision and technique, not gear. If you can shoot and edit, you can start immediately.",
+      "Los rellenos con ácido hialurónico se aplican con anestesia tópica previa, lo que minimiza considerablemente las molestias. La mayoría de los pacientes lo describen como una ligera presión o sensación de pinchazo tolerable. La experiencia y técnica de la Dra. Yasmin garantizan un procedimiento lo más cómodo posible.",
   },
   {
-    question: "What is TRIOME™?",
+    question: "¿Cuántas sesiones necesito para ver resultados en tratamientos corporales?",
     answer:
-      "TRIOME™ is James Nader&apos;s proprietary three-zone tonal method for monochrome conversion. It simplifies the Zone System into three key tonal areas that work together to create dynamic, expressive black and white images every time.",
+      "El número de sesiones varía según el tratamiento y el objetivo del paciente. Por ejemplo, para reducción de medidas o tratamiento de celulitis, generalmente se recomiendan entre 8 y 12 sesiones. La Dra. Yasmin realiza una valoración inicial personalizada para determinar el plan de tratamiento ideal para ti.",
   },
   {
-    question: "Is monochrome photography still relevant today?",
+    question: "¿Cuánto tiempo dura una sesión de depilación láser?",
     answer:
-      "Absolutely. Monochrome is timeless. From fashion editorials to fine art galleries, from wedding photography to social media — black and white imagery commands attention and conveys emotion in a way that is universally powerful.",
+      "El tiempo de cada sesión depende del área a tratar. Zonas pequeñas como el labio superior pueden tomar 5-10 minutos, mientras que zonas más grandes como piernas completas pueden tomar entre 45 y 60 minutos. La depilación láser requiere varias sesiones (entre 6 y 8) para obtener resultados definitivos.",
   },
   {
-    question: "How long do I have access to the course?",
+    question: "¿Qué debo hacer antes de mi primera consulta?",
     answer:
-      "Lifetime access — including all future updates and new modules added to the course. Pay once, learn forever.",
+      "Simplemente agenda tu cita con nosotros. Para la consulta inicial no es necesaria ninguna preparación especial. La Dra. Yasmin realizará una evaluación completa de tu piel y condición física, escuchará tus expectativas y te explicará las opciones de tratamiento más adecuadas para ti, los resultados esperados y el cuidado post-tratamiento.",
   },
   {
-    question: "What genres does the course cover?",
+    question: "¿Cuándo puedo ver resultados en el rejuvenecimiento facial?",
     answer:
-      "Landscape, wedding, street, fashion, editorial, and portrait photography. The TRIOME™ method and Zone System principles are applied across all genres with dedicated modules for each.",
+      "Los resultados dependen del tipo de tratamiento. Con botox, los efectos son visibles desde los 3-7 días. Con rellenos de ácido hialurónico, los resultados son inmediatos. Para tratamientos con radiofrecuencia o bioestimulación, los mejores resultados se observan progresivamente entre 4 y 8 semanas después del tratamiento.",
   },
   {
-    question: "Who is this course designed for?",
+    question: "¿La consulta de valoración tiene algún costo?",
     answer:
-      "Photographers at all levels — from enthusiastic amateurs who want to develop their vision, to working professionals looking to add a powerful monochrome offering to their portfolio and attract higher-paying clients.",
+      "Durante este mes especial, la consulta inicial de valoración es completamente gratuita. Agenda tu cita hoy y recibe una evaluación personalizada con la Dra. Yasmin Medrano Avila, donde podrás conocer todos los tratamientos disponibles y el plan más adecuado para tus necesidades.",
   },
 ]

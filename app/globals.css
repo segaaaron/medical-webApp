@@ -4,24 +4,24 @@
   --background: #ffffff;
   --foreground: #1d1e20;
 
-  --primary: #673de6;
-  --primary-dark: #5025d1;
-  --primary-darker: #2f1c6a;
-  --primary-darkest: #1F1346;
-  --primary-light: #ebe4ff;
-  --meteorite: #8c85ff;
-  --meteorite-light: #d5dfff;
+  --primary: #b5496a;
+  --primary-dark: #8f3452;
+  --primary-darker: #5c1f35;
+  --primary-darkest: #3a0f20;
+  --primary-light: #fde8ef;
+  --meteorite: #e8a0b4;
+  --meteorite-light: #fce4ec;
 
-  --success: #00b090;
-  --warning: #ffcd35;
-  --warning-dark: #fea419;
-  --danger: #fc5185;
-  --danger-dark: #d63163;
+  --success: #4a9e82;
+  --warning: #c9a96e;
+  --warning-dark: #a8894e;
+  --danger: #e05a7a;
+  --danger-dark: #b03558;
 
-  --gray-dark: #36344d;
-  --gray-mid: #727586;
-  --gray-border: #dadce0;
-  --gray-light: #f2f3f6;
+  --gray-dark: #4a3540;
+  --gray-mid: #7a6570;
+  --gray-border: #e0d5d8;
+  --gray-light: #faf5f7;
   --dark: #1d1e20;
 }
 
@@ -103,5 +103,5 @@ html {
 }
 
 .gradient-hero {
-  background: linear-gradient(135deg, var(--primary-darkest) 0%, var(--primary-darker) 50%, #3d2080 100%);
+  background: linear-gradient(135deg, var(--primary-darkest) 0%, var(--primary-darker) 50%, #7a2a4a 100%);
 }

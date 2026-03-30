@@ -5,13 +5,23 @@ import { Badge } from "@/components/ui/Badge"
 import { LinkButton } from "@/components/ui/Button"
 import type { PresetCategory } from "@/types"
 
+// Images for each treatment category
+const TREATMENT_IMAGES = [
+  "/images/draMedrano4.jpeg",                                                  // Tratamientos faciales — inyección facial
+  "/images/draMedrano3.jpeg",                                                  // Medicina regenerativa — tratamiento en paciente
+  "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=400&q=80", // Corporales
+  "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400&q=80", // Depilación láser
+  "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=80", // Hidratación
+  "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400&q=80", // Estrías
+]
+
 interface PresetsSectionProps {
   presets: PresetCategory[]
 }
 
 export function PresetsSection({ presets }: PresetsSectionProps) {
   return (
-    <section id="presets" className="py-20 px-6" style={{ backgroundColor: "#2f1c6a" }}>
+    <section id="servicios" className="py-20 px-6" style={{ backgroundColor: "#5c1f35" }}>
       <div className="container-xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -20,9 +30,9 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           transition={{ duration: 0.7 }}
         >
           <SectionHeader
-            eyebrow="Lightroom Presets Collection"
-            title="Film Emulation Presets"
-            subtitle={`Hand-crafted from a professional workflow, inspired by <span style="color:#fcd34d;font-weight:600;">Kodak, Fujifilm, and Agfa</span> film stocks — giving your images that authentic analogue look.`}
+            eyebrow="Áreas de Especialidad"
+            title="Nuestras Categorías de Tratamiento"
+            subtitle={`Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:#c9a96e;font-weight:600;">resultados visibles y duraderos</span>.`}
             light
           />
         </motion.div>
@@ -35,22 +45,25 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="rounded-xl p-6 hover:scale-105 transition-transform cursor-pointer"
-              style={{ backgroundColor: "#1F1346" }}
+              className="rounded-xl overflow-hidden hover:scale-105 transition-transform cursor-pointer"
+              style={{ backgroundColor: "#3a0f20" }}
             >
-              <div
-                className="w-full h-40 rounded-lg mb-5 flex items-center justify-center text-5xl"
-                style={{ backgroundColor: "#2f1c6a" }}
-              >
-                🎞️
+              <div className="w-full h-44 overflow-hidden">
+                <img
+                  src={TREATMENT_IMAGES[i % TREATMENT_IMAGES.length]}
+                  alt={preset.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-white text-lg">{preset.name}</h3>
-                <Badge label={preset.tag} color={preset.tagColor} />
+              <div className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-white text-base">{preset.name}</h3>
+                  <Badge label={preset.tag} color={preset.tagColor} />
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: "#e8a0b4" }}>
+                  {preset.description}
+                </p>
               </div>
-              <p className="text-sm leading-relaxed" style={{ color: "#8c85ff" }}>
-                {preset.description}
-              </p>
             </motion.div>
           ))}
         </div>
@@ -62,8 +75,8 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <LinkButton href="#" variant="primary" className="px-12">
-            BUY MY PRESETS
+          <LinkButton href="https://wa.me/59178751894" variant="primary" className="px-12">
+            CONSULTAR TRATAMIENTO
           </LinkButton>
         </motion.div>
       </div>

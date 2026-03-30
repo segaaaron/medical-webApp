@@ -44,10 +44,15 @@ export function LinkButton({
   variant = "primary",
   className,
   children,
+  href,
   ...props
 }: LinkButtonProps) {
+  const isExternal = typeof href === "string" && (href.startsWith("http://") || href.startsWith("https://"))
   return (
     <a
+      href={href}
+      target={isExternal ? "_blank" : undefined}
+      rel={isExternal ? "noopener noreferrer" : undefined}
       className={clsx(
         "inline-flex items-center justify-center px-8 py-4 font-bold uppercase tracking-widest text-sm transition-colors",
         VARIANT_STYLES[variant],

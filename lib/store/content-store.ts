@@ -26,9 +26,9 @@ const DEFAULTS: ContentStore = {
   freePDFs,
   about: {
     bio: [
-      "James Nader is an internationally recognised photographer and educator with over three decades of experience in fashion, advertising, and commercial photography. His work has graced the pages of leading publications and the campaigns of global brands and celebrities.",
-      "A specialist in the Zone System and the creator of the proprietary TRIOME™ method, James has developed a unique approach to monochrome photography that goes beyond technique — it's a philosophy of visual storytelling.",
-      "Through the James Nader Photography Academy, he shares the systems, methods, and mindset shifts that have defined his career — with photographers at every level, worldwide.",
+      "La Dra. Yasmin Medrano Avila es médica especialista en medicina estética con más de 10 años de experiencia dedicados a realzar la belleza natural de sus pacientes. Su formación en instituciones de alto nivel y su constante actualización la posicionan como una referente en el área de medicina estética avanzada.",
+      "Especialista en procedimientos faciales mínimamente invasivos como toxina botulínica, rellenos con ácido hialurónico, bioestimulación y rejuvenecimiento facial, la Dra. Yasmin combina técnica depurada con un enfoque artístico que garantiza resultados naturales y armoniosos.",
+      "En su consultorio, cada paciente recibe atención personalizada y un plan de tratamiento diseñado específicamente para sus necesidades. La Dra. Yasmin se distingue por crear un ambiente de confianza y bienestar donde la seguridad del paciente siempre es la prioridad.",
     ],
     stats: aboutStats,
   },

@@ -19,7 +19,16 @@
       "Bash(curl:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git rm:*)",
+      "WebFetch(domain:draluisaguerra.com)",
+      "WebFetch(domain:www.facebook.com)",
+      "WebFetch(domain:www.instagram.com)",
+      "WebSearch",
+      "WebFetch(domain:www.saebolivia.com)",
+      "WebFetch(domain:www.cursosginecoestetica.com)",
+      "WebFetch(domain:doctorplace.com.bo)",
+      "WebFetch(domain:www.soarme.com)"
     ]
   }
 }

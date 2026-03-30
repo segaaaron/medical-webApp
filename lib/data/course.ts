@@ -2,32 +2,32 @@ import type { CourseIncluded, CourseModule, CoursePricing } from "@/types"
 
 // iconName is a string — safe to pass across the server→client boundary
 export const courseIncluded: CourseIncluded[] = [
-  { iconName: "Play", text: "31+ In-Depth Video Lessons" },
-  { iconName: "FileText", text: "Full Transcripts for Every Module" },
-  { iconName: "Download", text: "Downloadable PDFs & Workbooks" },
-  { iconName: "Download", text: "Exclusive Lightroom Presets" },
-  { iconName: "CheckCircle", text: "Lifetime Access to All Updates" },
-  { iconName: "CheckCircle", text: "Private Student Community" },
+  { iconName: "CheckCircle", text: "Consulta de valoración personalizada" },
+  { iconName: "CheckCircle", text: "Plan de tratamiento individualizado" },
+  { iconName: "CheckCircle", text: "Seguimiento post-tratamiento" },
+  { iconName: "CheckCircle", text: "Productos de calidad certificada" },
+  { iconName: "CheckCircle", text: "Tecnología de última generación" },
+  { iconName: "CheckCircle", text: "Atención médica especializada" },
 ]
 
 export const courseModules: CourseModule[] = [
-  { title: "Introduction to Monochrome Vision" },
-  { title: "The Zone System — Foundations" },
-  { title: "TRIOME™ Method Explained" },
-  { title: "Landscape Photography in Mono" },
-  { title: "Wedding Photography in Mono" },
-  { title: "Street Photography Mastery" },
-  { title: "Fashion & Editorial Mono" },
-  { title: "Portrait Photography in Black & White" },
-  { title: "Tonal Control & Zone Mapping" },
-  { title: "Advanced Editing Workflow" },
-  { title: "Lightroom Monochrome Techniques" },
-  { title: "Print Preparation & Output" },
+  { title: "Toxina Botulínica (Botox)" },
+  { title: "Rellenos de Ácido Hialurónico" },
+  { title: "Bioestimulación con Polinucleótidos" },
+  { title: "Mesoterapia Facial" },
+  { title: "Radiofrecuencia Facial" },
+  { title: "Peeling Químico" },
+  { title: "Tratamiento de Manchas" },
+  { title: "Hidratación Profunda" },
+  { title: "Reducción de Medidas" },
+  { title: "Tratamiento de Celulitis" },
+  { title: "Depilación Láser" },
+  { title: "Tratamiento de Estrías" },
 ]
 
 export const coursePricing: CoursePricing = {
-  earlyBird: 297,
-  regular: 597,
-  currency: "£",
-  savings: 300,
+  earlyBird: 0,
+  regular: 150000,
+  currency: "$",
+  savings: 150000,
 }
