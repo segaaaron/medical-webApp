@@ -30,7 +30,9 @@
       "WebFetch(domain:doctorplace.com.bo)",
       "WebFetch(domain:www.soarme.com)",
       "Bash(rm:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(ls /Users/miguelangelsaraviabelmonte/medical-webApp/.env*)",
+      "Bash(ls /Users/miguelangelsaraviabelmonte/medical-webApp/.nixpacks*)"
     ]
   }
 }

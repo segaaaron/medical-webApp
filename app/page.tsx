@@ -19,7 +19,7 @@ import { socialLinks } from "@/lib/data/navigation"
 
 export default async function HomePage() {
   // Single source of truth: content-store merges data/content.json + defaults
-  const c = readContent()
+  const c = await readContent()
 
   return (
     <>
