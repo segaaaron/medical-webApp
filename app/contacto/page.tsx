@@ -9,6 +9,22 @@ export const metadata: Metadata = {
   title: "Contacto | Dra. Yasmin Medrano Avila",
   description:
     "Comunícate con el consultorio de la Dra. Yasmin Medrano Avila para agendar tu consulta de valoración gratuita.",
+  openGraph: {
+    title: "Contacto | Dra. Yasmin Medrano Avila",
+    description:
+      "Comunícate con el consultorio de la Dra. Yasmin Medrano Avila para agendar tu consulta de valoración gratuita.",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/contacto`,
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    type: "website",
+    locale: "es_BO",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contacto | Dra. Yasmin Medrano Avila",
+    description:
+      "Comunícate con el consultorio de la Dra. Yasmin Medrano Avila para agendar tu consulta de valoración gratuita.",
+    images: ["/og-image.jpg"],
+  },
 }
 
 export default async function ContactoPage() {

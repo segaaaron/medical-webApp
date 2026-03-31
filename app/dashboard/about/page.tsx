@@ -61,7 +61,7 @@ export default function AboutEditorPage() {
     <>
       <PageHeader
         title="About"
-        description="Sección biográfica sobre James Nader."
+        description="Sección biográfica sobre Dra. Yasmin Medrano Avila."
         saving={saving}
         saved={saved}
         onSave={handleSave}

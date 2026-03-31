@@ -10,6 +10,22 @@ export const metadata: Metadata = {
   title: "Nosotros | Dra. Yasmin Medrano Avila",
   description:
     "Conoce a la Dra. Yasmin Medrano Avila, especialista en medicina estética con más de 10 años de experiencia y más de 5000 pacientes atendidos.",
+  openGraph: {
+    title: "Nosotros | Dra. Yasmin Medrano Avila",
+    description:
+      "Conoce a la Dra. Yasmin Medrano Avila, especialista en medicina estética con más de 10 años de experiencia y más de 5000 pacientes atendidos.",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/nosotros`,
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    type: "website",
+    locale: "es_BO",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nosotros | Dra. Yasmin Medrano Avila",
+    description:
+      "Conoce a la Dra. Yasmin Medrano Avila, especialista en medicina estética con más de 10 años de experiencia y más de 5000 pacientes atendidos.",
+    images: ["/og-image.jpg"],
+  },
 }
 
 export default async function NosotrosPage() {

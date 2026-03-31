@@ -10,15 +10,24 @@ import {
   Navigation,
   LogOut,
   ExternalLink,
+  Stethoscope,
+  Newspaper,
+  CalendarCheck,
 } from "lucide-react"
 
-const NAV = [
+const NAV_CONTENT = [
   { label: "Hero", href: "/dashboard/hero", icon: Sparkles },
   { label: "Curso", href: "/dashboard/course", icon: BookOpen },
   { label: "Presets", href: "/dashboard/presets", icon: ImageIcon },
   { label: "FAQs", href: "/dashboard/faqs", icon: HelpCircle },
   { label: "About", href: "/dashboard/about", icon: User },
   { label: "Navegación", href: "/dashboard/navigation", icon: Navigation },
+]
+
+const NAV_SERVICES = [
+  { label: "Tratamientos", href: "/dashboard/tratamientos", icon: Stethoscope },
+  { label: "Blog", href: "/dashboard/blog", icon: Newspaper },
+  { label: "Citas", href: "/dashboard/citas", icon: CalendarCheck },
 ]
 
 export function Sidebar() {
@@ -38,34 +47,62 @@ export function Sidebar() {
           <LayoutDashboard size={18} style={{ color: "#8c85ff" }} />
           <span className="text-white font-bold text-sm">Dashboard</span>
         </div>
-        <p className="text-xs" style={{ color: "#727586" }}>James Nader Academy</p>
+        <p className="text-xs" style={{ color: "#727586" }}>Dra. Yasmin Medrano Avila</p>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <p className="text-xs uppercase tracking-widest px-3 mb-3" style={{ color: "#727586" }}>
-          Secciones
-        </p>
-        <ul className="flex flex-col gap-1">
-          {NAV.map(({ label, href, icon: Icon }) => {
-            const active = pathname.startsWith(href)
-            return (
-              <li key={href}>
-                <a
-                  href={href}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: active ? "#2f1c6a" : "transparent",
-                    color: active ? "white" : "#8c85ff",
-                  }}
-                >
-                  <Icon size={16} />
-                  {label}
-                </a>
-              </li>
-            )
-          })}
-        </ul>
+      <nav className="flex-1 px-3 py-4 overflow-y-auto flex flex-col gap-5">
+        <div>
+          <p className="text-xs uppercase tracking-widest px-3 mb-3" style={{ color: "#727586" }}>
+            Contenido Web
+          </p>
+          <ul className="flex flex-col gap-1">
+            {NAV_CONTENT.map(({ label, href, icon: Icon }) => {
+              const active = pathname.startsWith(href)
+              return (
+                <li key={href}>
+                  <a
+                    href={href}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      backgroundColor: active ? "#2f1c6a" : "transparent",
+                      color: active ? "white" : "#8c85ff",
+                    }}
+                  >
+                    <Icon size={16} />
+                    {label}
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+
+        <div>
+          <p className="text-xs uppercase tracking-widest px-3 mb-3" style={{ color: "#727586" }}>
+            Servicios
+          </p>
+          <ul className="flex flex-col gap-1">
+            {NAV_SERVICES.map(({ label, href, icon: Icon }) => {
+              const active = pathname.startsWith(href)
+              return (
+                <li key={href}>
+                  <a
+                    href={href}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      backgroundColor: active ? "#2f1c6a" : "transparent",
+                      color: active ? "white" : "#8c85ff",
+                    }}
+                  >
+                    <Icon size={16} />
+                    {label}
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       </nav>
 
       {/* Footer */}

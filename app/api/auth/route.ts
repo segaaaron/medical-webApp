@@ -2,6 +2,34 @@ import { NextRequest, NextResponse } from "next/server"
 import { signToken, verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { cookies } from "next/headers"
 
+// In-memory rate limiter: max 5 login attempts per IP per 15 minutes
+const RATE_LIMIT_MAX = 5
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+
+interface RateLimitEntry {
+  count: number
+  windowStart: number
+}
+
+const rateLimitMap = new Map<string, RateLimitEntry>()
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+
+  if (!entry || now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    rateLimitMap.set(ip, { count: 1, windowStart: now })
+    return false
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return true
+  }
+
+  entry.count += 1
+  return false
+}
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -13,6 +41,18 @@ const COOKIE_OPTIONS = {
 // POST /api/auth — login
 export async function POST(req: NextRequest) {
   try {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+      req.headers.get("x-real-ip") ??
+      "unknown"
+
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Intenta nuevamente en 15 minutos." },
+        { status: 429 }
+      )
+    }
+
     const { username, password } = await req.json()
 
     const validUser = process.env.DASHBOARD_USER ?? "admin"

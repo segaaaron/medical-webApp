@@ -49,7 +49,7 @@ function LoginForm() {
             <Lock size={22} style={{ color: "#8c85ff" }} />
           </div>
           <h1 className="text-white font-bold text-2xl">Dashboard</h1>
-          <p className="text-sm mt-1" style={{ color: "#8c85ff" }}>James Nader Photography Academy</p>
+          <p className="text-sm mt-1" style={{ color: "#8c85ff" }}>Dra. Yasmin Medrano Avila</p>
         </div>
 
         {/* Card */}

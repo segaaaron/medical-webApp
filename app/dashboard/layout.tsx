@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Sidebar } from "@/components/dashboard/Sidebar"
 
 export const metadata: Metadata = {
-  title: "Dashboard | James Nader Academy",
+  title: "Dashboard | Dra. Yasmin Medrano Avila",
   robots: "noindex, nofollow",
 }
 

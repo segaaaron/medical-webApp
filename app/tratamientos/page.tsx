@@ -1,4 +1,5 @@
 import { readContent } from "@/lib/store/content-store"
+import { backendFetch } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { CourseSection } from "@/components/sections/CourseSection"
@@ -10,10 +11,46 @@ export const metadata: Metadata = {
   title: "Tratamientos | Dra. Yasmin Medrano Avila",
   description:
     "Conoce todos los tratamientos de medicina estética: faciales, corporales, rejuvenecimiento y más. Consulta de valoración gratuita.",
+  openGraph: {
+    title: "Tratamientos | Dra. Yasmin Medrano Avila",
+    description:
+      "Conoce todos los tratamientos de medicina estética: faciales, corporales, rejuvenecimiento y más. Consulta de valoración gratuita.",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/tratamientos`,
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    type: "website",
+    locale: "es_BO",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tratamientos | Dra. Yasmin Medrano Avila",
+    description:
+      "Conoce todos los tratamientos de medicina estética: faciales, corporales, rejuvenecimiento y más. Consulta de valoración gratuita.",
+    images: ["/og-image.jpg"],
+  },
+}
+
+interface BackendTreatment {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  category: string
+  imageUrl: string | null
+  active: boolean
 }
 
 export default async function TratamientosPage() {
-  const c = await readContent()
+  const [c, backendResult] = await Promise.all([
+    readContent(),
+    backendFetch<BackendTreatment[]>("/treatments?active=true"),
+  ])
+
+  // If the backend has treatments, override the module list with live data
+  const backendTreatments = backendResult.data ?? []
+  const liveModules =
+    backendTreatments.length > 0
+      ? backendTreatments.map((t) => ({ title: t.name }))
+      : c.courseModules
 
   return (
     <>
@@ -32,7 +69,7 @@ export default async function TratamientosPage() {
 
         <CourseSection
           included={c.courseIncluded}
-          modules={c.courseModules}
+          modules={liveModules}
           pricing={c.coursePricing}
         />
         <PresetsSection presets={c.presets} />
