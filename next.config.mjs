@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
-  outputFileTracingRoot: "/app",
+  ...(process.env.NODE_ENV === "production" && {
+    outputFileTracingRoot: "/app",
+  }),
 };
 
 export default nextConfig;
