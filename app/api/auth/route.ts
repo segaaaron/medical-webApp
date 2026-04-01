@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server"
 import { signToken, verifyToken, COOKIE_NAME } from "@/lib/auth/session"
+import {
+  BACKEND_ACCESS_COOKIE,
+  BACKEND_REFRESH_COOKIE,
+  ACCESS_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
+  CLEAR_COOKIE_OPTIONS,
+  revokeBackendRefreshToken,
+} from "@/lib/auth/backend-tokens"
 import { cookies } from "next/headers"
+
+const BACKEND_URL =
+  process.env.BACKEND_URL ?? "https://service.drayasminmedrano-services.cloud"
 
 // In-memory rate limiter: max 5 login attempts per IP per 15 minutes
 const RATE_LIMIT_MAX = 5
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 
 interface RateLimitEntry {
   count: number
@@ -30,7 +41,7 @@ function isRateLimited(ip: string): boolean {
   return false
 }
 
-const COOKIE_OPTIONS = {
+const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
@@ -53,25 +64,43 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { username, password } = await req.json()
+    const { email, password } = await req.json()
 
-    const validUser = process.env.DASHBOARD_USER ?? "admin"
-    const validPass = process.env.DASHBOARD_PASSWORD
-
-    if (!validPass) {
-      console.error("DASHBOARD_PASSWORD no está configurado en las variables de entorno")
-      return NextResponse.json({ error: "Servidor mal configurado" }, { status: 500 })
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email y contraseña son requeridos." },
+        { status: 400 }
+      )
     }
 
-    if (username !== validUser || password !== validPass) {
-      return NextResponse.json({ error: "Credenciales incorrectas" }, { status: 401 })
+    // Validate credentials against backend
+    const backendRes = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+
+    if (!backendRes.ok) {
+      const body = await backendRes.json().catch(() => ({}))
+      const message =
+        backendRes.status === 401
+          ? "Credenciales incorrectas."
+          : body.error ?? "Error al autenticar."
+      return NextResponse.json({ error: message }, { status: backendRes.status })
     }
 
-    const token = await signToken(username)
+    const { accessToken, refreshToken, user } = await backendRes.json()
+
+    // Create dashboard session cookie (HMAC-based, compatible with middleware)
+    const sessionToken = await signToken(user.email)
     const cookieStore = await cookies()
-    cookieStore.set(COOKIE_NAME, token, COOKIE_OPTIONS)
+    cookieStore.set(COOKIE_NAME, sessionToken, SESSION_COOKIE_OPTIONS)
 
-    return NextResponse.json({ ok: true })
+    // Store backend JWT tokens for use in API routes
+    cookieStore.set(BACKEND_ACCESS_COOKIE, accessToken, ACCESS_COOKIE_OPTIONS)
+    cookieStore.set(BACKEND_REFRESH_COOKIE, refreshToken, REFRESH_COOKIE_OPTIONS)
+
+    return NextResponse.json({ ok: true, user: { email: user.email, name: user.name } })
   } catch (err) {
     console.error("[POST /api/auth]", err)
     return NextResponse.json({ error: "Error en autenticación" }, { status: 500 })
@@ -81,7 +110,17 @@ export async function POST(req: NextRequest) {
 // DELETE /api/auth — logout
 export async function DELETE() {
   const cookieStore = await cookies()
-  cookieStore.set(COOKIE_NAME, "", { ...COOKIE_OPTIONS, maxAge: 0 })
+
+  // Revoke backend refresh token before clearing cookies
+  const refreshToken = cookieStore.get(BACKEND_REFRESH_COOKIE)?.value
+  if (refreshToken) {
+    await revokeBackendRefreshToken(refreshToken)
+  }
+
+  cookieStore.set(COOKIE_NAME, "", { ...SESSION_COOKIE_OPTIONS, maxAge: 0 })
+  cookieStore.set(BACKEND_ACCESS_COOKIE, "", CLEAR_COOKIE_OPTIONS)
+  cookieStore.set(BACKEND_REFRESH_COOKIE, "", CLEAR_COOKIE_OPTIONS)
+
   return NextResponse.json({ ok: true })
 }
 

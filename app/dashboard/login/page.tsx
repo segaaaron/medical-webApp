@@ -9,7 +9,7 @@ function LoginForm() {
   const params = useSearchParams()
   const from = params.get("from") ?? "/dashboard/hero"
 
-  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -22,10 +22,11 @@ function LoginForm() {
       const res = await fetch("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       })
+      const data = await res.json()
       if (!res.ok) {
-        setError("Usuario o contraseña incorrectos.")
+        setError(data.error ?? "Usuario o contraseña incorrectos.")
         return
       }
       router.push(from)
@@ -58,18 +59,18 @@ function LoginForm() {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-semibold text-gray-700" htmlFor="username">
-                Usuario
+              <label className="text-sm font-semibold text-gray-700" htmlFor="email">
+                Correo electrónico
               </label>
               <input
-                id="username"
-                type="text"
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
-                placeholder="admin"
+                placeholder="correo@ejemplo.com"
               />
             </div>
 
