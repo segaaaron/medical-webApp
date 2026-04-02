@@ -13,9 +13,11 @@ import {
   Stethoscope,
   Newspaper,
   CalendarCheck,
+  Home,
 } from "lucide-react"
 
 const NAV_CONTENT = [
+  { label: "Inicio", href: "/dashboard", icon: Home, exact: true },
   { label: "Hero", href: "/dashboard/hero", icon: Sparkles },
   { label: "Curso", href: "/dashboard/course", icon: BookOpen },
   { label: "Presets", href: "/dashboard/presets", icon: ImageIcon },
@@ -57,8 +59,9 @@ export function Sidebar() {
             Contenido Web
           </p>
           <ul className="flex flex-col gap-1">
-            {NAV_CONTENT.map(({ label, href, icon: Icon }) => {
-              const active = pathname.startsWith(href)
+            {NAV_CONTENT.map(({ label, href, icon: Icon, ...rest }) => {
+              const exact = "exact" in rest && rest.exact
+              const active = exact ? pathname === href : pathname.startsWith(href)
               return (
                 <li key={href}>
                   <a

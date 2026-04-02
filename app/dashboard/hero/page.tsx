@@ -12,13 +12,18 @@ export default function HeroEditorPage() {
   const [data, setData] = useState<HeroData | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetch("/api/content")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch content")
+        return r.json()
+      })
       .then((c: ContentStore) =>
         setData({ promoBanner: c.promoBanner, heroStats: c.heroStats, heroCTAs: c.heroCTAs })
       )
+      .catch(() => setError("No se pudo cargar el contenido."))
   }, [])
 
   async function handleSave() {
@@ -34,6 +39,7 @@ export default function HeroEditorPage() {
     setTimeout(() => setSaved(false), 3000)
   }
 
+  if (error) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3">{error}</div>
   if (!data) return <div className="text-gray-400 text-sm">Cargando...</div>
 
   return (
