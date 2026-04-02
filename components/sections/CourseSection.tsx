@@ -97,8 +97,12 @@ export function CourseSection({ included, modules }: CourseSectionProps) {
                 <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "#3a0f20" }}>
                   <img
                     src="/images/draMedrano2.jpeg"
-                    alt="Dra. Yasmin Medrano Avila"
+                    alt="Dra. Yasmin Medrano Avila - Agenda tu consulta de valoracion gratuita de medicina estetica"
                     className="w-full h-full object-cover object-top"
+                    loading="lazy"
+                    decoding="async"
+                    width={96}
+                    height={96}
                   />
                 </div>
                 <h4 className="text-2xl font-bold text-white mb-2">Agenda tu Cita</h4>

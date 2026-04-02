@@ -28,8 +28,12 @@ export function AboutSection({ bio, stats }: AboutSectionProps) {
               >
                 <img
                   src="/images/DraMedrano.jpeg"
-                  alt="Dra. Yasmin Medrano Avila"
+                  alt="Dra. Yasmin Medrano Avila - Medica especialista en medicina estetica con mas de 10 anos de experiencia"
                   className="w-full h-full object-cover object-top"
+                  loading="lazy"
+                  decoding="async"
+                  width={320}
+                  height={480}
                 />
               </div>
               <div

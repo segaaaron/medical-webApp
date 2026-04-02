@@ -5,16 +5,28 @@ import { socialLinks } from "@/lib/data/navigation"
 import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
 import type { Metadata } from "next"
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
+
 export const metadata: Metadata = {
-  title: "Contacto | Dra. Yasmin Medrano Avila",
+  title: "Contacto - Agenda tu Consulta Gratuita de Medicina Estetica",
   description:
-    "Comunícate con el consultorio de la Dra. Yasmin Medrano Avila para agendar tu consulta de valoración gratuita.",
+    "Agenda tu consulta de valoracion gratuita con la Dra. Yasmin Medrano Avila. WhatsApp, telefono, Instagram y Facebook. Horarios de atencion y ubicacion del consultorio.",
+  keywords: [
+    "contacto medicina estetica",
+    "agendar cita botox",
+    "consulta gratuita medicina estetica",
+    "whatsapp Dra Yasmin Medrano",
+    "consultorio estetico Bolivia",
+  ],
+  alternates: {
+    canonical: `${BASE_URL}/contacto`,
+  },
   openGraph: {
     title: "Contacto | Dra. Yasmin Medrano Avila",
     description:
-      "Comunícate con el consultorio de la Dra. Yasmin Medrano Avila para agendar tu consulta de valoración gratuita.",
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/contacto`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+      "Agenda tu consulta de valoracion gratuita. WhatsApp, telefono y redes sociales disponibles.",
+    url: `${BASE_URL}/contacto`,
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Contacto - Consultorio Dra. Yasmin Medrano Avila" }],
     type: "website",
     locale: "es_BO",
   },
@@ -22,8 +34,37 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Contacto | Dra. Yasmin Medrano Avila",
     description:
-      "Comunícate con el consultorio de la Dra. Yasmin Medrano Avila para agendar tu consulta de valoración gratuita.",
+      "Agenda tu consulta gratuita de medicina estetica. Atencion personalizada.",
     images: ["/og-image.jpg"],
+  },
+}
+
+const contactJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  mainEntity: {
+    "@type": "MedicalBusiness",
+    name: "Consultorio Dra. Yasmin Medrano Avila",
+    telephone: "+59178751894",
+    url: `${BASE_URL}/contacto`,
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "09:00",
+        closes: "19:00",
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: "Saturday",
+        opens: "09:00",
+        closes: "14:00",
+      },
+    ],
+    sameAs: [
+      "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+      "https://www.instagram.com/dra_yasmin.medrano",
+    ],
   },
 }
 
@@ -32,6 +73,10 @@ export default async function ContactoPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+      />
       <Navbar links={c.navLinks} />
       <main>
         {/* Page hero */}

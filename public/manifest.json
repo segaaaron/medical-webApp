@@ -1,0 +1,20 @@
+{
+  "name": "Dra. Yasmin Medrano Avila — Medicina Estética Avanzada",
+  "short_name": "Dra. Yasmin",
+  "description": "Consultorio de medicina estética. Botox, rellenos, rejuvenecimiento facial y tratamientos corporales. Consulta de valoración gratuita.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a0510",
+  "theme_color": "#b5496a",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "categories": ["health", "medical", "beauty"],
+  "icons": [
+    {
+      "src": "/images/logo_dra_yasmin_cursiva.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

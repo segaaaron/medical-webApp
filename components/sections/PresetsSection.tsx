@@ -51,8 +51,12 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
               <div className="w-full h-44 overflow-hidden">
                 <img
                   src={TREATMENT_IMAGES[i % TREATMENT_IMAGES.length]}
-                  alt={preset.name}
+                  alt={`${preset.name} - Tratamiento de medicina estetica con la Dra. Yasmin Medrano Avila`}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  width={400}
+                  height={176}
                 />
               </div>
               <div className="p-5">

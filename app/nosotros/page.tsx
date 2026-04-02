@@ -6,25 +6,56 @@ import { ValuePropositionSection } from "@/components/sections/ValuePropositionS
 import { socialLinks } from "@/lib/data/navigation"
 import type { Metadata } from "next"
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
+
 export const metadata: Metadata = {
-  title: "Nosotros | Dra. Yasmin Medrano Avila",
+  title: "Sobre la Dra. Yasmin Medrano Avila - Especialista en Medicina Estetica",
   description:
-    "Conoce a la Dra. Yasmin Medrano Avila, especialista en medicina estética con más de 10 años de experiencia y más de 5000 pacientes atendidos.",
+    "Conoce a la Dra. Yasmin Medrano Avila, medica especialista en medicina estetica con mas de 10 anos de experiencia, mas de 5000 pacientes atendidos. Experta en botox, rellenos y rejuvenecimiento facial.",
+  keywords: [
+    "Dra. Yasmin Medrano Avila",
+    "medica estetica Bolivia",
+    "especialista medicina estetica",
+    "doctora botox",
+    "medico estetico experiencia",
+  ],
+  alternates: {
+    canonical: `${BASE_URL}/nosotros`,
+  },
   openGraph: {
-    title: "Nosotros | Dra. Yasmin Medrano Avila",
+    title: "Sobre la Dra. Yasmin Medrano Avila | Medicina Estetica",
     description:
-      "Conoce a la Dra. Yasmin Medrano Avila, especialista en medicina estética con más de 10 años de experiencia y más de 5000 pacientes atendidos.",
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/nosotros`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
-    type: "website",
+      "Mas de 10 anos de experiencia y 5000 pacientes atendidos. Especialista en botox, rellenos y rejuvenecimiento facial.",
+    url: `${BASE_URL}/nosotros`,
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Dra. Yasmin Medrano Avila - Especialista en Medicina Estetica" }],
+    type: "profile",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Nosotros | Dra. Yasmin Medrano Avila",
+    title: "Dra. Yasmin Medrano Avila | Medicina Estetica",
     description:
-      "Conoce a la Dra. Yasmin Medrano Avila, especialista en medicina estética con más de 10 años de experiencia y más de 5000 pacientes atendidos.",
+      "10+ anos de experiencia en medicina estetica. Botox, rellenos, rejuvenecimiento facial. Consulta gratuita.",
     images: ["/og-image.jpg"],
+  },
+}
+
+const aboutJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Physician",
+    name: "Dra. Yasmin Medrano Avila",
+    jobTitle: "Medica Especialista en Medicina Estetica",
+    description: "Medica especialista en medicina estetica con mas de 10 anos de experiencia y mas de 5,000 pacientes atendidos.",
+    url: `${BASE_URL}/nosotros`,
+    image: `${BASE_URL}/images/DraMedrano.jpeg`,
+    telephone: "+59178751894",
+    medicalSpecialty: "https://schema.org/PlasticSurgery",
+    sameAs: [
+      "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+      "https://www.instagram.com/dra_yasmin.medrano",
+    ],
   },
 }
 
@@ -33,6 +64,10 @@ export default async function NosotrosPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd) }}
+      />
       <Navbar links={c.navLinks} />
       <main>
         {/* Page hero */}
