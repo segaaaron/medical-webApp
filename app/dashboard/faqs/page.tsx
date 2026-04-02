@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { Plus, Trash2, GripVertical } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
@@ -12,11 +12,16 @@ export default function FAQsEditorPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetch("/api/content")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch content")
+        return r.json()
+      })
       .then((c: ContentStore) => setFaqs(c.faqs))
+      .catch(() => setError("No se pudo cargar el contenido."))
   }, [])
 
   function addFaq() {
@@ -35,15 +40,23 @@ export default function FAQsEditorPage() {
 
   async function handleSave() {
     setSaving(true)
-    await fetch("/api/content", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ faqs }),
-    })
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      const res = await fetch("/api/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ faqs }),
+      })
+      if (!res.ok) throw new Error("Save failed")
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setError("No se pudo guardar el contenido.")
+    } finally {
+      setSaving(false)
+    }
   }
+
+  if (error) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3">{error}</div>
 
   return (
     <>

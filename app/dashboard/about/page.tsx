@@ -11,11 +11,16 @@ export default function AboutEditorPage() {
   const [about, setAbout] = useState<AboutContent | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetch("/api/content")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch content")
+        return r.json()
+      })
       .then((c: ContentStore) => setAbout(c.about))
+      .catch(() => setError("No se pudo cargar el contenido."))
   }, [])
 
   function updateBio(i: number, value: string) {
@@ -45,16 +50,23 @@ export default function AboutEditorPage() {
   async function handleSave() {
     if (!about) return
     setSaving(true)
-    await fetch("/api/content", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ about }),
-    })
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      const res = await fetch("/api/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ about }),
+      })
+      if (!res.ok) throw new Error("Save failed")
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setError("No se pudo guardar el contenido.")
+    } finally {
+      setSaving(false)
+    }
   }
 
+  if (error) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3">{error}</div>
   if (!about) return <div className="text-gray-400 text-sm">Cargando...</div>
 
   return (

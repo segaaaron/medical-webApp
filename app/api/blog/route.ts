@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const query = searchParams.toString()
   const path = query ? `/blog?${query}` : "/blog"
-  const { data, error } = await backendFetch(path)
+  const { data, error } = await backendFetch(path, { auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
   return NextResponse.json(data)
 }

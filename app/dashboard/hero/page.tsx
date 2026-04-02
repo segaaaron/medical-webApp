@@ -29,14 +29,21 @@ export default function HeroEditorPage() {
   async function handleSave() {
     if (!data) return
     setSaving(true)
-    await fetch("/api/content", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    setError("")
+    try {
+      const res = await fetch("/api/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error("Error al guardar")
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setError("No se pudo guardar el contenido. Intenta de nuevo.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (error) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3">{error}</div>

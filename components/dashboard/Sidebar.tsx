@@ -1,5 +1,6 @@
 "use client"
-import { usePathname, useRouter } from "next/navigation"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   Sparkles,
@@ -16,7 +17,7 @@ import {
   Home,
 } from "lucide-react"
 
-const NAV_CONTENT = [
+const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boolean }[] = [
   { label: "Inicio", href: "/dashboard", icon: Home, exact: true },
   { label: "Hero", href: "/dashboard/hero", icon: Sparkles },
   { label: "Curso", href: "/dashboard/course", icon: BookOpen },
@@ -34,11 +35,10 @@ const NAV_SERVICES = [
 
 export function Sidebar() {
   const pathname = usePathname()
-  const router = useRouter()
 
   async function handleLogout() {
     await fetch("/api/auth", { method: "DELETE" })
-    router.push("/dashboard/login")
+    window.location.href = "/dashboard/login"
   }
 
   return (
@@ -59,12 +59,11 @@ export function Sidebar() {
             Contenido Web
           </p>
           <ul className="flex flex-col gap-1">
-            {NAV_CONTENT.map(({ label, href, icon: Icon, ...rest }) => {
-              const exact = "exact" in rest && rest.exact
+            {NAV_CONTENT.map(({ label, href, icon: Icon, exact }) => {
               const active = exact ? pathname === href : pathname.startsWith(href)
               return (
                 <li key={href}>
-                  <a
+                  <Link
                     href={href}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     style={{
@@ -74,7 +73,7 @@ export function Sidebar() {
                   >
                     <Icon size={16} />
                     {label}
-                  </a>
+                  </Link>
                 </li>
               )
             })}
@@ -90,7 +89,7 @@ export function Sidebar() {
               const active = pathname.startsWith(href)
               return (
                 <li key={href}>
-                  <a
+                  <Link
                     href={href}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     style={{
@@ -100,7 +99,7 @@ export function Sidebar() {
                   >
                     <Icon size={16} />
                     {label}
-                  </a>
+                  </Link>
                 </li>
               )
             })}
@@ -113,6 +112,7 @@ export function Sidebar() {
         <a
           href="/"
           target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-purple-900"
           style={{ color: "#8c85ff" }}
         >

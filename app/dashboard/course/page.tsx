@@ -13,13 +13,18 @@ export default function CourseEditorPage() {
   const [data, setData] = useState<CourseData | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     fetch("/api/content")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch content")
+        return r.json()
+      })
       .then((c: ContentStore) =>
         setData({ courseModules: c.courseModules, coursePricing: c.coursePricing })
       )
+      .catch(() => setError("No se pudo cargar el contenido."))
   }, [])
 
   function updatePricing(field: keyof CoursePricing, value: string | number) {
@@ -47,16 +52,23 @@ export default function CourseEditorPage() {
   async function handleSave() {
     if (!data) return
     setSaving(true)
-    await fetch("/api/content", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-    setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      const res = await fetch("/api/content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) throw new Error("Save failed")
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch {
+      setError("No se pudo guardar el contenido.")
+    } finally {
+      setSaving(false)
+    }
   }
 
+  if (error) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3">{error}</div>
   if (!data) return <div className="text-gray-400 text-sm">Cargando...</div>
 
   return (
