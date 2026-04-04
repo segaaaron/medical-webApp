@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Plus, Trash2, Pencil, X } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
+import { DeleteBlogDialog } from "@/components/ui/DialogAlert"
 
 interface BlogPost {
   id: string
@@ -21,6 +22,7 @@ export default function BlogDashboardPage() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null)
 
   async function load() {
     setLoading(true)
@@ -42,15 +44,20 @@ export default function BlogDashboardPage() {
 
   useEffect(() => { load() }, [])
 
-  async function handleDelete(id: string) {
-    if (!confirm("Eliminar este articulo?")) return
+  async function confirmDelete() {
+    if (!deleteTarget) return
     try {
-      const res = await fetch(`/api/blog/${id}`, { method: "DELETE" })
+      const res = await fetch(`/api/blog/${deleteTarget.id}`, { method: "DELETE" })
       if (!res.ok) setError("Error al eliminar el articulo.")
     } catch {
       setError("No se pudo conectar al servidor.")
     }
+    setDeleteTarget(null)
     await load()
+  }
+
+  function cancelDelete() {
+    setDeleteTarget(null)
   }
 
 
@@ -111,7 +118,7 @@ export default function BlogDashboardPage() {
                   <Pencil size={14} aria-hidden="true" />
                 </Link>
                 <button
-                  onClick={() => handleDelete(p.id)}
+                  onClick={() => setDeleteTarget(p)}
                   aria-label={`Eliminar "${p.title}"`}
                   className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
                 >
@@ -122,6 +129,13 @@ export default function BlogDashboardPage() {
           ))
         )}
       </div>
+
+      <DeleteBlogDialog
+        open={deleteTarget !== null}
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        blogTitle={deleteTarget?.title ?? ""}
+      />
     </>
   )
 }

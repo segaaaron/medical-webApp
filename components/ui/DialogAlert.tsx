@@ -1,42 +1,51 @@
+"use client"
+
+import { Trash2 } from "lucide-react"
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogMedia,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@base-ui/react"
+import { Button } from "@/components/ui/Button"
 
-export function DialogAlert() {
-  const handleDelete = () => {
-    // Aquí conectas con tu backend
-    console.log("Blog eliminado");
-  };
+interface DeleteBlogDialogProps {
+  open: boolean
+  onConfirm: () => void
+  onCancel: () => void
+  blogTitle: string
+}
 
+export function DeleteBlogDialog({
+  open,
+  onConfirm,
+  onCancel,
+  blogTitle,
+}: DeleteBlogDialogProps) {
   return (
-    <AlertDialog>
-      <AlertDialogTrigger>
-        <Button >Eliminar Blog</Button>
-      </AlertDialogTrigger>
-      
+    <AlertDialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel() }}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>¿Estás completamente seguro?</AlertDialogTitle>
+          <AlertDialogMedia className="bg-red-50">
+            <Trash2 className="size-5 text-red-500" />
+          </AlertDialogMedia>
+          <AlertDialogTitle>Eliminar artículo</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta acción no se puede deshacer. Esto eliminará permanentemente tu
-            blog y todos los datos asociados de nuestros servidores.
+            ¿Estás seguro de que deseas eliminar el artículo{" "}
+            <strong>&quot;{blogTitle}&quot;</strong>? Esta acción no se puede
+            deshacer.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        
+
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+          <Button variant="destructive" onClick={onConfirm}>
             Eliminar
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
