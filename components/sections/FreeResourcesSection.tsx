@@ -85,7 +85,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
                       required
                       leftIcon={<Mail size={18} />}
                     />
-                    <Button type="submit" variant="warning" className="w-full py-4">
+                    <Button type="submit" variant="default" className="w-full py-4 bg-[#c9a96e] text-white hover:bg-[#b8954f]">
                       ENVIARME LAS GUÍAS GRATIS
                     </Button>
                   </form>

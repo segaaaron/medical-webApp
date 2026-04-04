@@ -57,4 +57,29 @@ function Button({
   )
 }
 
-export { Button, buttonVariants }
+interface LinkButtonProps
+  extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: string
+}
+
+function LinkButton({ className, variant, ...props }: LinkButtonProps) {
+  const variantClasses: Record<string, string> = {
+    primary:
+      "bg-[#c9a96e] text-white hover:bg-[#b8954f] transition-colors",
+    warning:
+      "bg-[#c9a96e] text-white hover:bg-[#b8954f] transition-colors",
+  }
+
+  return (
+    <a
+      className={cn(
+        "inline-flex items-center rounded-lg px-6 py-3 text-sm font-bold uppercase tracking-wider",
+        variant && variantClasses[variant],
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Button, buttonVariants, LinkButton }

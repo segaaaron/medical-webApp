@@ -32,10 +32,13 @@ export async function GET(req: NextRequest) {
 
   // Normalize: backend may use "body" instead of "content"
   const posts = Array.isArray(data)
-    ? data.map((p: Record<string, unknown>) => ({
-        ...p,
-        content: p.content ?? p.body ?? "",
-      }))
+    ? data.map((p: unknown) => {
+        const post = p as Record<string, unknown>
+        return {
+          ...post,
+          content: post.content ?? post.body ?? "",
+        }
+      })
     : data
 
   return NextResponse.json(posts)
