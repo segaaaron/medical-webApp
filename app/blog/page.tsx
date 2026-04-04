@@ -1,12 +1,14 @@
-import { readContent } from "@/lib/store/content-store"
+import { DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { socialLinks } from "@/lib/data/navigation"
-import { staticBlogPosts } from "@/lib/data/blog-posts"
-import { Calendar, Clock, ArrowRight, Tag } from "lucide-react"
+import { staticBlogPosts, type StaticBlogPost } from "@/lib/data/blog-posts"
+import { Calendar, Clock, ArrowRight } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
+
+export const dynamic = "force-dynamic"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
@@ -47,7 +49,9 @@ interface BlogPost {
   title: string
   slug: string
   excerpt: string | null
+  content: string | null
   imageUrl: string | null
+  published: boolean
   publishedAt: string | null
   createdAt: string
 }
@@ -60,33 +64,54 @@ function formatDate(dateStr: string) {
   })
 }
 
-export default async function BlogPage() {
-  const [c, backendResult] = await Promise.all([
-    readContent(),
-    backendFetch<BlogPost[]>("/blog?published=true"),
-  ])
+/**
+ * Fetch blog posts: tries backend with auth, falls back to static defaults.
+ * Uses the same resilient pattern as /api/blog route.
+ */
+async function fetchPublishedPosts() {
+  const { data, error } = await backendFetch<BlogPost[]>("/blog")
 
-  const backendPosts = backendResult.data ?? []
-
-  // Merge backend posts with static fallback posts
-  const allPosts = [
-    ...backendPosts.map((p) => ({
+  if (error || !data) {
+    console.warn("[BlogPage] Backend unavailable, using static posts:", error)
+    // Return static posts as published BlogPost[]
+    return staticBlogPosts.map((p) => ({
       id: p.id,
       title: p.title,
       slug: p.slug,
-      excerpt: p.excerpt ?? "",
-      imageUrl: p.imageUrl ?? "",
-      publishedAt: p.publishedAt ?? p.createdAt,
-      author: "Dra. Yasmin Medrano Avila",
-      readTime: "5 min",
-      tags: [] as string[],
-      isStatic: false,
-    })),
-    ...staticBlogPosts.map((p) => ({
-      ...p,
-      isStatic: true,
-    })),
-  ].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      excerpt: p.excerpt,
+      content: p.content,
+      imageUrl: p.imageUrl,
+      published: true,
+      publishedAt: p.publishedAt,
+      createdAt: p.publishedAt,
+    })) as BlogPost[]
+  }
+
+  return data
+}
+
+export default async function BlogPage() {
+  const [allBackendPosts] = await Promise.all([
+    fetchPublishedPosts(),
+  ])
+  const c = DEFAULTS
+
+  const publishedPosts = allBackendPosts.filter((p) => p.published)
+
+  // Single source: backend posts when available, static posts only as fallback (set in fetchPublishedPosts)
+  const allPosts = publishedPosts.map((p) => ({
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    excerpt: p.excerpt ?? "",
+    imageUrl: p.imageUrl ?? "",
+    publishedAt: p.publishedAt ?? p.createdAt,
+    author: "Dra. Yasmin Medrano Avila",
+    readTime: p.content
+      ? `${Math.max(1, Math.ceil(p.content.split(/\s+/).length / 200))} min`
+      : "5 min",
+    tags: [] as string[],
+  })).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
 
   const [featured, ...rest] = allPosts
 
@@ -109,9 +134,18 @@ export default async function BlogPage() {
           </p>
         </section>
 
+        {/* Empty state */}
+        {allPosts.length === 0 && (
+          <section className="py-20 px-6 text-center" style={{ backgroundColor: "#faf5f7" }} aria-label="Sin artículos">
+            <p className="text-lg" style={{ color: "#7a6570" }}>
+              No hay artículos disponibles por el momento.
+            </p>
+          </section>
+        )}
+
         {/* Featured post */}
         {featured && (
-          <section className="py-12 px-6" style={{ backgroundColor: "#faf5f7" }}>
+          <section className="py-12 px-6" style={{ backgroundColor: "#faf5f7" }} aria-label="Artículo destacado">
             <div className="max-w-5xl mx-auto">
               <p
                 className="text-xs uppercase tracking-[0.2em] font-semibold mb-6"
@@ -180,7 +214,7 @@ export default async function BlogPage() {
 
         {/* Post grid */}
         {rest.length > 0 && (
-          <section className="py-16 px-6" style={{ backgroundColor: "#fff" }}>
+          <section className="py-16 px-6" style={{ backgroundColor: "#fff" }} aria-label="Todos los artículos">
             <div className="max-w-5xl mx-auto">
               <h2 className="text-2xl font-bold mb-8" style={{ color: "#3a0f20" }}>
                 Todos los articulos
@@ -240,6 +274,7 @@ export default async function BlogPage() {
                         </div>
                         <ArrowRight
                           size={16}
+                          aria-hidden="true"
                           className="group-hover:translate-x-1 transition-transform"
                           style={{ color: "#b5496a" }}
                         />
@@ -252,25 +287,6 @@ export default async function BlogPage() {
           </section>
         )}
 
-        {/* CTA */}
-        <section className="py-16 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
-              ¿Tienes dudas sobre algun tratamiento?
-            </h2>
-            <p className="text-sm mb-8" style={{ color: "#fce4ec" }}>
-              Agenda una consulta de valoracion personalizada con la Dra. Yasmin Medrano
-              Avila y resuelve todas tus preguntas.
-            </p>
-            <Link
-              href="/contacto"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#b5496a" }}
-            >
-              Agendar consulta
-            </Link>
-          </div>
-        </section>
       </main>
       <Footer groups={c.footerGroups} socials={socialLinks} />
     </>

@@ -1,14 +1,66 @@
-import { readContent } from "@/lib/store/content-store"
+import { DEFAULTS } from "@/lib/store/content-store"
+import { backendFetch } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { socialLinks } from "@/lib/data/navigation"
-import { staticBlogPosts } from "@/lib/data/blog-posts"
-import { Calendar, Clock, ArrowLeft, Tag } from "lucide-react"
+import { staticBlogPosts, type StaticBlogPost } from "@/lib/data/blog-posts"
+import { Calendar, Clock, ArrowLeft } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
+export const dynamic = "force-dynamic"
+
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
+
+interface BackendBlogPost {
+  id: string
+  title: string
+  slug: string
+  excerpt: string | null
+  content: string | null
+  imageUrl: string | null
+  published: boolean
+  publishedAt: string | null
+  createdAt: string
+}
+
+/** Map a backend post to the StaticBlogPost shape used by the UI */
+function toStaticPost(p: BackendBlogPost): StaticBlogPost {
+  const body = p.content ?? ""
+  return {
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    excerpt: p.excerpt ?? "",
+    content: body,
+    imageUrl: p.imageUrl ?? "",
+    publishedAt: p.publishedAt ?? p.createdAt,
+    author: "Dra. Yasmin Medrano Avila",
+    readTime: body
+      ? `${Math.max(1, Math.ceil(body.split(/\s+/).length / 200))} min`
+      : "5 min",
+    tags: [],
+  }
+}
+
+/** Get all published posts — backend first, static fallback */
+async function getAllPosts(): Promise<StaticBlogPost[]> {
+  const { data } = await backendFetch<BackendBlogPost[]>("/blog")
+  if (!data) {
+    console.warn("[getAllPosts] Backend unavailable, using static posts")
+    return staticBlogPosts
+  }
+  return data.filter((p) => p.published).map(toStaticPost)
+}
+
+/** Resolve a single post by slug from the full list */
+async function resolvePost(
+  slug: string,
+  allPosts: StaticBlogPost[],
+): Promise<StaticBlogPost | null> {
+  return allPosts.find((p) => p.slug === slug) ?? null
+}
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -16,7 +68,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const post = staticBlogPosts.find((p) => p.slug === slug)
+  const allPosts = await getAllPosts()
+  const post = await resolvePost(slug, allPosts)
   if (!post) return {}
 
   return {
@@ -31,23 +84,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       publishedTime: post.publishedAt,
       authors: [post.author],
-      images: [{ url: post.imageUrl, width: 1200, height: 630, alt: post.title }],
+      images: post.imageUrl ? [{ url: post.imageUrl, width: 1200, height: 630, alt: post.title }] : [],
       locale: "es_BO",
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: [post.imageUrl],
+      images: post.imageUrl ? [post.imageUrl] : [],
     },
   }
 }
 
-export function generateStaticParams() {
-  return staticBlogPosts.map((post) => ({ slug: post.slug }))
-}
-
 function renderContent(content: string) {
+  if (!content) return null
   // Simple markdown-like rendering for blog content
   return content.split("\n\n").map((block, i) => {
     if (block.startsWith("## ")) {
@@ -63,7 +113,7 @@ function renderContent(content: string) {
     }
 
     // List blocks
-    if (block.includes("\n- ")) {
+    if (block.startsWith("- ") || block.includes("\n- ")) {
       const lines = block.split("\n")
       const intro = lines[0].startsWith("- ") ? null : lines.shift()
       return (
@@ -119,13 +169,13 @@ function renderContent(content: string) {
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
-  const post = staticBlogPosts.find((p) => p.slug === slug)
+  const allPosts = await getAllPosts()
+  const post = await resolvePost(slug, allPosts)
+  const c = DEFAULTS
   if (!post) notFound()
 
-  const c = await readContent()
-
   // Related posts (exclude current)
-  const related = staticBlogPosts.filter((p) => p.slug !== slug).slice(0, 2)
+  const related = allPosts.filter((p) => p.slug !== slug).slice(0, 2)
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -171,10 +221,11 @@ export default async function BlogPostPage({ params }: Props) {
             <div className="w-full max-w-3xl mx-auto px-6 pb-8">
               <Link
                 href="/blog"
+                aria-label="Volver al listado del blog"
                 className="inline-flex items-center gap-2 text-xs font-medium mb-4 hover:opacity-80 transition-opacity"
                 style={{ color: "#e8a0b4" }}
               >
-                <ArrowLeft size={14} /> Volver al blog
+                <ArrowLeft size={14} aria-hidden="true" /> Volver al blog
               </Link>
               <div className="flex flex-wrap gap-2 mb-3">
                 {post.tags.map((tag) => (
@@ -226,7 +277,7 @@ export default async function BlogPostPage({ params }: Props) {
 
         {/* Related posts */}
         {related.length > 0 && (
-          <section className="py-16 px-6" style={{ backgroundColor: "#faf5f7" }}>
+          <section className="py-16 px-6" style={{ backgroundColor: "#faf5f7" }} aria-label="Artículos relacionados">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-xl font-bold mb-8" style={{ color: "#3a0f20" }}>
                 Articulos relacionados
@@ -267,24 +318,6 @@ export default async function BlogPostPage({ params }: Props) {
           </section>
         )}
 
-        {/* CTA */}
-        <section className="py-14 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-white mb-4">
-              ¿Te interesa este tratamiento?
-            </h2>
-            <p className="text-sm mb-6" style={{ color: "#fce4ec" }}>
-              Agenda una consulta personalizada y resuelve todas tus dudas.
-            </p>
-            <Link
-              href="/contacto"
-              className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold text-white hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: "#b5496a" }}
-            >
-              Agendar consulta
-            </Link>
-          </div>
-        </section>
       </main>
       <Footer groups={c.footerGroups} socials={socialLinks} />
     </>

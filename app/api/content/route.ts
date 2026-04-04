@@ -1,43 +1,47 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
-import { readContent, writeContent } from "@/lib/store/content-store"
-import { initDb } from "@/lib/db"
+import { backendFetch } from "@/lib/backend-client"
+import { DEFAULTS } from "@/lib/store/content-store"
+import type { ContentStore, ContentOverride } from "@/types/content"
 
-async function requireAuth(): Promise<boolean> {
+async function getSession() {
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
-  if (!token) return false
-  const session = await verifyToken(token)
-  return session !== null
+  if (!token) return null
+  return verifyToken(token)
 }
 
+/**
+ * Merge: backend partial overrides on top of local DEFAULTS.
+ * This guarantees every field exists even if the backend only stores a subset.
+ */
+function mergeWithDefaults(override: ContentOverride | null): ContentStore {
+  if (!override) return DEFAULTS
+  return { ...DEFAULTS, ...override } as ContentStore
+}
+
+// GET /api/content — public
 export async function GET() {
-  try {
-    await initDb()
-  } catch (err) {
-    console.warn("[GET /api/content] DB init failed, using defaults:", (err as Error).message)
+  const { data, error } = await backendFetch<ContentOverride>("/content")
+
+  // If backend is unreachable or returns error, serve DEFAULTS so the
+  // dashboard always renders the forms and the public site keeps working.
+  if (error) {
+    console.warn("[GET /api/content] Backend unavailable, serving defaults:", error)
+    return NextResponse.json(DEFAULTS)
   }
-  try {
-    const content = await readContent()
-    return NextResponse.json(content)
-  } catch (err) {
-    console.error("[GET /api/content]", err)
-    return NextResponse.json({ error: "Error al leer contenido" }, { status: 500 })
-  }
+
+  return NextResponse.json(mergeWithDefaults(data))
 }
 
+// POST /api/content — protected
 export async function POST(req: NextRequest) {
-  if (!(await requireAuth())) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-  }
-  try {
-    const override = await req.json()
-    await initDb()
-    await writeContent(override)
-    return NextResponse.json({ ok: true })
-  } catch (err) {
-    console.error("[POST /api/content]", err)
-    return NextResponse.json({ error: "Error al guardar contenido" }, { status: 500 })
-  }
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+
+  const body = await req.json()
+  const { data, error } = await backendFetch("/content", { method: "POST", body, auth: true })
+  if (error) return NextResponse.json({ error }, { status: 502 })
+  return NextResponse.json(data ?? { ok: true })
 }

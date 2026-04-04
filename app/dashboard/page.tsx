@@ -73,6 +73,8 @@ export default function DashboardHomePage() {
   const [error, setError] = useState("")
   const [openSection, setOpenSection] = useState(0)
 
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     fetch("/api/content")
       .then((r) => {
@@ -80,7 +82,8 @@ export default function DashboardHomePage() {
         return r.json()
       })
       .then((c: ContentStore) => setData(c))
-      .catch(() => setError("No se pudo cargar el contenido."))
+      .catch(() => setError("Contenido cargado desde valores por defecto. Puedes editarlos y guardar."))
+      .finally(() => setLoading(false))
   }, [])
 
   async function handleSave() {
@@ -107,8 +110,8 @@ export default function DashboardHomePage() {
     setOpenSection(openSection === i ? -1 : i)
   }
 
-  if (error && !data) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3">{error}</div>
-  if (!data) return <div className="text-gray-400 text-sm">Cargando...</div>
+  if (loading) return <div className="text-gray-400 text-sm" role="status" aria-live="polite">Cargando contenido...</div>
+  if (!data) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3" role="alert">No se pudo cargar el contenido.</div>
 
   return (
     <>
@@ -120,7 +123,7 @@ export default function DashboardHomePage() {
         onSave={handleSave}
       />
 
-      {error && <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3 mb-4">{error}</div>}
+      {error && <div className="text-amber-600 text-sm bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4" role="alert">{error}</div>}
 
       <div className="flex flex-col gap-3">
         {SECTIONS.map((section, i) => {
@@ -132,6 +135,9 @@ export default function DashboardHomePage() {
               <button
                 type="button"
                 onClick={() => toggle(i)}
+                aria-expanded={isOpen}
+                aria-controls={`section-panel-${i}`}
+                id={`section-header-${i}`}
                 className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -139,7 +145,7 @@ export default function DashboardHomePage() {
                     className="w-8 h-8 rounded-lg flex items-center justify-center"
                     style={{ backgroundColor: "#ede9fe", color: "#673de6" }}
                   >
-                    <Icon size={16} />
+                    <Icon size={16} aria-hidden="true" />
                   </div>
                   <span className="font-semibold text-gray-800 text-sm">
                     {i + 1}. {section.label}
@@ -147,12 +153,13 @@ export default function DashboardHomePage() {
                 </div>
                 <ChevronDown
                   size={18}
+                  aria-hidden="true"
                   className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
               {isOpen && (
-                <div className="px-6 pb-6 pt-2 border-t border-gray-100 flex flex-col gap-6">
+                <div id={`section-panel-${i}`} role="region" aria-labelledby={`section-header-${i}`} className="px-6 pb-6 pt-2 border-t border-gray-100 flex flex-col gap-6">
                   <SectionComponent data={data} setData={setData} />
                 </div>
               )}
