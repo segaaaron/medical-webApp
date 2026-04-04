@@ -13,6 +13,67 @@ import { navLinks, footerGroups } from "@/lib/data/navigation"
 const CONTENT_KEY = "main"
 
 export const DEFAULTS: ContentStore = {
+  branding: {
+    doctorName: "Dra. Yasmin Medrano Avila",
+    specialty: "Medicina Estética Avanzada",
+    city: "Ciudad Cochabamba",
+    whatsappNumber: "+591 78751894",
+    whatsappUrl: "https://wa.me/59178751894",
+    heroTagline: "Medicina Estética · Rejuvenecimiento · Tratamientos Corporales",
+    heroSubtitle: "Realza tu belleza natural con tratamientos seguros y efectivos diseñados especialmente para ti.",
+    heroBackgroundImage: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=1920&q=80",
+    aboutImage: "/images/DraMedrano.jpeg",
+    aboutBadgeValue: "10+",
+    aboutBadgeLabel: "Años de Experiencia",
+    copyrightText: "© {year} Dra. Yasmin Medrano Avila — Medicina Estética Avanzada. Todos los derechos reservados.",
+    footerDescription: "Especialista en medicina estética dedicada a realzar tu belleza natural con tratamientos seguros y efectivos.",
+  },
+  sectionHeaders: {
+    value: {
+      eyebrow: "¿Por Qué Elegirnos?",
+      title: "Tu bienestar y belleza son nuestra prioridad",
+      subtitle: "En el consultorio de la Dra. Yasmin Medrano Avila encontrarás un espacio dedicado exclusivamente a realzar tu belleza natural con los más altos estándares médicos.",
+    },
+    course: {
+      eyebrow: "Nuestros Servicios",
+      title: "Tratamientos de Medicina Estética",
+      subtitle: "Ofrecemos una amplia gama de tratamientos faciales y corporales con tecnología de vanguardia y los más altos estándares de seguridad médica.",
+    },
+    presets: {
+      eyebrow: "Áreas de Especialidad",
+      title: "Nuestras Categorías de Tratamiento",
+      subtitle: "Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con resultados visibles y duraderos.",
+    },
+    freeResources: {
+      eyebrow: "Recursos Gratuitos",
+      title: "Guías de Medicina Estética",
+      subtitle: "Descarga nuestras guías gratuitas y prepárate para tu consulta. Información confiable de tu especialista de confianza.",
+    },
+    faq: {
+      eyebrow: "¿Tienes Preguntas?",
+      title: "Preguntas Frecuentes",
+      subtitle: "",
+    },
+  },
+  promoPopup: {
+    emoji: "💉",
+    label: "Promoción Especial · MedSkin",
+    title: "Biorevitalización con NCTF 135 HA",
+    description: "Renueva e hidrata tu piel profundamente con el tratamiento estrella de la medicina estética. ¡Plazas limitadas!",
+    location: "Dra. Yasmin Medrano Avila · Ciudad Cochabamba",
+    ctaLabel: "💬 Reservar por WhatsApp",
+    ctaHref: "https://wa.me/59178751894",
+    dismissLabel: "Quizás después",
+  },
+  freeResourcesForm: {
+    heading: "Agenda tu Consulta",
+    description: "Ingresa tu correo y te enviaremos las guías gratuitas junto con información para agendar tu consulta de valoración.",
+    placeholder: "Tu correo electrónico",
+    buttonLabel: "ENVIARME LAS GUÍAS GRATIS",
+    privacyText: "🔒 Tu información está protegida. Sin spam, cancela cuando quieras.",
+    successHeading: "¡Listo!",
+    successMessage: "Revisa tu bandeja de entrada. Enviamos las guías a {email}.",
+  },
   promoBanner,
   heroStats,
   heroCTAs,

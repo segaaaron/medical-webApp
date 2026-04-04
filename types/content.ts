@@ -12,6 +12,10 @@ import type {
   FAQ,
   NavLink,
   FooterGroup,
+  BrandingData,
+  SectionHeaders,
+  PromoPopupData,
+  FreeResourcesFormData,
 } from "@/types"
 
 // ─── ContentStore ─────────────────────────────────────────────────────────────
@@ -25,15 +29,19 @@ export interface AboutContent {
 }
 
 export interface ContentStore {
+  branding: BrandingData
+  sectionHeaders: SectionHeaders
   promoBanner: PromoBannerData
+  promoPopup: PromoPopupData
   heroStats: HeroStat[]
   heroCTAs: HeroCTA[]
-  valueFeatures: ValueFeature[]        // iconName is a string — safe to serialize
-  courseIncluded: CourseIncluded[]     // iconName is a string — safe to serialize
+  valueFeatures: ValueFeature[]
+  courseIncluded: CourseIncluded[]
   courseModules: CourseModule[]
   coursePricing: CoursePricing
   presets: PresetCategory[]
   freePDFs: FreePDF[]
+  freeResourcesForm: FreeResourcesFormData
   about: AboutContent
   faqs: FAQ[]
   navLinks: NavLink[]

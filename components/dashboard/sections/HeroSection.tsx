@@ -5,43 +5,8 @@ import { INPUT, type SectionProps } from "./types"
 export function HeroSection({ data, setData }: SectionProps) {
   return (
     <>
-      {/* Promo Banner */}
-      <h3 className="text-sm font-semibold text-gray-600">Banner promocional</h3>
-      <FormField label="Texto del banner" htmlFor="banner-text">
-        <input
-          id="banner-text"
-          className={INPUT}
-          value={data.promoBanner.text}
-          onChange={(e) =>
-            setData({ ...data, promoBanner: { ...data.promoBanner, text: e.target.value } })
-          }
-        />
-      </FormField>
-      <div className="grid grid-cols-2 gap-4">
-        <FormField label="Texto del CTA" htmlFor="banner-cta-label">
-          <input
-            id="banner-cta-label"
-            className={INPUT}
-            value={data.promoBanner.ctaLabel}
-            onChange={(e) =>
-              setData({ ...data, promoBanner: { ...data.promoBanner, ctaLabel: e.target.value } })
-            }
-          />
-        </FormField>
-        <FormField label="Href del CTA" htmlFor="banner-cta-href">
-          <input
-            id="banner-cta-href"
-            className={INPUT}
-            value={data.promoBanner.ctaHref}
-            onChange={(e) =>
-              setData({ ...data, promoBanner: { ...data.promoBanner, ctaHref: e.target.value } })
-            }
-          />
-        </FormField>
-      </div>
-
       {/* Stats */}
-      <h3 className="text-sm font-semibold text-gray-600 mt-2">Estadisticas del Hero</h3>
+      <h3 className="text-sm font-semibold text-gray-600">Estadisticas del Hero</h3>
       {data.heroStats.map((stat, i) => (
         <div key={i} className="grid grid-cols-2 gap-4">
           <FormField label={`Valor #${i + 1}`}>
@@ -72,7 +37,7 @@ export function HeroSection({ data, setData }: SectionProps) {
       {/* CTAs */}
       <h3 className="text-sm font-semibold text-gray-600 mt-2">Botones (CTAs)</h3>
       {data.heroCTAs.map((cta, i) => (
-        <div key={i} className="grid grid-cols-2 gap-4">
+        <div key={i} className="grid grid-cols-3 gap-4">
           <FormField label={`Texto boton #${i + 1}`}>
             <input
               className={INPUT}
@@ -94,6 +59,20 @@ export function HeroSection({ data, setData }: SectionProps) {
                 setData({ ...data, heroCTAs: ctas })
               }}
             />
+          </FormField>
+          <FormField label="Variante">
+            <select
+              className={INPUT}
+              value={cta.variant}
+              onChange={(e) => {
+                const ctas = [...data.heroCTAs]
+                ctas[i] = { ...ctas[i], variant: e.target.value as "primary" | "warning" }
+                setData({ ...data, heroCTAs: ctas })
+              }}
+            >
+              <option value="primary">Primary</option>
+              <option value="warning">Warning</option>
+            </select>
           </FormField>
         </div>
       ))}

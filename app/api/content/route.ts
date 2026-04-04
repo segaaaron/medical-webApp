@@ -15,6 +15,10 @@ async function requireAuth(): Promise<boolean> {
 export async function GET() {
   try {
     await initDb()
+  } catch (err) {
+    console.warn("[GET /api/content] DB init failed, using defaults:", (err as Error).message)
+  }
+  try {
     const content = await readContent()
     return NextResponse.json(content)
   } catch (err) {

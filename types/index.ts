@@ -113,6 +113,65 @@ export interface PromoBannerData {
   ctaHref: string
 }
 
+// ─── Branding / Global ───────────────────────────────────────────────────────
+
+export interface BrandingData {
+  doctorName: string
+  specialty: string
+  city: string
+  whatsappNumber: string
+  whatsappUrl: string
+  heroTagline: string
+  heroSubtitle: string
+  heroBackgroundImage: string
+  aboutImage: string
+  aboutBadgeValue: string
+  aboutBadgeLabel: string
+  copyrightText: string
+  footerDescription: string
+}
+
+// ─── Section Headers ─────────────────────────────────────────────────────────
+
+export interface SectionHeader {
+  eyebrow: string
+  title: string
+  subtitle: string
+}
+
+export interface SectionHeaders {
+  value: SectionHeader
+  course: SectionHeader
+  presets: SectionHeader
+  freeResources: SectionHeader
+  faq: SectionHeader
+}
+
+// ─── Promo Popup ─────────────────────────────────────────────────────────────
+
+export interface PromoPopupData {
+  emoji: string
+  label: string
+  title: string
+  description: string
+  location: string
+  ctaLabel: string
+  ctaHref: string
+  dismissLabel: string
+}
+
+// ─── Free Resources Form ─────────────────────────────────────────────────────
+
+export interface FreeResourcesFormData {
+  heading: string
+  description: string
+  placeholder: string
+  buttonLabel: string
+  privacyText: string
+  successHeading: string
+  successMessage: string
+}
+
 // ─── UI Atoms ─────────────────────────────────────────────────────────────────
 
 export type ButtonVariant = "primary" | "warning" | "outline"

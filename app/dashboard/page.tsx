@@ -1,36 +1,69 @@
 "use client"
 import { useEffect, useState } from "react"
-import { ChevronDown, Sparkles, Heart, CalendarCheck, Star, FileText, User, HelpCircle } from "lucide-react"
+import {
+  ChevronDown,
+  Sparkles,
+  Heart,
+  CalendarCheck,
+  Star,
+  FileText,
+  User,
+  HelpCircle,
+  LayoutGrid,
+  Settings,
+  Type,
+  Megaphone,
+  Bell,
+  Mail,
+} from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import {
+  BrandingSection,
+  SectionHeadersSection,
   HeroSection,
+  PromoBannerSection,
+  PromoPopupSection,
   ValueSection,
   CourseSection,
   PresetsSection,
   FreePDFsSection,
+  FreeResourcesFormSection,
   AboutSection,
   FAQsSection,
+  FooterSection,
 } from "@/components/dashboard/sections"
 import type { ContentStore } from "@/types/content"
 
 const SECTIONS = [
+  { label: "General / Branding", icon: Settings },
+  { label: "Titulos de Secciones", icon: Type },
   { label: "Hero", icon: Sparkles },
+  { label: "Banner Promocional", icon: Megaphone },
+  { label: "Popup Promocional", icon: Bell },
   { label: "Propuesta de Valor", icon: Heart },
   { label: "Agenda tu Cita", icon: CalendarCheck },
   { label: "Tratamientos Destacados", icon: Star },
   { label: "Recursos Gratuitos", icon: FileText },
+  { label: "Formulario de Recursos", icon: Mail },
   { label: "Sobre Nosotros", icon: User },
   { label: "Preguntas Frecuentes", icon: HelpCircle },
+  { label: "Footer", icon: LayoutGrid },
 ] as const
 
 const SECTION_COMPONENTS = [
+  BrandingSection,
+  SectionHeadersSection,
   HeroSection,
+  PromoBannerSection,
+  PromoPopupSection,
   ValueSection,
   CourseSection,
   PresetsSection,
   FreePDFsSection,
+  FreeResourcesFormSection,
   AboutSection,
   FAQsSection,
+  FooterSection,
 ]
 
 export default function DashboardHomePage() {
