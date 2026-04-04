@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
-import { Sidebar } from "@/components/dashboard/Sidebar"
+import { DashboardShell } from "@/components/dashboard/DashboardShell"
 
 export const metadata: Metadata = {
   title: "Dashboard | Dra. Yasmin Medrano Avila",
@@ -18,17 +18,5 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return <>{children}</>
   }
 
-  return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Sidebar — fixed width */}
-      <div className="w-56 shrink-0 h-full">
-        <Sidebar />
-      </div>
-
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-8 py-8">{children}</div>
-      </main>
-    </div>
-  )
+  return <DashboardShell>{children}</DashboardShell>
 }

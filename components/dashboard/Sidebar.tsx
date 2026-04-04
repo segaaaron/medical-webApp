@@ -21,7 +21,7 @@ const NAV_SERVICES = [
   { label: "Citas", href: "/dashboard/citas", icon: CalendarCheck },
 ]
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
 
   async function handleLogout() {
@@ -53,6 +53,7 @@ export function Sidebar() {
                 <li key={href}>
                   <Link
                     href={href}
+                    onClick={onClose}
                     aria-current={active ? "page" : undefined}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     style={{
@@ -80,6 +81,7 @@ export function Sidebar() {
                 <li key={href}>
                   <Link
                     href={href}
+                    onClick={onClose}
                     aria-current={active ? "page" : undefined}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
                     style={{
