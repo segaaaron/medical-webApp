@@ -3,12 +3,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
-  Sparkles,
-  BookOpen,
-  ImageIcon,
-  HelpCircle,
-  User,
-  Navigation,
   LogOut,
   ExternalLink,
   Stethoscope,
@@ -19,12 +13,6 @@ import {
 
 const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boolean }[] = [
   { label: "Inicio", href: "/dashboard", icon: Home, exact: true },
-  { label: "Hero", href: "/dashboard/hero", icon: Sparkles },
-  { label: "Curso", href: "/dashboard/course", icon: BookOpen },
-  { label: "Presets", href: "/dashboard/presets", icon: ImageIcon },
-  { label: "FAQs", href: "/dashboard/faqs", icon: HelpCircle },
-  { label: "About", href: "/dashboard/about", icon: User },
-  { label: "Navegación", href: "/dashboard/navigation", icon: Navigation },
 ]
 
 const NAV_SERVICES = [

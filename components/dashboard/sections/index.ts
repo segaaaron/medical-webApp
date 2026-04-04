@@ -1,0 +1,8 @@
+export { HeroSection } from "./HeroSection"
+export { ValueSection } from "./ValueSection"
+export { CourseSection } from "./CourseSection"
+export { PresetsSection } from "./PresetsSection"
+export { FreePDFsSection } from "./FreePDFsSection"
+export { AboutSection } from "./AboutSection"
+export { FAQsSection } from "./FAQsSection"
+export type { SectionProps } from "./types"
