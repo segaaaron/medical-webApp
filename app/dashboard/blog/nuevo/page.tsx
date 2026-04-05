@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Check } from "lucide-react"
+import { ArrowLeft, Check, Upload, X } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 
@@ -11,7 +11,6 @@ interface BlogForm {
   title: string
   excerpt: string
   content: string
-  imageUrl: string
   published: boolean
 }
 
@@ -19,7 +18,6 @@ const EMPTY: BlogForm = {
   title: "",
   excerpt: "",
   content: "",
-  imageUrl: "",
   published: false,
 }
 
@@ -31,6 +29,8 @@ export default function NuevoBlogPage() {
   const [form, setForm] = useState<BlogForm>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState("")
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -43,10 +43,16 @@ export default function NuevoBlogPage() {
     setError("")
 
     try {
+      const fd = new FormData()
+      fd.append("title", form.title)
+      fd.append("excerpt", form.excerpt)
+      fd.append("content", form.content)
+      fd.append("published", String(form.published))
+      if (imageFile) fd.append("image", imageFile)
+
       const res = await fetch("/api/blog", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: fd,
       })
 
       if (res.ok) {
@@ -113,15 +119,42 @@ export default function NuevoBlogPage() {
             />
           </FormField>
 
-          <FormField label="URL de imagen de portada" htmlFor="blog-image">
-            <input
-              id="blog-image"
-              className={INPUT_CLS}
-              value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-              placeholder="https://..."
-              type="url"
-            />
+          <FormField label="Imagen de portada" htmlFor="blog-image">
+            <div className="space-y-2">
+              <label
+                htmlFor="blog-image"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
+              >
+                <Upload size={15} aria-hidden="true" />
+                Seleccionar imagen (JPG, PNG, WebP, GIF)
+                <input
+                  id="blog-image"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setImageFile(file)
+                      setImagePreview(URL.createObjectURL(file))
+                    }
+                  }}
+                />
+              </label>
+              {imagePreview && (
+                <div className="relative w-fit">
+                  <img src={imagePreview} alt="Vista previa" className="h-32 rounded-lg object-cover border border-gray-200" />
+                  <button
+                    type="button"
+                    onClick={() => { setImagePreview(""); setImageFile(null) }}
+                    className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-200 p-0.5 hover:bg-red-50"
+                    aria-label="Eliminar imagen"
+                  >
+                    <X size={12} className="text-gray-500" />
+                  </button>
+                </div>
+              )}
+            </div>
           </FormField>
 
           <FormField label="Contenido *" htmlFor="blog-content">
