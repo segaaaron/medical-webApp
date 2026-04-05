@@ -15,8 +15,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
-  const body = await req.json()
-  const { data, error } = await backendFetch(`/blog/${id}`, { method: "PUT", body, auth: true })
+  const formData = await req.formData()
+  const { data, error } = await backendFetch(`/blog/${id}`, { method: "PUT", formData, auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
   return NextResponse.json(data)
 }

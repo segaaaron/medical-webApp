@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { staticBlogPosts } from "@/lib/data/blog-posts"
 
 async function getSession() {
@@ -30,13 +30,14 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // Normalize: backend may use "body" instead of "content"
+  // Normalize field names: backend may use different keys than the frontend expects
   const posts = Array.isArray(data)
     ? data.map((p: unknown) => {
         const post = p as Record<string, unknown>
         return {
           ...post,
           content: post.content ?? post.body ?? "",
+          imageUrl: resolveImageUrl((post.imageUrl ?? post.image_url ?? post.image ?? post.coverImage ?? post.cover) as string | null),
         }
       })
     : data
@@ -49,8 +50,8 @@ export async function POST(req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  const body = await req.json()
-  const { data, error } = await backendFetch("/blog", { method: "POST", body, auth: true })
+  const formData = await req.formData()
+  const { data, error } = await backendFetch("/blog", { method: "POST", formData, auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
   return NextResponse.json(data, { status: 201 })
 }

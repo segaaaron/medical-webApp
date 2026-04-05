@@ -53,6 +53,7 @@ async function autoLogin(): Promise<string | null> {
 type FetchOptions = {
   method?: string
   body?: unknown
+  formData?: FormData
   auth?: boolean
 }
 
@@ -88,12 +89,12 @@ async function resolveToken(): Promise<string | null> {
 
 export async function backendFetch<T>(
   path: string,
-  { method = "GET", body, auth = false }: FetchOptions = {}
+  { method = "GET", body, formData, auth = false }: FetchOptions = {}
 ): Promise<{ data: T | null; error: string | null }> {
   try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    }
+    const headers: Record<string, string> = formData
+      ? {} // Let fetch set Content-Type with boundary for multipart
+      : { "Content-Type": "application/json" }
 
     if (auth) {
       const token = await resolveToken()
@@ -102,10 +103,12 @@ export async function backendFetch<T>(
       }
     }
 
+    const fetchBody = formData ? formData : body ? JSON.stringify(body) : undefined
+
     const res = await fetch(`${BACKEND_URL}/api${path}`, {
       method,
       headers,
-      body: body ? JSON.stringify(body) : undefined,
+      body: fetchBody,
       cache: "no-store",
     })
 
@@ -120,7 +123,7 @@ export async function backendFetch<T>(
           const retry = await fetch(`${BACKEND_URL}/api${path}`, {
             method,
             headers,
-            body: body ? JSON.stringify(body) : undefined,
+            body: fetchBody,
             cache: "no-store",
           })
           if (retry.ok) {
@@ -142,4 +145,22 @@ export async function backendFetch<T>(
   } catch {
     return { data: null, error: "Could not reach backend" }
   }
+}
+
+/**
+ * Resolves a backend image path to a browser-safe URL.
+ * - Relative /uploads/* paths are proxied through Next.js (/api/uploads/*)
+ *   to avoid Cross-Origin-Resource-Policy blocking.
+ * - Absolute URLs are returned as-is.
+ * - Malformed paths like "/https//..." are cleaned up.
+ */
+export function resolveImageUrl(raw: string | null | undefined): string {
+  if (!raw) return ""
+  const cleaned = raw
+    .replace(/^\/+(https?:\/\/)/, "$1")
+    .replace(/^\/+(https?\/\/)/, "https://")
+  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) return cleaned
+  if (raw.startsWith("/uploads/")) return `/api${raw}`
+  if (raw.startsWith("/")) return `${BACKEND_URL}${raw}`
+  return raw
 }

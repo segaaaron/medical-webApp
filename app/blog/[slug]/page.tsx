@@ -1,5 +1,5 @@
 import { DEFAULTS } from "@/lib/store/content-store"
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { socialLinks } from "@/lib/data/navigation"
@@ -34,7 +34,7 @@ function toStaticPost(p: BackendBlogPost): StaticBlogPost {
     slug: p.slug,
     excerpt: p.excerpt ?? "",
     content: body,
-    imageUrl: p.imageUrl ?? "",
+    imageUrl: resolveImageUrl(p.imageUrl),
     publishedAt: p.publishedAt ?? p.createdAt,
     author: "Dra. Yasmin Medrano Avila",
     readTime: body
