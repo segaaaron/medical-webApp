@@ -70,6 +70,7 @@ const contactJsonLd = {
 
 export default async function ContactoPage() {
   const c = await readContent()
+  const ct = c.contact
 
   return (
     <>
@@ -101,7 +102,7 @@ export default async function ContactoPage() {
 
                 {/* WhatsApp */}
                 <a
-                  href="https://wa.me/59178751894"
+                  href={ct.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-5 p-6 rounded-2xl hover:opacity-80 transition-opacity"
@@ -112,7 +113,7 @@ export default async function ContactoPage() {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "#e8a0b4" }}>WhatsApp</p>
-                    <p className="text-white font-semibold">+591 78751894</p>
+                    <p className="text-white font-semibold">{ct.whatsappNumber}</p>
                     <p className="text-xs mt-1" style={{ color: "#7a6570" }}>Respuesta rápida · Consulta gratuita</p>
                   </div>
                 </a>
@@ -127,11 +128,11 @@ export default async function ContactoPage() {
                   </div>
                   <div>
                     <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "#e8a0b4" }}>Teléfono</p>
-                    <p className="text-white font-semibold">+591 78751894</p>
+                    <p className="text-white font-semibold">{ct.phone}</p>
                   </div>
                 </div>
 
-                {/* Social */}
+                {/* Instagram */}
                 <div
                   className="flex items-center gap-5 p-6 rounded-2xl"
                   style={{ backgroundColor: "#5c1f35" }}
@@ -142,16 +143,17 @@ export default async function ContactoPage() {
                   <div>
                     <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "#e8a0b4" }}>Instagram</p>
                     <a
-                      href="https://www.instagram.com/dra_yasmin.medrano"
+                      href={ct.instagramUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-white font-semibold hover:text-yellow-200 transition-colors"
                     >
-                      @dra_yasmin.medrano
+                      {ct.instagram}
                     </a>
                   </div>
                 </div>
 
+                {/* Facebook */}
                 <div
                   className="flex items-center gap-5 p-6 rounded-2xl"
                   style={{ backgroundColor: "#5c1f35" }}
@@ -162,12 +164,12 @@ export default async function ContactoPage() {
                   <div>
                     <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "#e8a0b4" }}>Facebook</p>
                     <a
-                      href="https://www.facebook.com/DraMedranoMedesteticAntiaging"
+                      href={ct.facebookUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-white font-semibold hover:text-yellow-200 transition-colors"
                     >
-                      DraMedranoMedesteticAntiaging
+                      {ct.facebook}
                     </a>
                   </div>
                 </div>
@@ -184,9 +186,9 @@ export default async function ContactoPage() {
                   </div>
                   <div className="flex flex-col gap-3">
                     {[
-                      { day: "Lunes – Viernes", hours: "9:00 AM – 7:00 PM" },
-                      { day: "Sábado", hours: "9:00 AM – 2:00 PM" },
-                      { day: "Domingo", hours: "Cerrado" },
+                      { day: "Lunes – Viernes", hours: ct.scheduleWeekdays },
+                      { day: "Sábado", hours: ct.scheduleSaturday },
+                      { day: "Domingo", hours: ct.scheduleSunday },
                     ].map(({ day, hours }) => (
                       <div key={day} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0" style={{ borderColor: "#3a0f20" }}>
                         <span className="text-sm" style={{ color: "#fce4ec" }}>{day}</span>
@@ -202,13 +204,13 @@ export default async function ContactoPage() {
                     <p className="text-sm uppercase tracking-widest font-semibold" style={{ color: "#e8a0b4" }}>Ubicación</p>
                   </div>
                   <p className="text-sm leading-relaxed" style={{ color: "#fce4ec" }}>
-                    Bolivia — Consulta vía WhatsApp para confirmar dirección exacta del consultorio.
+                    {ct.location}
                   </p>
                 </div>
 
                 {/* CTA */}
                 <a
-                  href="https://wa.me/59178751894"
+                  href={ct.whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-3 w-full py-4 rounded-full text-base font-bold uppercase tracking-wide hover:opacity-80 transition-opacity"

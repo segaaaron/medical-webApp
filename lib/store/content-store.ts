@@ -94,6 +94,19 @@ export const DEFAULTS: ContentStore = {
   faqs,
   navLinks,
   footerGroups,
+  contact: {
+    whatsappNumber: "+591 78751894",
+    whatsappUrl: "https://wa.me/59178751894",
+    phone: "+591 78751894",
+    instagram: "@dra_yasmin.medrano",
+    instagramUrl: "https://www.instagram.com/dra_yasmin.medrano",
+    facebook: "DraMedranoMedesteticAntiaging",
+    facebookUrl: "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+    scheduleWeekdays: "9:00 AM – 7:00 PM",
+    scheduleSaturday: "9:00 AM – 2:00 PM",
+    scheduleSunday: "Cerrado",
+    location: "Bolivia — Consulta vía WhatsApp para confirmar dirección exacta del consultorio.",
+  },
 }
 
 export async function readContent(): Promise<ContentStore> {

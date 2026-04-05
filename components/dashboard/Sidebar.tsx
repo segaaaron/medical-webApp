@@ -7,7 +7,7 @@ import {
   ExternalLink,
   Stethoscope,
   Newspaper,
-  CalendarCheck,
+  Phone,
   Home,
 } from "lucide-react"
 
@@ -18,7 +18,7 @@ const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boo
 const NAV_SERVICES = [
   { label: "Tratamientos", href: "/dashboard/tratamientos", icon: Stethoscope },
   { label: "Blog", href: "/dashboard/blog", icon: Newspaper },
-  { label: "Citas", href: "/dashboard/citas", icon: CalendarCheck },
+  { label: "Contacto", href: "/dashboard/contacto", icon: Phone },
 ]
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
