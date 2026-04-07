@@ -13,13 +13,47 @@ const ICON_MAP: Record<CourseItemIcon, React.ElementType> = {
   CheckCircle,
 }
 
+export interface TreatmentsPageInfo {
+  label?: string
+  title?: string
+  subtitle?: string
+  consultationTitle?: string
+  consultationItems?: string[]
+  sidebarBadge?: string
+  doctorImage?: string
+  ctaTitle?: string
+  ctaSubtitle?: string
+  priceLabel?: string
+  priceDescription?: string
+  buttonText?: string
+  disclaimer?: string
+}
+
 interface CourseSectionProps {
   included: CourseIncluded[]
   modules: CourseModule[]
   pricing: CoursePricing
+  info?: TreatmentsPageInfo
 }
 
-export function CourseSection({ included, modules }: CourseSectionProps) {
+export function CourseSection({ included, modules, info }: CourseSectionProps) {
+  const eyebrow = info?.label || "Nuestros Servicios"
+  const title = info?.title || "Tratamientos de Medicina Estética"
+  const subtitle = info?.subtitle ||
+    "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:#c9a96e;font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
+  const consultationTitle = info?.consultationTitle || "Lo Que Incluye Cada Consulta"
+  const sidebarBadge = info?.sidebarBadge || "✨ Consulta de Valoración GRATIS"
+  const doctorImage = info?.doctorImage || "/images/draMedrano2.jpeg"
+  const ctaTitle = info?.ctaTitle || "Agenda tu Cita"
+  const ctaSubtitle = info?.ctaSubtitle || "Consulta personalizada con la Dra. Yasmin"
+  const priceLabel = info?.priceLabel || "GRATIS"
+  const priceDescription = info?.priceDescription || "Valoración inicial sin costo — oferta de este mes"
+  const buttonText = info?.buttonText || "RESERVAR MI CONSULTA"
+  const disclaimer = info?.disclaimer || "Sin compromiso · Atención personalizada garantizada"
+
+  // Use site-content consultationItems (strings) if provided, otherwise fall back to static included[]
+  const hasInfoItems = Array.isArray(info?.consultationItems) && info.consultationItems.length > 0
+
   return (
     <section id="tratamientos" className="py-20 px-6" style={{ backgroundColor: "#3a0f20" }}>
       <div className="container-xl">
@@ -30,9 +64,9 @@ export function CourseSection({ included, modules }: CourseSectionProps) {
           transition={{ duration: 0.7 }}
         >
           <SectionHeader
-            eyebrow="Nuestros Servicios"
-            title="Tratamientos de Medicina Estética"
-            subtitle="Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:#c9a96e;font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
+            eyebrow={eyebrow}
+            title={title}
+            subtitle={subtitle}
             light
           />
         </motion.div>
@@ -45,19 +79,27 @@ export function CourseSection({ included, modules }: CourseSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <h3 className="text-2xl font-bold mb-8 text-white">Lo Que Incluye Cada Consulta</h3>
+            <h3 className="text-2xl font-bold mb-8 text-white">{consultationTitle}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-              {included.map((item) => {
-                const Icon = ICON_MAP[item.iconName]
-                return (
-                  <div key={item.text} className="flex items-center gap-3">
-                    <Icon size={20} style={{ color: "#4a9e82" }} className="shrink-0" />
-                    <span className="text-sm" style={{ color: "#fce4ec" }}>
-                      {item.text}
-                    </span>
-                  </div>
-                )
-              })}
+              {hasInfoItems
+                ? info!.consultationItems!.map((text) => (
+                    <div key={text} className="flex items-center gap-3">
+                      <CheckCircle size={20} style={{ color: "#4a9e82" }} className="shrink-0" />
+                      <span className="text-sm" style={{ color: "#fce4ec" }}>{text}</span>
+                    </div>
+                  ))
+                : included.map((item) => {
+                    const Icon = ICON_MAP[item.iconName]
+                    return (
+                      <div key={item.text} className="flex items-center gap-3">
+                        <Icon size={20} style={{ color: "#4a9e82" }} className="shrink-0" />
+                        <span className="text-sm" style={{ color: "#fce4ec" }}>
+                          {item.text}
+                        </span>
+                      </div>
+                    )
+                  })
+              }
             </div>
 
             <div className="p-6 rounded-xl" style={{ backgroundColor: "#5c1f35" }}>
@@ -91,12 +133,12 @@ export function CourseSection({ included, modules }: CourseSectionProps) {
                 className="text-center py-3 text-sm font-bold uppercase tracking-wider"
                 style={{ backgroundColor: "#c9a96e", color: "white" }}
               >
-                ✨ Consulta de Valoración GRATIS
+                {sidebarBadge}
               </div>
               <div className="p-8 text-center">
                 <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "#3a0f20" }}>
                   <img
-                    src="/images/draMedrano2.jpeg"
+                    src={doctorImage}
                     alt="Dra. Yasmin Medrano Avila - Agenda tu consulta de valoracion gratuita de medicina estetica"
                     className="w-full h-full object-cover object-top"
                     loading="lazy"
@@ -105,23 +147,23 @@ export function CourseSection({ included, modules }: CourseSectionProps) {
                     height={96}
                   />
                 </div>
-                <h4 className="text-2xl font-bold text-white mb-2">Agenda tu Cita</h4>
+                <h4 className="text-2xl font-bold text-white mb-2">{ctaTitle}</h4>
                 <p className="text-sm mb-6" style={{ color: "#e8a0b4" }}>
-                  Consulta personalizada con la Dra. Yasmin
+                  {ctaSubtitle}
                 </p>
                 <div className="mb-2">
                   <span className="text-3xl font-bold" style={{ color: "#c9a96e" }}>
-                    GRATIS
+                    {priceLabel}
                   </span>
                 </div>
                 <p className="text-xs mb-8" style={{ color: "#e8a0b4" }}>
-                  Valoración inicial sin costo — oferta de este mes
+                  {priceDescription}
                 </p>
                 <LinkButton href="https://wa.me/59178751894" variant="primary" className="w-full justify-center py-4">
-                  RESERVAR MI CONSULTA
+                  {buttonText}
                 </LinkButton>
                 <p className="text-xs mt-4" style={{ color: "#7a6570" }}>
-                  Sin compromiso · Atención personalizada garantizada
+                  {disclaimer}
                 </p>
               </div>
             </div>

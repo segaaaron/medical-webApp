@@ -30,9 +30,12 @@ export default function EditarBlogPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState("")
   const [imageRemoved, setImageRemoved] = useState(false)
+  const [formInitialValues, setFormInitialValues] = useState<BlogValues>({
+    title: "", excerpt: "", content: "", published: false,
+  })
 
   const formik = useFormik<BlogValues>({
-    initialValues: { title: "", excerpt: "", content: "", published: false },
+    initialValues: formInitialValues,
     validationSchema: blogSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
@@ -66,33 +69,24 @@ export default function EditarBlogPage() {
   useEffect(() => {
     async function fetchPost() {
       try {
-        const res = await fetch("/api/blog")
+        const res = await fetch(`/api/blog/${id}`)
         if (!res.ok) {
           showToast("error", "No se pudo cargar el artículo.")
-          setLoading(false)
           return
         }
-        const posts = await res.json()
-
-        const post = posts.find((p: { id: string }) => p.id === id)
-        if (!post) {
-          showToast("error", "Artículo no encontrado.")
-          setLoading(false)
-          return
-        }
-        formik.resetForm({
-          values: {
-            title: post.title,
-            excerpt: post.excerpt ?? "",
-            content: post.content ?? post.body ?? "",
-            published: post.published,
-          },
+        const post = await res.json()
+        setFormInitialValues({
+          title: post.title ?? "",
+          excerpt: post.excerpt ?? "",
+          content: post.content ?? "",
+          published: post.published ?? false,
         })
         if (post.imageUrl) setImagePreview(post.imageUrl)
       } catch {
         showToast("error", "No se pudo conectar al servidor.")
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     fetchPost()
     // eslint-disable-next-line react-hooks/exhaustive-deps

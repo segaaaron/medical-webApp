@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import Link from "next/link"
@@ -60,11 +60,11 @@ export function TreatmentForm({
 
   const formik = useFormik<TreatmentSchemaValues>({
     initialValues: {
-      name: "",
-      tag: "",
-      description: "",
-      price: "",
-      active: false,
+      name: initialValues?.name ?? "",
+      tag: initialValues?.tag ?? "",
+      description: initialValues?.description ?? "",
+      price: initialValues?.price ?? "",
+      active: initialValues?.active ?? false,
     },
     validationSchema: treatmentSchema,
     enableReinitialize: true,
@@ -84,25 +84,6 @@ export function TreatmentForm({
       }
     },
   })
-
-  useEffect(() => {
-    if (initialValues) {
-      const merged = { ...INITIAL_VALUES, ...initialValues }
-      formik.resetForm({
-        values: {
-          name: merged.name,
-          tag: merged.tag,
-          description: merged.description,
-          price: merged.price,
-          active: merged.active,
-        },
-      })
-      setImageFile(merged.imageFile)
-      setImagePreview(merged.imagePreview)
-      setImageRemoved(merged.imageRemoved)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialValues])
 
   function handleImageSelect(file: File) {
     setImageFile(file)
@@ -259,7 +240,7 @@ export function TreatmentForm({
 export function buildTreatmentFormData(values: TreatmentFormValues): FormData {
   const fd = new FormData()
   fd.append("name", values.name)
-  fd.append("category", values.tag ?? "")
+  fd.append("tag", values.tag ?? "")
   fd.append("description", values.description)
   fd.append("price", values.price ?? "")
   fd.append("active", String(values.active))

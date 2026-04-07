@@ -63,6 +63,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-bold text-white text-base">{preset.name}</h3>
                   <Badge label={preset.tag} color={preset.tagColor} />
+                  <span>{preset.tagColor}</span>
                 </div>
                 <p className="text-sm leading-relaxed" style={{ color: "#e8a0b4" }}>
                   {preset.description}

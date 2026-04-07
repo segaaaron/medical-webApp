@@ -1,11 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Plus, Trash2, Pencil } from "lucide-react"
 import Link from "next/link"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { useToast } from "@/components/dashboard/Toast"
 import { resolveImageUrl } from "@/lib/image-utils"
+import { DeleteTreatmentDialog } from "@/components/ui/DialogAlert"
 
 interface Treatment {
   id: string
@@ -21,6 +23,7 @@ export default function TratamientosDashboardPage() {
   const showToast = useToast()
   const [treatments, setTreatments] = useState<Treatment[]>([])
   const [loading, setLoading] = useState(true)
+  const [deleteTarget, setDeleteTarget] = useState<Treatment | null>(null)
 
   async function load() {
     setLoading(true)
@@ -31,11 +34,12 @@ export default function TratamientosDashboardPage() {
 
   useEffect(() => { load() }, [])
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`¿Eliminar "${name}"?`)) return
-    const res = await fetch(`/api/treatments/${id}`, { method: "DELETE" })
-    if (res.ok) showToast("success", "Tratamiento eliminado.")
-    else showToast("error", "No se pudo eliminar el tratamiento.")
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    const res = await fetch(`/api/treatments/${deleteTarget.id}`, { method: "DELETE" })
+    if (res.ok) showToast("success", `"${deleteTarget.name}" fue eliminado correctamente.`)
+    else showToast("error", "No se pudo eliminar el tratamiento. Intenta de nuevo.")
+    setDeleteTarget(null)
     await load()
   }
 
@@ -96,11 +100,9 @@ export default function TratamientosDashboardPage() {
                         {t.category}
                       </span>
                     )}
-                    {!t.active && (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">
-                        Inactivo
-                      </span>
-                    )}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${t.active ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
+                      {t.active ? "Publicado" : "Borrador"}
+                    </span>
                   </div>
                   {t.description && (
                     <p className="text-xs text-gray-500 truncate">{t.description}</p>
@@ -117,7 +119,7 @@ export default function TratamientosDashboardPage() {
                     <Pencil size={14} />
                   </Link>
                   <button
-                    onClick={() => handleDelete(t.id, t.name)}
+                    onClick={() => setDeleteTarget(t)}
                     className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
                     aria-label="Eliminar"
                   >
@@ -129,6 +131,13 @@ export default function TratamientosDashboardPage() {
           ))}
         </div>
       )}
+
+      <DeleteTreatmentDialog
+        open={deleteTarget !== null}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        treatmentName={deleteTarget?.name ?? ""}
+      />
     </>
   )
 }

@@ -13,6 +13,44 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/Button"
 
+interface DeleteTreatmentDialogProps {
+  open: boolean
+  onConfirm: () => void
+  onCancel: () => void
+  treatmentName: string
+}
+
+export function DeleteTreatmentDialog({
+  open,
+  onConfirm,
+  onCancel,
+  treatmentName,
+}: DeleteTreatmentDialogProps) {
+  return (
+    <AlertDialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel() }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogMedia className="bg-red-50">
+            <Trash2 className="size-5 text-red-500" />
+          </AlertDialogMedia>
+          <AlertDialogTitle>¿Eliminar tratamiento?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Estás a punto de eliminar el tratamiento{" "}
+            <strong>&quot;{treatmentName}&quot;</strong>. Esta acción es permanente y no se puede deshacer.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cerrar</AlertDialogCancel>
+          <Button variant="destructive" onClick={onConfirm}>
+            Eliminar tratamiento
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
 interface DeleteBlogDialogProps {
   open: boolean
   onConfirm: () => void

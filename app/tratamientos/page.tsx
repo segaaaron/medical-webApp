@@ -1,9 +1,10 @@
 import { readContent } from "@/lib/store/content-store"
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { CourseSection } from "@/components/sections/CourseSection"
+import { CourseSection, type TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import { PresetsSection } from "@/components/sections/PresetsSection"
+import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
 import { socialLinks } from "@/lib/data/navigation"
 import type { Metadata } from "next"
 
@@ -46,12 +47,17 @@ export const metadata: Metadata = {
   },
 }
 
+interface SiteContentTreatmentsPage {
+  key: string
+  value: TreatmentsPageInfo
+}
+
 interface BackendTreatment {
   id: string
   name: string
   description: string | null
   price: number
-  category: string
+  tag: string
   imageUrl: string | null
   active: boolean
 }
@@ -82,13 +88,31 @@ const treatmentsJsonLd = {
 }
 
 export default async function TratamientosPage() {
-  const [c, backendResult] = await Promise.all([
+  const [c, backendResult, infoResult] = await Promise.all([
     readContent(),
     backendFetch<BackendTreatment[]>("/treatments?active=true"),
+    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage"),
   ])
 
-  // If the backend has treatments, override the module list with live data
-  const backendTreatments = backendResult.data ?? []
+  // Use site-content info only when the service responds correctly; otherwise undefined = fallback to hardcoded
+  const pageInfo: TreatmentsPageInfo | undefined =
+    infoResult.error === null && infoResult.data?.value
+      ? {
+          ...infoResult.data.value,
+          doctorImage: infoResult.data.value.doctorImage
+            ? resolveImageUrl(infoResult.data.value.doctorImage as string)
+            : undefined,
+        }
+      : undefined
+
+  const backendError = backendResult.error !== null
+  const backendTreatments = backendError
+    ? []
+    : (backendResult.data ?? []).map((t) => ({
+        ...t,
+        imageUrl: resolveImageUrl(t.imageUrl),
+      }))
+
   const liveModules =
     backendTreatments.length > 0
       ? backendTreatments.map((t) => ({ title: t.name }))
@@ -117,8 +141,13 @@ export default async function TratamientosPage() {
           included={c.courseIncluded}
           modules={liveModules}
           pricing={c.coursePricing}
+          info={pageInfo}
         />
-        <PresetsSection presets={c.presets} />
+
+        {backendError
+          ? <PresetsSection presets={c.presets} />
+          : <TreatmentsGrid treatments={backendTreatments} />
+        }
       </main>
       <Footer groups={c.footerGroups} socials={socialLinks} />
     </>

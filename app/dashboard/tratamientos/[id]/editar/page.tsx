@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
@@ -19,37 +19,32 @@ export default function EditarTratamientoPage() {
   const [loading, setLoading] = useState(true)
   const [initialValues, setInitialValues] = useState<Partial<TreatmentFormValues>>()
 
-  const fetchTreatment = useCallback(async () => {
-    try {
-      const res = await fetch("/api/treatments")
-      if (!res.ok) {
-        showToast("error", "No se pudo cargar el tratamiento.")
-        return
-      }
-      const list = await res.json()
-      const t = list.find((x: { id: string }) => x.id === id)
-      if (!t) {
-        showToast("error", "Tratamiento no encontrado.")
-        return
-      }
-      setInitialValues({
-        name: t.name ?? "",
-        tag: t.category ?? "",
-        description: t.description ?? "",
-        price: t.price ?? "",
-        active: t.active ?? false,
-        imagePreview: t.imageUrl ? resolveImageUrl(t.imageUrl) : "",
-      })
-    } catch {
-      showToast("error", "No se pudo conectar al servidor.")
-    } finally {
-      setLoading(false)
-    }
-  }, [id, showToast])
-
   useEffect(() => {
+    async function fetchTreatment() {
+      try {
+        const res = await fetch(`/api/treatments/${id}`)
+        if (!res.ok) {
+          showToast("error", "No se pudo cargar el tratamiento.")
+          return
+        }
+        const treatment = await res.json()
+        setInitialValues({
+          name: treatment.name ?? "",
+          tag: treatment.tag ?? "",
+          description: treatment.description ?? "",
+          price: treatment.price ?? "",
+          active: treatment.active ?? false,
+          imagePreview: treatment.imageUrl ? resolveImageUrl(treatment.imageUrl) : "",
+        })
+      } catch {
+        showToast("error", "No se pudo conectar al servidor.")
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchTreatment()
-  }, [fetchTreatment])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id])
 
   async function handleSubmit(values: TreatmentFormValues) {
     if (values.name.trim().length < 5) {
@@ -65,7 +60,7 @@ export default function EditarTratamientoPage() {
 
       if (res.ok) {
         showToast("success", "¡Tratamiento actualizado exitosamente!")
-        router.push("/dashboard/tratamientos")
+        router.push("/dashboard/tratamientos?updated=1")
       } else {
         const data = await res.json()
         showToast("error", data.error ?? "Error al guardar el tratamiento.")

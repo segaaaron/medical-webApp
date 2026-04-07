@@ -10,6 +10,23 @@ async function getSession() {
   return verifyToken(token)
 }
 
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
+  const { data, error } = await backendFetch(`/treatments/${id}`)
+
+  if (!error && data) return NextResponse.json(data)
+
+  // Fallback: fetch the list and find by id
+  const { data: list } = await backendFetch<unknown[]>("/treatments")
+  if (Array.isArray(list)) {
+    const found = list.find((t) => (t as Record<string, unknown>).id === id)
+    if (found) return NextResponse.json(found)
+  }
+
+  return NextResponse.json({ error: "Treatment not found" }, { status: 404 })
+}
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

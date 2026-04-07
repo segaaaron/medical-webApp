@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="192" viewBox="0 0 400 192" fill="none">
+  <rect width="400" height="192" fill="#3a0f20"/>
+  <!-- Subtle radial glow -->
+  <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#7a2040" stop-opacity="0.6"/>
+    <stop offset="100%" stop-color="#3a0f20" stop-opacity="0"/>
+  </radialGradient>
+  <rect width="400" height="192" fill="url(#glow)"/>
+
+  <!-- Diamond ornament -->
+  <polygon points="200,56 216,72 200,88 184,72" fill="none" stroke="#c9a96e" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- Cross / medical icon -->
+  <rect x="193" y="62" width="14" height="4" rx="2" fill="#c9a96e"/>
+  <rect x="197" y="58" width="6" height="12" rx="2" fill="#c9a96e"/>
+
+  <!-- Flower / sparkle dots around -->
+  <circle cx="200" cy="50" r="2" fill="#c9a96e" opacity="0.4"/>
+  <circle cx="218" cy="58" r="1.5" fill="#c9a96e" opacity="0.3"/>
+  <circle cx="182" cy="58" r="1.5" fill="#c9a96e" opacity="0.3"/>
+  <circle cx="200" cy="94" r="2" fill="#c9a96e" opacity="0.4"/>
+
+  <!-- Label -->
+  <text x="200" y="116" font-family="Georgia, serif" font-size="13" fill="#e8a0b4" text-anchor="middle" letter-spacing="2">Medicina Estética</text>
+  <text x="200" y="134" font-family="Georgia, serif" font-size="10" fill="#c9a96e" text-anchor="middle" letter-spacing="3" opacity="0.7">DRA. YASMIN MEDRANO</text>
+
+  <!-- Bottom decorative line -->
+  <line x1="160" y1="145" x2="240" y2="145" stroke="#c9a96e" stroke-width="0.5" opacity="0.4"/>
+</svg>
