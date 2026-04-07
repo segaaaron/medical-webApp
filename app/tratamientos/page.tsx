@@ -113,9 +113,10 @@ export default async function TratamientosPage() {
         imageUrl: resolveImageUrl(t.imageUrl),
       }))
 
+  const handleFilterList = backendTreatments.filter(x => x.active)
   const liveModules =
-    backendTreatments.length > 0
-      ? backendTreatments.map((t) => ({ title: t.name }))
+    handleFilterList.length > 0
+      ? handleFilterList.map((t) => ({ title: t.name }))
       : c.courseModules
 
   return (
