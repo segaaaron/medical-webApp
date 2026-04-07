@@ -9,6 +9,9 @@ export function resolveImageUrl(raw: string | null | undefined): string {
   const cleaned = raw
     .replace(/^\/+(https?:\/\/)/, "$1")
     .replace(/^\/+(https?\/\/)/, "https://")
+  // Full backend URL pointing to /uploads/ → proxy through Next.js to avoid mixed-content blocks
+  const uploadsMatch = cleaned.match(/https?:\/\/[^/]+\/uploads\/(.+)/)
+  if (uploadsMatch) return `/api/uploads/${uploadsMatch[1]}`
   if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) return cleaned
   if (raw.startsWith("/uploads/")) return `/api${raw}`
   if (raw.startsWith("/")) return `${BACKEND_URL}${raw}`

@@ -2,72 +2,61 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useFormik } from "formik"
+import * as Yup from "yup"
 import Link from "next/link"
 import { ArrowLeft, Check, Upload, X } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 
-interface BlogForm {
-  title: string
-  excerpt: string
-  content: string
-  published: boolean
-}
-
-const EMPTY: BlogForm = {
-  title: "",
-  excerpt: "",
-  content: "",
-  published: false,
-}
-
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
+
+const blogSchema = Yup.object({
+  title: Yup.string().required("El título es obligatorio"),
+  excerpt: Yup.string().default(""),
+  content: Yup.string().required("El contenido es obligatorio"),
+  published: Yup.boolean().default(false),
+})
+
+type BlogValues = Yup.InferType<typeof blogSchema>
 
 export default function NuevoBlogPage() {
   const showToast = useToast()
   const router = useRouter()
-  const [form, setForm] = useState<BlogForm>(EMPTY)
-  const [saving, setSaving] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState("")
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!form.title.trim() || !form.content.trim()) {
-      showToast("error", "El titulo y contenido son obligatorios.")
-      return
-    }
+  const formik = useFormik<BlogValues>({
+    initialValues: { title: "", excerpt: "", content: "", published: false },
+    validationSchema: blogSchema,
+    onSubmit: async (values) => {
+      try {
+        const fd = new FormData()
+        fd.append("title", values.title)
+        fd.append("excerpt", values.excerpt)
+        fd.append("content", values.content)
+        fd.append("published", String(values.published))
+        fd.append("image", imageFile ?? "")
 
-    setSaving(true)
+        const res = await fetch("/api/blog", {
+          method: "POST",
+          body: fd,
+        })
 
-    try {
-      const fd = new FormData()
-      fd.append("title", form.title)
-      fd.append("excerpt", form.excerpt)
-      fd.append("content", form.content)
-      fd.append("published", String(form.published))
-      fd.append("image", imageFile ?? "")
-
-      const res = await fetch("/api/blog", {
-        method: "POST",
-        body: fd,
-      })
-
-      if (res.ok) {
-        showToast("success", "¡Artículo creado exitosamente!")
-        router.push("/dashboard/blog")
-      } else {
-        const data = await res.json()
-        showToast("error", data.error ?? "Error al crear el artículo.")
+        if (res.ok) {
+          showToast("success", "¡Artículo creado exitosamente!")
+          router.push("/dashboard/blog")
+        } else {
+          const data = await res.json()
+          showToast("error", data.error ?? "Error al crear el artículo.")
+        }
+      } catch {
+        showToast("error", "No se pudo conectar al servidor.")
       }
-    } catch {
-      showToast("error", "No se pudo conectar al servidor.")
-    } finally {
-      setSaving(false)
-    }
-  }
+    },
+  })
 
   return (
     <>
@@ -86,26 +75,24 @@ export default function NuevoBlogPage() {
       <h1 className="text-2xl font-bold text-gray-800 mb-1">Nuevo articulo</h1>
       <p className="text-sm text-gray-500 mb-6">Completa los campos para crear un nuevo articulo en el blog.</p>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={formik.handleSubmit} noValidate>
         <EditorCard title="Contenido del articulo">
           <FormField label="Titulo *" htmlFor="blog-title">
             <input
               id="blog-title"
               className={INPUT_CLS}
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              {...formik.getFieldProps("title")}
               placeholder="5 beneficios del acido hialuronico"
-              required
               aria-required="true"
             />
+            {formik.touched.title && formik.errors.title && <p className="text-xs text-red-500 mt-1">{formik.errors.title}</p>}
           </FormField>
 
           <FormField label="Extracto (resumen corto)" htmlFor="blog-excerpt">
             <input
               id="blog-excerpt"
               className={INPUT_CLS}
-              value={form.excerpt}
-              onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+              {...formik.getFieldProps("excerpt")}
               placeholder="Un breve resumen del articulo..."
             />
           </FormField>
@@ -153,12 +140,11 @@ export default function NuevoBlogPage() {
               id="blog-content"
               className={INPUT_CLS}
               rows={10}
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
+              {...formik.getFieldProps("content")}
               placeholder="Escribe aqui el contenido del articulo..."
-              required
               aria-required="true"
             />
+            {formik.touched.content && formik.errors.content && <p className="text-xs text-red-500 mt-1">{formik.errors.content}</p>}
           </FormField>
 
           <div className="flex items-center gap-3">
@@ -166,8 +152,10 @@ export default function NuevoBlogPage() {
               <input
                 id="blog-published"
                 type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm({ ...form, published: e.target.checked })}
+                name="published"
+                checked={formik.values.published}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 className="rounded accent-[#b5496a]"
               />
               Publicar inmediatamente
@@ -177,13 +165,13 @@ export default function NuevoBlogPage() {
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              disabled={saving}
-              aria-label={saving ? "Guardando articulo" : "Crear articulo"}
+              disabled={!formik.isValid || formik.isSubmitting}
+              aria-label={formik.isSubmitting ? "Guardando articulo" : "Crear articulo"}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
               style={{ backgroundColor: "#b5496a" }}
             >
               <Check size={15} aria-hidden="true" />
-              {saving ? "Guardando..." : "Crear articulo"}
+              {formik.isSubmitting ? "Guardando..." : "Crear articulo"}
             </button>
             <Link
               href="/dashboard/blog"

@@ -5,12 +5,14 @@ import { Plus, Trash2, Pencil } from "lucide-react"
 import Link from "next/link"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { useToast } from "@/components/dashboard/Toast"
+import { resolveImageUrl } from "@/lib/image-utils"
 
 interface Treatment {
   id: string
   name: string
   description: string | null
   category: string
+  price: string | null
   imageUrl: string | null
   active: boolean
 }
@@ -73,7 +75,7 @@ export default function TratamientosDashboardPage() {
               <div className="w-28 shrink-0 bg-gray-100">
                 {t.imageUrl ? (
                   <img
-                    src={t.imageUrl}
+                    src={resolveImageUrl(t.imageUrl)}
                     alt={t.name}
                     className="w-full h-full object-cover"
                   />

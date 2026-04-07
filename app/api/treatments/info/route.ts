@@ -31,13 +31,13 @@ export async function PUT(req: NextRequest) {
   const incoming = await req.formData()
 
   // Build the FormData to forward to the backend
-  const fd = new FormData()
-  fd.append("key", "treatmentsPage")
+  const responseData = new FormData()
+  responseData.append("key", "treatmentsPage")
 
-  // Collect all text fields into a value object, except "image" and "key"
+  // Collect all text fields into a value object, except "doctorImage" and "key"
   const value: Record<string, unknown> = {}
   for (const [key, val] of incoming.entries()) {
-    if (key === "image") continue
+    if (key === "doctorImage") continue
     // Parse consultationItems back into an array
     if (key === "consultationItems") {
       try {
@@ -49,17 +49,17 @@ export async function PUT(req: NextRequest) {
       value[key] = val
     }
   }
-  fd.append("value", JSON.stringify(value))
+  responseData.append("value", JSON.stringify(value))
 
   // Forward the image file if present
-  const imageEntry = incoming.get("image")
+  const imageEntry = incoming.get("doctorImage")
   if (imageEntry && imageEntry instanceof File && imageEntry.size > 0) {
-    fd.append("image", imageEntry)
+    responseData.append("image", imageEntry)
   }
 
   const { data, error } = await backendFetch("/site-content", {
     method: "PUT",
-    formData: fd,
+    formData: responseData,
     auth: true,
   })
   if (error) return NextResponse.json({ error }, { status: 502 })

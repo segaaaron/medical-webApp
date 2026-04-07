@@ -1,43 +1,49 @@
 "use client"
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useFormik } from "formik"
+import * as Yup from "yup"
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react"
 import { Suspense } from "react"
+
+const loginSchema = Yup.object({
+  email: Yup.string().email("Correo no válido").required("El correo es obligatorio"),
+  password: Yup.string().required("La contraseña es obligatoria"),
+})
+
+type LoginValues = Yup.InferType<typeof loginSchema>
 
 function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const from = params.get("from") ?? "/dashboard"
 
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
-    try {
-      const res = await fetch("/api/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error ?? "Usuario o contraseña incorrectos.")
-        return
+  const formik = useFormik<LoginValues>({
+    initialValues: { email: "", password: "" },
+    validationSchema: loginSchema,
+    onSubmit: async (values) => {
+      setError("")
+      try {
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setError(data.error ?? "Usuario o contraseña incorrectos.")
+          return
+        }
+        router.push(from)
+        router.refresh()
+      } catch {
+        setError("Error de conexión. Inténtalo de nuevo.")
       }
-      router.push(from)
-      router.refresh()
-    } catch {
-      setError("Error de conexión. Inténtalo de nuevo.")
-    } finally {
-      setLoading(false)
-    }
-  }
+    },
+  })
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "#1F1346" }}>
@@ -58,7 +64,7 @@ function LoginForm() {
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <h2 className="font-bold text-gray-800 text-lg mb-6">Iniciar sesión</h2>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-semibold text-gray-700" htmlFor="email">
                 Correo electrónico
@@ -67,12 +73,11 @@ function LoginForm() {
                 id="email"
                 type="email"
                 autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...formik.getFieldProps("email")}
                 className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
                 placeholder="correo@ejemplo.com"
               />
+              {formik.touched.email && formik.errors.email && <p className="text-xs text-red-500 mt-1">{formik.errors.email}</p>}
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -84,9 +89,7 @@ function LoginForm() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...formik.getFieldProps("password")}
                   className="w-full px-4 py-3 pr-11 rounded-lg border border-gray-200 text-sm outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
                   placeholder="••••••••"
                 />
@@ -100,6 +103,7 @@ function LoginForm() {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {formik.touched.password && formik.errors.password && <p className="text-xs text-red-500 mt-1">{formik.errors.password}</p>}
             </div>
 
             {error && (
@@ -108,12 +112,12 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={!formik.isValid || formik.isSubmitting}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-lg font-bold text-sm text-white transition-colors disabled:opacity-60 mt-2"
               style={{ backgroundColor: "#673de6" }}
             >
-              {loading && <Loader2 size={16} className="animate-spin" />}
-              {loading ? "Entrando..." : "Entrar al dashboard"}
+              {formik.isSubmitting && <Loader2 size={16} className="animate-spin" />}
+              {formik.isSubmitting ? "Entrando..." : "Entrar al dashboard"}
             </button>
           </form>
         </div>

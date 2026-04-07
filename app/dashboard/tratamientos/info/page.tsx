@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useFormik } from "formik"
+import * as Yup from "yup"
 import { Check, Upload, X } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
@@ -16,24 +18,26 @@ function toRawPath(url: string): string {
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
 
-interface TreatmentsInfo {
-  label: string
-  title: string
-  description: string
-  descriptionHighlight: string
-  consultationTitle: string
-  consultationItems: string[]
-  sidebarBadge: string
-  doctorImage: string
-  ctaTitle: string
-  ctaSubtitle: string
-  priceLabel: string
-  priceDescription: string
-  buttonText: string
-  disclaimer: string
-}
+const infoSchema = Yup.object({
+  label: Yup.string().default(""),
+  title: Yup.string().required("El título principal es obligatorio"),
+  description: Yup.string().default(""),
+  descriptionHighlight: Yup.string().default(""),
+  consultationTitle: Yup.string().default(""),
+  consultationItems: Yup.array().of(Yup.string().defined()).default([]),
+  sidebarBadge: Yup.string().default(""),
+  doctorImage: Yup.string().default(""),
+  ctaTitle: Yup.string().default(""),
+  ctaSubtitle: Yup.string().default(""),
+  priceLabel: Yup.string().default(""),
+  priceDescription: Yup.string().default(""),
+  buttonText: Yup.string().default(""),
+  disclaimer: Yup.string().default(""),
+})
 
-const DEFAULT: TreatmentsInfo = {
+type InfoValues = Yup.InferType<typeof infoSchema>
+
+const DEFAULT: InfoValues = {
   label: "NUESTROS SERVICIOS",
   title: "Tratamientos de Medicina Estética",
   description:
@@ -60,13 +64,60 @@ const DEFAULT: TreatmentsInfo = {
 
 export default function TratamientosInfoPage() {
   const showToast = useToast()
-  const [form, setForm] = useState<TreatmentsInfo>(DEFAULT)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  // imagePreview = URL visible en el <img> (blob local o URL resuelta del backend)
   const [imagePreview, setImagePreview] = useState("")
-  // imageFile = archivo pendiente de subir al backend
   const [imageFile, setImageFile] = useState<File | null>(null)
+
+  const formik = useFormik<InfoValues>({
+    initialValues: DEFAULT,
+    validationSchema: infoSchema,
+    enableReinitialize: true,
+    onSubmit: async (values) => {
+      try {
+        const responseData = new FormData()
+        responseData.append("label", values.label)
+        responseData.append("title", values.title)
+        responseData.append("description", values.description)
+        responseData.append("descriptionHighlight", values.descriptionHighlight)
+        responseData.append("consultationTitle", values.consultationTitle)
+        responseData.append("consultationItems", JSON.stringify(values.consultationItems))
+        responseData.append("sidebarBadge", values.sidebarBadge)
+        if (imageFile) {
+          responseData.append("doctorImage", imageFile)
+        } else {
+          responseData.append("doctorImage", "")
+        }
+        responseData.append("ctaTitle", values.ctaTitle)
+        responseData.append("ctaSubtitle", values.ctaSubtitle)
+        responseData.append("priceLabel", values.priceLabel)
+        responseData.append("priceDescription", values.priceDescription)
+        responseData.append("buttonText", values.buttonText)
+        responseData.append("disclaimer", values.disclaimer)
+
+        const res = await fetch("/api/treatments/info", {
+          method: "PUT",
+          body: responseData,
+        })
+        if (res.ok) {
+          const saved = await res.json()
+          const updatedValue = saved?.value ?? {}
+          const merged = { ...values, ...updatedValue }
+          if (updatedValue.doctorImage) {
+            merged.doctorImage = toRawPath(updatedValue.doctorImage)
+            setImagePreview(resolveImageUrl(merged.doctorImage))
+          }
+          formik.resetForm({ values: merged })
+          setImageFile(null)
+          showToast("success", "¡Información actualizada exitosamente!")
+        } else {
+          const data = await res.json()
+          showToast("error", data.error ?? "Error al guardar la información.")
+        }
+      } catch {
+        showToast("error", "No se pudo conectar al servidor.")
+      }
+    },
+  })
 
   useEffect(() => {
     async function load() {
@@ -74,11 +125,9 @@ export default function TratamientosInfoPage() {
         const res = await fetch("/api/treatments/info")
         if (res.ok) {
           const data = await res.json()
-          const merged: TreatmentsInfo = { ...DEFAULT, ...data }
-          // Normalize: always store the raw backend path
+          const merged: InfoValues = { ...DEFAULT, ...data }
           merged.doctorImage = toRawPath(merged.doctorImage)
-          setForm(merged)
-          // Resolve only for display
+          formik.resetForm({ values: merged })
           if (merged.doctorImage) setImagePreview(resolveImageUrl(merged.doctorImage))
         }
       } catch {
@@ -87,75 +136,20 @@ export default function TratamientosInfoPage() {
       setLoading(false)
     }
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function setItem(index: number, value: string) {
-    const items = [...form.consultationItems]
+    const items = [...formik.values.consultationItems]
     items[index] = value
-    setForm({ ...form, consultationItems: items })
+    formik.setFieldValue("consultationItems", items)
   }
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setImageFile(file)
-    // Muestra preview local inmediatamente sin alterar form.doctorImage
     setImagePreview(URL.createObjectURL(file))
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!form.title.trim()) {
-      showToast("error", "El título principal es obligatorio.")
-      return
-    }
-    setSaving(true)
-    try {
-      const fd = new FormData()
-      fd.append("label", form.label)
-      fd.append("title", form.title)
-      fd.append("description", form.description)
-      fd.append("descriptionHighlight", form.descriptionHighlight)
-      fd.append("consultationTitle", form.consultationTitle)
-      fd.append("consultationItems", JSON.stringify(form.consultationItems))
-      fd.append("sidebarBadge", form.sidebarBadge)
-      fd.append("doctorImage", form.doctorImage)
-      fd.append("ctaTitle", form.ctaTitle)
-      fd.append("ctaSubtitle", form.ctaSubtitle)
-      fd.append("priceLabel", form.priceLabel)
-      fd.append("priceDescription", form.priceDescription)
-      fd.append("buttonText", form.buttonText)
-      fd.append("disclaimer", form.disclaimer)
-
-      if (imageFile) {
-        fd.append("image", imageFile)
-      }
-
-      const res = await fetch("/api/treatments/info", {
-        method: "PUT",
-        body: fd,
-      })
-      if (res.ok) {
-        const saved = await res.json()
-        // Update form with any backend-resolved values (e.g. image path)
-        const updatedValue = saved?.value ?? {}
-        const merged = { ...form, ...updatedValue }
-        if (updatedValue.doctorImage) {
-          merged.doctorImage = toRawPath(updatedValue.doctorImage)
-          setImagePreview(resolveImageUrl(merged.doctorImage))
-        }
-        setForm(merged)
-        setImageFile(null)
-        showToast("success", "¡Información actualizada exitosamente!")
-      } else {
-        const data = await res.json()
-        showToast("error", data.error ?? "Error al guardar la información.")
-      }
-    } catch {
-      showToast("error", "No se pudo conectar al servidor.")
-    } finally {
-      setSaving(false)
-    }
   }
 
   if (loading) {
@@ -169,7 +163,7 @@ export default function TratamientosInfoPage() {
         Edita los textos que se muestran en la página pública de tratamientos.
       </p>
 
-      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+      <form onSubmit={formik.handleSubmit} noValidate className="flex flex-col gap-6">
 
         {/* Hero */}
         <EditorCard title="Sección principal">
@@ -177,8 +171,7 @@ export default function TratamientosInfoPage() {
             <input
               id="info-label"
               className={INPUT_CLS}
-              value={form.label}
-              onChange={(e) => setForm({ ...form, label: e.target.value })}
+              {...formik.getFieldProps("label")}
               placeholder="NUESTROS SERVICIOS"
             />
           </FormField>
@@ -186,26 +179,24 @@ export default function TratamientosInfoPage() {
             <input
               id="info-title"
               className={INPUT_CLS}
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              {...formik.getFieldProps("title")}
               required
             />
+            {formik.touched.title && formik.errors.title && <p className="text-xs text-red-500 mt-1">{formik.errors.title}</p>}
           </FormField>
           <FormField label="Descripción" htmlFor="info-description">
             <textarea
               id="info-description"
               className={INPUT_CLS}
               rows={3}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              {...formik.getFieldProps("description")}
             />
           </FormField>
           <FormField label="Texto resaltado dentro de la descripción" htmlFor="info-highlight">
             <input
               id="info-highlight"
               className={INPUT_CLS}
-              value={form.descriptionHighlight}
-              onChange={(e) => setForm({ ...form, descriptionHighlight: e.target.value })}
+              {...formik.getFieldProps("descriptionHighlight")}
               placeholder="tecnología de vanguardia"
             />
           </FormField>
@@ -217,12 +208,11 @@ export default function TratamientosInfoPage() {
             <input
               id="info-consultation-title"
               className={INPUT_CLS}
-              value={form.consultationTitle}
-              onChange={(e) => setForm({ ...form, consultationTitle: e.target.value })}
+              {...formik.getFieldProps("consultationTitle")}
             />
           </FormField>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {form.consultationItems.map((item, i) => (
+            {formik.values.consultationItems.map((item, i) => (
               <FormField key={i} label={`Elemento ${i + 1}`} htmlFor={`info-item-${i}`}>
                 <input
                   id={`info-item-${i}`}
@@ -242,8 +232,7 @@ export default function TratamientosInfoPage() {
             <input
               id="info-sidebar-badge"
               className={INPUT_CLS}
-              value={form.sidebarBadge}
-              onChange={(e) => setForm({ ...form, sidebarBadge: e.target.value })}
+              {...formik.getFieldProps("sidebarBadge")}
             />
           </FormField>
 
@@ -273,7 +262,7 @@ export default function TratamientosInfoPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => { setImagePreview(""); setImageFile(null); setForm({ ...form, doctorImage: "" }) }}
+                    onClick={() => { setImagePreview(""); setImageFile(null); formik.setFieldValue("doctorImage", "") }}
                     className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-200 p-0.5 hover:bg-red-50"
                     aria-label="Eliminar imagen"
                   >
@@ -288,16 +277,14 @@ export default function TratamientosInfoPage() {
             <input
               id="info-cta-title"
               className={INPUT_CLS}
-              value={form.ctaTitle}
-              onChange={(e) => setForm({ ...form, ctaTitle: e.target.value })}
+              {...formik.getFieldProps("ctaTitle")}
             />
           </FormField>
           <FormField label="Subtítulo del CTA" htmlFor="info-cta-subtitle">
             <input
               id="info-cta-subtitle"
               className={INPUT_CLS}
-              value={form.ctaSubtitle}
-              onChange={(e) => setForm({ ...form, ctaSubtitle: e.target.value })}
+              {...formik.getFieldProps("ctaSubtitle")}
             />
           </FormField>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -305,16 +292,14 @@ export default function TratamientosInfoPage() {
               <input
                 id="info-price-label"
                 className={INPUT_CLS}
-                value={form.priceLabel}
-                onChange={(e) => setForm({ ...form, priceLabel: e.target.value })}
+                {...formik.getFieldProps("priceLabel")}
               />
             </FormField>
             <FormField label="Descripción del precio" htmlFor="info-price-desc">
               <input
                 id="info-price-desc"
                 className={INPUT_CLS}
-                value={form.priceDescription}
-                onChange={(e) => setForm({ ...form, priceDescription: e.target.value })}
+                {...formik.getFieldProps("priceDescription")}
               />
             </FormField>
           </div>
@@ -322,16 +307,14 @@ export default function TratamientosInfoPage() {
             <input
               id="info-button-text"
               className={INPUT_CLS}
-              value={form.buttonText}
-              onChange={(e) => setForm({ ...form, buttonText: e.target.value })}
+              {...formik.getFieldProps("buttonText")}
             />
           </FormField>
           <FormField label="Pie de tarjeta (disclaimer)" htmlFor="info-disclaimer">
             <input
               id="info-disclaimer"
               className={INPUT_CLS}
-              value={form.disclaimer}
-              onChange={(e) => setForm({ ...form, disclaimer: e.target.value })}
+              {...formik.getFieldProps("disclaimer")}
             />
           </FormField>
         </EditorCard>
@@ -339,12 +322,12 @@ export default function TratamientosInfoPage() {
         <div>
           <button
             type="submit"
-            disabled={saving}
+            disabled={!formik.isValid || (!formik.dirty && !imageFile) || formik.isSubmitting}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
             style={{ backgroundColor: "#b5496a" }}
           >
             <Check size={15} aria-hidden="true" />
-            {saving ? "Guardando..." : "Guardar cambios"}
+            {formik.isSubmitting ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
       </form>

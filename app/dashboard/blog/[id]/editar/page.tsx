@@ -2,32 +2,66 @@
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useFormik } from "formik"
+import * as Yup from "yup"
 import Link from "next/link"
 import { ArrowLeft, Check, Upload, X } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 
-interface BlogForm {
-  title: string
-  excerpt: string
-  content: string
-  published: boolean
-}
-
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
+
+const blogSchema = Yup.object({
+  title: Yup.string().required("El título es obligatorio"),
+  excerpt: Yup.string().default(""),
+  content: Yup.string().required("El contenido es obligatorio"),
+  published: Yup.boolean().default(false),
+})
+
+type BlogValues = Yup.InferType<typeof blogSchema>
 
 export default function EditarBlogPage() {
   const showToast = useToast()
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
-  const [form, setForm] = useState<BlogForm>({ title: "", excerpt: "", content: "", published: false })
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState("")
   const [imageRemoved, setImageRemoved] = useState(false)
+
+  const formik = useFormik<BlogValues>({
+    initialValues: { title: "", excerpt: "", content: "", published: false },
+    validationSchema: blogSchema,
+    enableReinitialize: true,
+    onSubmit: async (values) => {
+      try {
+        const fd = new FormData()
+        fd.append("title", values.title)
+        fd.append("excerpt", values.excerpt)
+        fd.append("content", values.content)
+        fd.append("published", String(values.published))
+        if (imageFile) fd.append("image", imageFile)
+        else if (imageRemoved) fd.append("image", "")
+
+        const res = await fetch(`/api/blog/${id}`, {
+          method: "PUT",
+          body: fd,
+        })
+
+        if (res.ok) {
+          showToast("success", "¡Artículo actualizado exitosamente!")
+          router.push("/dashboard/blog")
+        } else {
+          const data = await res.json()
+          showToast("error", data.error ?? "Error al guardar el artículo.")
+        }
+      } catch {
+        showToast("error", "No se pudo conectar al servidor.")
+      }
+    },
+  })
 
   useEffect(() => {
     async function fetchPost() {
@@ -46,59 +80,23 @@ export default function EditarBlogPage() {
           setLoading(false)
           return
         }
-        setForm({
-          title: post.title,
-          excerpt: post.excerpt ?? "",
-          content: post.content ?? post.body ?? "",
-          published: post.published,
+        formik.resetForm({
+          values: {
+            title: post.title,
+            excerpt: post.excerpt ?? "",
+            content: post.content ?? post.body ?? "",
+            published: post.published,
+          },
         })
         if (post.imageUrl) setImagePreview(post.imageUrl)
-          console.log(post.imageUrl)
-
       } catch {
         showToast("error", "No se pudo conectar al servidor.")
       }
       setLoading(false)
     }
     fetchPost()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!form.title.trim() || !form.content.trim()) {
-      showToast("error", "El titulo y contenido son obligatorios.")
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      const fd = new FormData()
-      fd.append("title", form.title)
-      fd.append("excerpt", form.excerpt)
-      fd.append("content", form.content)
-      fd.append("published", String(form.published))
-      if (imageFile) fd.append("image", imageFile)
-      else if (imageRemoved) fd.append("image", "")
-
-      const res = await fetch(`/api/blog/${id}`, {
-        method: "PUT",
-        body: fd,
-      })
-
-      if (res.ok) {
-        showToast("success", "¡Artículo actualizado exitosamente!")
-        router.push("/dashboard/blog")
-      } else {
-        const data = await res.json()
-        showToast("error", data.error ?? "Error al guardar el artículo.")
-      }
-    } catch {
-      showToast("error", "No se pudo conectar al servidor.")
-    } finally {
-      setSaving(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -136,25 +134,23 @@ export default function EditarBlogPage() {
       <h1 className="text-2xl font-bold text-gray-800 mb-1">Editar articulo</h1>
       <p className="text-sm text-gray-500 mb-6">Modifica los campos y guarda los cambios.</p>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={formik.handleSubmit} noValidate>
         <EditorCard title="Contenido del articulo">
           <FormField label="Titulo *" htmlFor="blog-title">
             <input
               id="blog-title"
               className={INPUT_CLS}
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              required
+              {...formik.getFieldProps("title")}
               aria-required="true"
             />
+            {formik.touched.title && formik.errors.title && <p className="text-xs text-red-500 mt-1">{formik.errors.title}</p>}
           </FormField>
 
           <FormField label="Extracto (resumen corto)" htmlFor="blog-excerpt">
             <input
               id="blog-excerpt"
               className={INPUT_CLS}
-              value={form.excerpt}
-              onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+              {...formik.getFieldProps("excerpt")}
             />
           </FormField>
 
@@ -201,11 +197,10 @@ export default function EditarBlogPage() {
               id="blog-content"
               className={INPUT_CLS}
               rows={10}
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              required
+              {...formik.getFieldProps("content")}
               aria-required="true"
             />
+            {formik.touched.content && formik.errors.content && <p className="text-xs text-red-500 mt-1">{formik.errors.content}</p>}
           </FormField>
 
           <div className="flex items-center gap-3">
@@ -213,8 +208,10 @@ export default function EditarBlogPage() {
               <input
                 id="blog-published"
                 type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm({ ...form, published: e.target.checked })}
+                name="published"
+                checked={formik.values.published}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
                 className="rounded accent-[#b5496a]"
               />
               Publicar inmediatamente
@@ -224,13 +221,13 @@ export default function EditarBlogPage() {
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
-              disabled={saving}
-              aria-label={saving ? "Guardando articulo" : "Actualizar articulo"}
+              disabled={!formik.isValid || formik.isSubmitting}
+              aria-label={formik.isSubmitting ? "Guardando articulo" : "Actualizar articulo"}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
               style={{ backgroundColor: "#b5496a" }}
             >
               <Check size={15} aria-hidden="true" />
-              {saving ? "Guardando..." : "Actualizar"}
+              {formik.isSubmitting ? "Guardando..." : "Actualizar"}
             </button>
             <Link
               href="/dashboard/blog"
