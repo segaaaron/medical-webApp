@@ -1,9 +1,11 @@
-import { readContent } from "@/lib/store/content-store"
+import { readContent, DEFAULTS } from "@/lib/store/content-store"
+import { backendFetch } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { socialLinks } from "@/lib/data/navigation"
 import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
 import type { Metadata } from "next"
+import type { ContactData } from "@/types/content"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
@@ -68,9 +70,29 @@ const contactJsonLd = {
   },
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapContact(raw: any): ContactData {
+  return {
+    whatsappNumber: raw.whatsappNumber ?? DEFAULTS.contact.whatsappNumber,
+    whatsappUrl: raw.whatsappUrl ?? DEFAULTS.contact.whatsappUrl,
+    phone: raw.phone ?? DEFAULTS.contact.phone,
+    instagram: raw.instagramUsername ?? DEFAULTS.contact.instagram,
+    instagramUrl: raw.instagramUrl ?? DEFAULTS.contact.instagramUrl,
+    facebook: raw.facebookName ?? DEFAULTS.contact.facebook,
+    facebookUrl: raw.facebookUrl ?? DEFAULTS.contact.facebookUrl,
+    scheduleWeekdays: raw.mondayFridayHours ?? DEFAULTS.contact.scheduleWeekdays,
+    scheduleSaturday: raw.saturdayHours ?? DEFAULTS.contact.scheduleSaturday,
+    scheduleSunday: raw.sundayStatus ?? DEFAULTS.contact.scheduleSunday,
+    location: raw.locationDescription ?? DEFAULTS.contact.location,
+  }
+}
+
 export default async function ContactoPage() {
-  const c = await readContent()
-  const ct = c.contact
+  const [c, { data: backendContact }] = await Promise.all([
+    readContent(),
+    backendFetch<unknown>("/contact"),
+  ])
+  const ct: ContactData = backendContact ? mapContact(backendContact) : c.contact
 
   return (
     <>

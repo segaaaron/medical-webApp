@@ -16,7 +16,7 @@ import {
   refreshBackendAccessToken,
 } from "@/lib/auth/backend-tokens"
 
-const BACKEND_URL = process.env.BACKEND_URL ?? "https://service.drayasminmedrano-services.cloud"
+const BACKEND_URL = process.env.BACKEND_URL ?? ""
 const SERVICE_TOKEN = process.env.BACKEND_SERVICE_TOKEN ?? ""
 
 // ── In-memory token cache for auto-login ────────────────────────────────────

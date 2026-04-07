@@ -9,6 +9,8 @@ import {
   Newspaper,
   Phone,
   Home,
+  Tag,
+  Info,
 } from "lucide-react"
 
 const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boolean }[] = [
@@ -16,9 +18,13 @@ const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boo
 ]
 
 const NAV_SERVICES = [
-  { label: "Tratamientos", href: "/dashboard/tratamientos", icon: Stethoscope },
   { label: "Blog", href: "/dashboard/blog", icon: Newspaper },
   { label: "Contacto", href: "/dashboard/contacto", icon: Phone },
+]
+
+const NAV_TRATAMIENTOS = [
+  { label: "Categorías", href: "/dashboard/tratamientos", icon: Tag, exact: true },
+  { label: "Info", href: "/dashboard/tratamientos/info", icon: Info },
 ]
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -29,8 +35,29 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
     window.location.href = "/dashboard/login"
   }
 
+  function navLink(href: string, label: string, Icon: typeof Home, exact?: boolean) {
+    const active = exact ? pathname === href : pathname.startsWith(href)
+    return (
+      <li key={href}>
+        <Link
+          href={href}
+          onClick={onClose}
+          aria-current={active ? "page" : undefined}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          style={{
+            backgroundColor: active ? "#2f1c6a" : "transparent",
+            color: active ? "white" : "#8c85ff",
+          }}
+        >
+          <Icon size={16} aria-hidden="true" />
+          {label}
+        </Link>
+      </li>
+    )
+  }
+
   return (
-    <aside className="h-full flex flex-col" style={{ backgroundColor: "#1F1346" }} aria-label="Panel de administración">
+    <aside className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: "#1F1346" }} aria-label="Panel de administración">
       {/* Brand */}
       <div className="px-6 py-5 border-b" style={{ borderColor: "#2f1c6a" }}>
         <div className="flex items-center gap-2 mb-1">
@@ -47,26 +74,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             Contenido Web
           </p>
           <ul className="flex flex-col gap-1" role="list">
-            {NAV_CONTENT.map(({ label, href, icon: Icon, exact }) => {
-              const active = exact ? pathname === href : pathname.startsWith(href)
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={onClose}
-                    aria-current={active ? "page" : undefined}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor: active ? "#2f1c6a" : "transparent",
-                      color: active ? "white" : "#8c85ff",
-                    }}
-                  >
-                    <Icon size={16} aria-hidden="true" />
-                    {label}
-                  </Link>
-                </li>
-              )
-            })}
+            {NAV_CONTENT.map(({ label, href, icon: Icon, exact }) => navLink(href, label, Icon, exact))}
           </ul>
         </div>
 
@@ -75,26 +83,44 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
             Servicios
           </p>
           <ul className="flex flex-col gap-1" role="list">
-            {NAV_SERVICES.map(({ label, href, icon: Icon }) => {
-              const active = pathname.startsWith(href)
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    onClick={onClose}
-                    aria-current={active ? "page" : undefined}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor: active ? "#2f1c6a" : "transparent",
-                      color: active ? "white" : "#8c85ff",
-                    }}
-                  >
-                    <Icon size={16} aria-hidden="true" />
-                    {label}
-                  </Link>
-                </li>
-              )
-            })}
+            {/* Tratamientos parent */}
+            <li>
+              <div
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"
+                style={{
+                  color: pathname.startsWith("/dashboard/tratamientos") ? "white" : "#8c85ff",
+                  backgroundColor: pathname.startsWith("/dashboard/tratamientos") ? "#2f1c6a" : "transparent",
+                }}
+              >
+                <Stethoscope size={16} aria-hidden="true" />
+                Tratamientos
+              </div>
+              {/* Sub-items */}
+              <ul className="flex flex-col gap-0.5 mt-0.5 ml-4" role="list">
+                {NAV_TRATAMIENTOS.map(({ label, href, icon: Icon, exact }) => {
+                  const active = exact ? pathname === href : pathname.startsWith(href)
+                  return (
+                    <li key={href}>
+                      <Link
+                        href={href}
+                        onClick={onClose}
+                        aria-current={active ? "page" : undefined}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                        style={{
+                          backgroundColor: active ? "#3d2480" : "transparent",
+                          color: active ? "white" : "#a09be0",
+                        }}
+                      >
+                        <Icon size={13} aria-hidden="true" />
+                        {label}
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </li>
+
+            {NAV_SERVICES.map(({ label, href, icon: Icon }) => navLink(href, label, Icon))}
           </ul>
         </div>
       </nav>

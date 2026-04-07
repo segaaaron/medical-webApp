@@ -5,6 +5,7 @@ import { Check, MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from 
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
+import { useToast } from "@/components/dashboard/Toast"
 import type { ContactData } from "@/types/content"
 
 const INPUT_CLS =
@@ -24,18 +25,53 @@ const DEFAULTS: ContactData = {
   location: "Bolivia — Consulta vía WhatsApp para confirmar dirección exacta del consultorio.",
 }
 
+// Maps backend field names → local ContactData
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function fromBackend(raw: any): ContactData {
+  return {
+    whatsappNumber: raw.whatsappNumber ?? DEFAULTS.whatsappNumber,
+    whatsappUrl: raw.whatsappUrl ?? DEFAULTS.whatsappUrl,
+    phone: raw.phone ?? DEFAULTS.phone,
+    instagram: raw.instagramUsername ?? DEFAULTS.instagram,
+    instagramUrl: raw.instagramUrl ?? DEFAULTS.instagramUrl,
+    facebook: raw.facebookName ?? DEFAULTS.facebook,
+    facebookUrl: raw.facebookUrl ?? DEFAULTS.facebookUrl,
+    scheduleWeekdays: raw.mondayFridayHours ?? DEFAULTS.scheduleWeekdays,
+    scheduleSaturday: raw.saturdayHours ?? DEFAULTS.scheduleSaturday,
+    scheduleSunday: raw.sundayStatus ?? DEFAULTS.scheduleSunday,
+    location: raw.locationDescription ?? DEFAULTS.location,
+  }
+}
+
+// Maps local ContactData → backend payload
+function toBackend(form: ContactData) {
+  return {
+    whatsappNumber: form.whatsappNumber,
+    whatsappUrl: form.whatsappUrl,
+    phone: form.phone,
+    instagramUsername: form.instagram,
+    instagramUrl: form.instagramUrl,
+    facebookName: form.facebook,
+    facebookUrl: form.facebookUrl,
+    mondayFridayHours: form.scheduleWeekdays,
+    saturdayHours: form.scheduleSaturday,
+    sundayStatus: form.scheduleSunday,
+    locationDescription: form.location,
+  }
+}
+
 export default function ContactoDashboardPage() {
+  const showToast = useToast()
   const [form, setForm] = useState<ContactData>(DEFAULTS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [error, setError] = useState("")
 
   useEffect(() => {
-    fetch("/api/content")
+    fetch("/api/contact")
       .then((r) => r.json())
       .then((data) => {
-        if (data?.contact) setForm({ ...DEFAULTS, ...data.contact })
+        if (data && !data.error) setForm(fromBackend(data))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -47,18 +83,18 @@ export default function ContactoDashboardPage() {
 
   async function handleSave() {
     setSaving(true)
-    setError("")
     try {
-      const res = await fetch("/api/content", {
-        method: "POST",
+      const res = await fetch("/api/contact", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contact: form }),
+        body: JSON.stringify(toBackend(form)),
       })
       if (!res.ok) throw new Error()
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      showToast("success", "¡Cambios guardados exitosamente!")
     } catch {
-      setError("No se pudo guardar. Intenta de nuevo.")
+      showToast("error", "No se pudo guardar. Intenta de nuevo.")
     } finally {
       setSaving(false)
     }
@@ -75,12 +111,6 @@ export default function ContactoDashboardPage() {
         saved={saved}
         onSave={handleSave}
       />
-
-      {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm" role="alert">
-          {error}
-        </div>
-      )}
 
       <div className="flex flex-col gap-6">
         {/* WhatsApp */}

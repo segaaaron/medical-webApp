@@ -8,21 +8,19 @@ import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 
-interface BlogForm {
-  title: string
-  excerpt: string
-  content: string
-  published: boolean
-}
+const TAGS = ["POPULAR", "INNOVADOR", "RECOMENDADO", "DEFINITIVO", "ESENCIAL", "ESPECIALIZADO"]
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
 
-export default function EditarBlogPage() {
+export default function EditarTratamientoPage() {
   const showToast = useToast()
   const router = useRouter()
   const { id } = useParams<{ id: string }>()
-  const [form, setForm] = useState<BlogForm>({ title: "", excerpt: "", content: "", published: false })
+  const [name, setName] = useState("")
+  const [tag, setTag] = useState("")
+  const [description, setDescription] = useState("")
+  const [active, setActive] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
@@ -30,68 +28,60 @@ export default function EditarBlogPage() {
   const [imageRemoved, setImageRemoved] = useState(false)
 
   useEffect(() => {
-    async function fetchPost() {
+    async function fetchTreatment() {
       try {
-        const res = await fetch("/api/blog")
+        const res = await fetch("/api/treatments")
         if (!res.ok) {
-          showToast("error", "No se pudo cargar el artículo.")
+          showToast("error", "No se pudo cargar el tratamiento.")
           setLoading(false)
           return
         }
-        const posts = await res.json()
-
-        const post = posts.find((p: { id: string }) => p.id === id)
-        if (!post) {
-          showToast("error", "Artículo no encontrado.")
+        const list = await res.json()
+        const t = list.find((x: { id: string }) => x.id === id)
+        if (!t) {
+          showToast("error", "Tratamiento no encontrado.")
           setLoading(false)
           return
         }
-        setForm({
-          title: post.title,
-          excerpt: post.excerpt ?? "",
-          content: post.content ?? post.body ?? "",
-          published: post.published,
-        })
-        if (post.imageUrl) setImagePreview(post.imageUrl)
-          console.log(post.imageUrl)
-
+        setName(t.name ?? "")
+        setTag(t.category ?? "")
+        setDescription(t.description ?? "")
+        setActive(t.active ?? true)
+        if (t.imageUrl) setImagePreview(t.imageUrl)
       } catch {
         showToast("error", "No se pudo conectar al servidor.")
       }
       setLoading(false)
     }
-    fetchPost()
+    fetchTreatment()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!form.title.trim() || !form.content.trim()) {
-      showToast("error", "El titulo y contenido son obligatorios.")
+    if (!name.trim()) {
+      showToast("error", "El nombre del tratamiento es obligatorio.")
       return
     }
 
     setSaving(true)
-
     try {
       const fd = new FormData()
-      fd.append("title", form.title)
-      fd.append("excerpt", form.excerpt)
-      fd.append("content", form.content)
-      fd.append("published", String(form.published))
+      fd.append("name", name)
+      fd.append("category", tag)
+      fd.append("description", description)
+      fd.append("active", String(active))
       if (imageFile) fd.append("image", imageFile)
       else if (imageRemoved) fd.append("image", "")
 
-      const res = await fetch(`/api/blog/${id}`, {
-        method: "PUT",
-        body: fd,
-      })
+      const res = await fetch(`/api/treatments/${id}`, { method: "PUT", body: fd })
 
       if (res.ok) {
-        showToast("success", "¡Artículo actualizado exitosamente!")
-        router.push("/dashboard/blog")
+        showToast("success", "¡Tratamiento actualizado exitosamente!")
+        router.push("/dashboard/tratamientos")
       } else {
         const data = await res.json()
-        showToast("error", data.error ?? "Error al guardar el artículo.")
+        showToast("error", data.error ?? "Error al guardar el tratamiento.")
       }
     } catch {
       showToast("error", "No se pudo conectar al servidor.")
@@ -105,16 +95,15 @@ export default function EditarBlogPage() {
       <>
         <nav aria-label="Volver" className="mb-6">
           <Link
-            href="/dashboard/blog"
+            href="/dashboard/tratamientos"
             className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
             style={{ color: "#b5496a" }}
-            aria-label="Volver a la lista de articulos"
           >
-            <ArrowLeft size={16} aria-hidden="true" />
+            <ArrowLeft size={16} />
             Volver
           </Link>
         </nav>
-        <p className="text-gray-400 text-sm" role="status" aria-live="polite">Cargando articulo...</p>
+        <p className="text-gray-400 text-sm">Cargando tratamiento...</p>
       </>
     )
   }
@@ -123,51 +112,70 @@ export default function EditarBlogPage() {
     <>
       <nav aria-label="Volver" className="mb-6">
         <Link
-          href="/dashboard/blog"
+          href="/dashboard/tratamientos"
           className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
           style={{ color: "#b5496a" }}
-          aria-label="Volver a la lista de articulos"
         >
-          <ArrowLeft size={16} aria-hidden="true" />
+          <ArrowLeft size={16} />
           Volver
         </Link>
       </nav>
 
-      <h1 className="text-2xl font-bold text-gray-800 mb-1">Editar articulo</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-1">Editar tratamiento</h1>
       <p className="text-sm text-gray-500 mb-6">Modifica los campos y guarda los cambios.</p>
 
       <form onSubmit={handleSubmit} noValidate>
-        <EditorCard title="Contenido del articulo">
-          <FormField label="Titulo *" htmlFor="blog-title">
+        <EditorCard title="Información del tratamiento">
+          <FormField label="Nombre del tratamiento *" htmlFor="t-name">
             <input
-              id="blog-title"
+              id="t-name"
               className={INPUT_CLS}
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Toxina Botulínica"
               required
-              aria-required="true"
             />
           </FormField>
 
-          <FormField label="Extracto (resumen corto)" htmlFor="blog-excerpt">
-            <input
-              id="blog-excerpt"
-              className={INPUT_CLS}
-              value={form.excerpt}
-              onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
-            />
+          <FormField label="TAG (etiqueta)" htmlFor="t-tag">
+            <div className="flex flex-col gap-2">
+              <input
+                id="t-tag"
+                className={INPUT_CLS}
+                value={tag}
+                onChange={(e) => setTag(e.target.value.toUpperCase())}
+                placeholder="POPULAR"
+                maxLength={30}
+              />
+              <div className="flex flex-wrap gap-2">
+                {TAGS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTag(t)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                      tag === t
+                        ? "bg-[#b5496a] text-white border-[#b5496a]"
+                        : "bg-white text-gray-500 border-gray-200 hover:border-[#b5496a] hover:text-[#b5496a]"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
           </FormField>
 
-          <FormField label="Imagen de portada" htmlFor="blog-image">
+          <FormField label="Imagen de portada" htmlFor="t-image">
             <div className="space-y-2">
               <label
-                htmlFor="blog-image"
+                htmlFor="t-image"
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
               >
-                <Upload size={15} aria-hidden="true" />
-                Cambiar imagen (JPG, PNG, WebP, GIF)
+                <Upload size={15} />
+                {imagePreview ? "Cambiar imagen" : "Seleccionar imagen"} (JPG, PNG, WebP)
                 <input
-                  id="blog-image"
+                  id="t-image"
                   type="file"
                   accept="image/*"
                   className="sr-only"
@@ -196,28 +204,27 @@ export default function EditarBlogPage() {
             </div>
           </FormField>
 
-          <FormField label="Contenido *" htmlFor="blog-content">
+          <FormField label="Descripción del tratamiento" htmlFor="t-desc">
             <textarea
-              id="blog-content"
+              id="t-desc"
               className={INPUT_CLS}
-              rows={10}
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              required
-              aria-required="true"
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe brevemente en qué consiste este tratamiento..."
             />
           </FormField>
 
-          <div className="flex items-center gap-3">
-            <label htmlFor="blog-published" className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-              <input
-                id="blog-published"
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => setForm({ ...form, published: e.target.checked })}
-                className="rounded accent-[#b5496a]"
-              />
-              Publicar inmediatamente
+          <div className="flex items-center gap-2">
+            <input
+              id="t-active"
+              type="checkbox"
+              checked={active}
+              onChange={(e) => setActive(e.target.checked)}
+              className="rounded accent-[#b5496a]"
+            />
+            <label htmlFor="t-active" className="text-sm text-gray-700 cursor-pointer">
+              Visible en el sitio
             </label>
           </div>
 
@@ -225,15 +232,14 @@ export default function EditarBlogPage() {
             <button
               type="submit"
               disabled={saving}
-              aria-label={saving ? "Guardando articulo" : "Actualizar articulo"}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
               style={{ backgroundColor: "#b5496a" }}
             >
-              <Check size={15} aria-hidden="true" />
-              {saving ? "Guardando..." : "Actualizar"}
+              <Check size={15} />
+              {saving ? "Guardando..." : "Guardar cambios"}
             </button>
             <Link
-              href="/dashboard/blog"
+              href="/dashboard/tratamientos"
               className="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
             >
               Cancelar

@@ -15,6 +15,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
+  const contentType = req.headers.get("content-type") ?? ""
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await req.formData()
+    const { data, error } = await backendFetch(`/treatments/${id}`, { method: "PUT", formData, auth: true })
+    if (error) return NextResponse.json({ error }, { status: 502 })
+    return NextResponse.json(data)
+  }
+
   const body = await req.json()
   const { data, error } = await backendFetch(`/treatments/${id}`, { method: "PUT", body, auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
