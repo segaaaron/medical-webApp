@@ -3,7 +3,7 @@ import { staticBlogPosts } from "@/lib/data/blog-posts";
 
 export const dynamic = "force-static";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const blogEntries: MetadataRoute.Sitemap = staticBlogPosts.map((post) => ({

@@ -8,7 +8,7 @@ import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
 import { socialLinks } from "@/lib/data/navigation"
 import type { Metadata } from "next"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   title: "Tratamientos de Medicina Estetica - Botox, Rellenos, Rejuvenecimiento",

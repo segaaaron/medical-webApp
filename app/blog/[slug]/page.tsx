@@ -11,7 +11,7 @@ import { notFound } from "next/navigation"
 
 export const dynamic = "force-dynamic"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 interface BackendBlogPost {
   id: string

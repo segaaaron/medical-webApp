@@ -17,7 +17,7 @@ import { FAQSection } from "@/components/sections/FAQSection"
 // ─── Social links (functions — never serialized, used in Server Component) ────
 import { socialLinks } from "@/lib/data/navigation"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   return {

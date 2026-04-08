@@ -32,7 +32,6 @@ export default function BlogDashboardPage() {
       if (res.ok) {
         const data = await res.json()
         setPosts(data)
-        console.log('VALIDAMOS EL LOG LIST ==>', data)
       } else {
         setError("Backend no disponible. Mostrando articulos por defecto (solo lectura).")
       }

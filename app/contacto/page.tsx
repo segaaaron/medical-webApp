@@ -7,7 +7,7 @@ import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide
 import type { Metadata } from "next"
 import type { ContactData } from "@/types/content"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   title: "Contacto - Agenda tu Consulta Gratuita de Medicina Estetica",
