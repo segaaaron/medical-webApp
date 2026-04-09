@@ -44,10 +44,19 @@ export async function getHomeData(): Promise<ContentStore> {
   }
 }
 
+const HOME_SERVICE_FALLBACK = {
+  id: null,
+  headerSection: { specialties: "", doctorName: "", subtitleSpecialities: "", description: "" },
+  heroStats: [],
+  backgroundImage: DEFAULTS.branding.heroBackgroundImage,
+  btn1Text: "",
+  btn2Text: "",
+}
+
 export async function getHomeDataService(): Promise<any> {
   const { data } = await backendFetch("/home")
   const raw = data as Partial<any>
-  if (!data) return DEFAULTS
+  if (!data) return HOME_SERVICE_FALLBACK
   const headerSection: homeHeaderSection = {
     specialties: raw.specialties ?? "",
     doctorName: raw.doctorName ?? "",
