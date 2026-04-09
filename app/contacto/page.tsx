@@ -226,9 +226,31 @@ export default async function ContactoPage() {
                     <MapPin size={20} style={{ color: "#c9a96e" }} />
                     <p className="text-sm uppercase tracking-widest font-semibold" style={{ color: "#e8a0b4" }}>Ubicación</p>
                   </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "#fce4ec" }}>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: "#fce4ec" }}>
                     {ct.location}
                   </p>
+                  <div className="rounded-xl overflow-hidden">
+                    <iframe
+                      src="https://www.google.com/maps?q=-17.386471,-66.152366&z=16&output=embed"
+                      width="100%"
+                      height="220"
+                      style={{ border: 0 }}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="Ubicación del consultorio"
+                    />
+                  </div>
+                  <a
+                    href="https://www.google.com/maps?q=-17.386471,-66.152366"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 mt-3 text-xs font-semibold hover:opacity-80 transition-opacity"
+                    style={{ color: "#c9a96e" }}
+                  >
+                    <MapPin size={13} />
+                    Abrir en Google Maps
+                  </a>
                 </div>
 
                 {/* CTA */}
