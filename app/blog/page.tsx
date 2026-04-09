@@ -2,7 +2,7 @@ import { DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { socialLinks } from "@/lib/data/navigation"
+import { getFooterData } from "@/lib/data/footer"
 import { staticBlogPosts, type StaticBlogPost } from "@/lib/data/blog-posts"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
 import type { Metadata } from "next"
@@ -91,8 +91,9 @@ async function fetchPublishedPosts() {
 }
 
 export default async function BlogPage() {
-  const [allBackendPosts] = await Promise.all([
+  const [allBackendPosts, footerData] = await Promise.all([
     fetchPublishedPosts(),
+    getFooterData(),
   ])
   const c = DEFAULTS
 
@@ -288,7 +289,7 @@ export default async function BlogPage() {
         )}
 
       </main>
-      <Footer groups={c.footerGroups} socials={socialLinks} />
+      <Footer data={footerData} />
     </>
   )
 }

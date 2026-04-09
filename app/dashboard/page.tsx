@@ -1,172 +1,364 @@
 "use client"
+
 import { useEffect, useState } from "react"
-import {
-  ChevronDown,
-  Sparkles,
-  Heart,
-  CalendarCheck,
-  Star,
-  FileText,
-  User,
-  HelpCircle,
-  LayoutGrid,
-  Settings,
-  Type,
-  Megaphone,
-  Bell,
-  Mail,
-} from "lucide-react"
+import { useFormik, FieldArray, FormikProvider } from "formik"
+import * as Yup from "yup"
+import { Sparkles, BarChart2, HelpCircle, Plus, Trash2, Check } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
-import {
-  BrandingSection,
-  SectionHeadersSection,
-  HeroSection,
-  PromoBannerSection,
-  PromoPopupSection,
-  ValueSection,
-  CourseSection,
-  PresetsSection,
-  FreePDFsSection,
-  FreeResourcesFormSection,
-  AboutSection,
-  FAQsSection,
-  FooterSection,
-} from "@/components/dashboard/sections"
-import type { ContentStore } from "@/types/content"
+import { EditorCard } from "@/components/dashboard/EditorCard"
+import { FormField } from "@/components/ui/FormField"
+import { useToast } from "@/components/dashboard/Toast"
 
-const SECTIONS = [
-  { label: "General / Branding", icon: Settings },
-  { label: "Titulos de Secciones", icon: Type },
-  { label: "Hero", icon: Sparkles },
-  { label: "Banner Promocional", icon: Megaphone },
-  { label: "Popup Promocional", icon: Bell },
-  { label: "Propuesta de Valor", icon: Heart },
-  { label: "Agenda tu Cita", icon: CalendarCheck },
-  { label: "Tratamientos Destacados", icon: Star },
-  { label: "Recursos Gratuitos", icon: FileText },
-  { label: "Formulario de Recursos", icon: Mail },
-  { label: "Sobre Nosotros", icon: User },
-  { label: "Preguntas Frecuentes", icon: HelpCircle },
-  { label: "Footer", icon: LayoutGrid },
-] as const
+const INPUT_CLS =
+  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
 
-const SECTION_COMPONENTS = [
-  BrandingSection,
-  SectionHeadersSection,
-  HeroSection,
-  PromoBannerSection,
-  PromoPopupSection,
-  ValueSection,
-  CourseSection,
-  PresetsSection,
-  FreePDFsSection,
-  FreeResourcesFormSection,
-  AboutSection,
-  FAQsSection,
-  FooterSection,
-]
+const INPUT_ERROR_CLS =
+  "w-full px-4 py-2.5 rounded-lg border border-red-400 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+
+interface FaqItem {
+  question: string
+  answer: string
+}
+
+interface HomeForm {
+  specialties: string
+  doctorName: string
+  subtitle: string
+  description: string
+  highlightedText: string
+  btn1Text: string
+  btn2Text: string
+  stat1Value: string
+  stat1Label: string
+  stat2Value: string
+  stat2Label: string
+  stat3Value: string
+  stat3Label: string
+  faqSectionLabel: string
+  faqTitle: string
+  faqs: FaqItem[]
+}
+
+const EMPTY: HomeForm = {
+  specialties: "",
+  doctorName: "",
+  subtitle: "",
+  description: "",
+  highlightedText: "",
+  btn1Text: "",
+  btn2Text: "",
+  stat1Value: "",
+  stat1Label: "",
+  stat2Value: "",
+  stat2Label: "",
+  stat3Value: "",
+  stat3Label: "",
+  faqSectionLabel: "",
+  faqTitle: "",
+  faqs: [],
+}
+
+const homeSchema = Yup.object({
+  doctorName: Yup.string()
+    .min(5, "El nombre debe tener al menos 5 caracteres")
+    .required("El nombre del doctor es obligatorio"),
+  specialties: Yup.string()
+    .min(5, "La especialidad debe tener al menos 5 caracteres")
+    .required("La especialidad es obligatoria"),
+})
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function fromBackend(raw: any): HomeForm {
+  return {
+    specialties: raw.specialties ?? "",
+    doctorName: raw.doctorName ?? "",
+    subtitle: raw.subtitle ?? "",
+    description: raw.description ?? "",
+    highlightedText: raw.highlightedText ?? "",
+    btn1Text: raw.btn1Text ?? "",
+    btn2Text: raw.btn2Text ?? "",
+    stat1Value: raw.stat1Value ?? "",
+    stat1Label: raw.stat1Label ?? "",
+    stat2Value: raw.stat2Value ?? "",
+    stat2Label: raw.stat2Label ?? "",
+    stat3Value: raw.stat3Value ?? "",
+    stat3Label: raw.stat3Label ?? "",
+    faqSectionLabel: raw.faqSectionLabel ?? "",
+    faqTitle: raw.faqTitle ?? "",
+    faqs: Array.isArray(raw.faqs) ? raw.faqs : [],
+  }
+}
 
 export default function DashboardHomePage() {
-  const [data, setData] = useState<ContentStore | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [error, setError] = useState("")
-  const [openSection, setOpenSection] = useState(0)
-
+  const showToast = useToast()
   const [loading, setLoading] = useState(true)
+  const [saved, setSaved] = useState(false)
+
+  const formik = useFormik<HomeForm>({
+    initialValues: EMPTY,
+    validationSchema: homeSchema,
+    validateOnMount: true,
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const res = await fetch("/api/home", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        })
+        if (!res.ok) throw new Error()
+        const updated = await res.json()
+        if (updated && !updated.error) formik.resetForm({ values: fromBackend(updated) })
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+        showToast("success", "¡Inicio guardado exitosamente!")
+      } catch {
+        showToast("error", "No se pudo guardar. Intenta de nuevo.")
+      } finally {
+        setSubmitting(false)
+      }
+    },
+  })
 
   useEffect(() => {
-    fetch("/api/content")
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed to fetch")
-        return r.json()
+    fetch("/api/home")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && !data.error) formik.resetForm({ values: fromBackend(data) })
       })
-      .then((c: ContentStore) => setData(c))
-      .catch(() => setError("Contenido cargado desde valores por defecto. Puedes editarlos y guardar."))
+      .catch(() => {
+        showToast("error", "No se pudo conectar al servidor.")
+      })
       .finally(() => setLoading(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function handleSave() {
-    if (!data) return
-    setSaving(true)
-    setError("")
-    try {
-      const res = await fetch("/api/content", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-      if (!res.ok) throw new Error("Save failed")
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch {
-      setError("No se pudo guardar el contenido. Intenta de nuevo.")
-    } finally {
-      setSaving(false)
-    }
+  function inputCls(field: keyof HomeForm) {
+    const touched = formik.touched[field]
+    const error = formik.errors[field]
+    return touched && error ? INPUT_ERROR_CLS : INPUT_CLS
   }
 
-  function toggle(i: number) {
-    setOpenSection(openSection === i ? -1 : i)
-  }
-
-  if (loading) return <div className="text-gray-400 text-sm" role="status" aria-live="polite">Cargando contenido...</div>
-  if (!data) return <div className="text-red-500 text-sm bg-red-50 rounded-lg px-4 py-3" role="alert">No se pudo cargar el contenido.</div>
+  if (loading) return <p className="text-gray-400 text-sm" role="status">Cargando...</p>
 
   return (
-    <>
-      <PageHeader
-        title="Contenido del Home"
-        description="Edita todas las secciones de la página de inicio."
-        saving={saving}
-        saved={saved}
-        onSave={handleSave}
-      />
+    <FormikProvider value={formik}>
+      <form onSubmit={formik.handleSubmit} noValidate>
+        <PageHeader
+          title="Contenido del Home"
+          description="Edita las secciones de la página de inicio."
+          saving={formik.isSubmitting}
+          saved={saved}
+          onSave={() => formik.submitForm()}
+          saveDisabled={!formik.isValid || formik.isSubmitting}
+        />
 
-      {error && <div className="text-amber-600 text-sm bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4" role="alert">{error}</div>}
-
-      <div className="flex flex-col gap-3">
-        {SECTIONS.map((section, i) => {
-          const isOpen = openSection === i
-          const Icon = section.icon
-          const SectionComponent = SECTION_COMPONENTS[i]
-          return (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-              <button
-                type="button"
-                onClick={() => toggle(i)}
-                aria-expanded={isOpen}
-                aria-controls={`section-panel-${i}`}
-                id={`section-header-${i}`}
-                className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: "#ede9fe", color: "#673de6" }}
-                  >
-                    <Icon size={16} aria-hidden="true" />
-                  </div>
-                  <span className="font-semibold text-gray-800 text-sm">
-                    {i + 1}. {section.label}
-                  </span>
-                </div>
-                <ChevronDown
-                  size={18}
-                  aria-hidden="true"
-                  className={`text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {isOpen && (
-                <div id={`section-panel-${i}`} role="region" aria-labelledby={`section-header-${i}`} className="px-6 pb-6 pt-2 border-t border-gray-100 flex flex-col gap-6">
-                  <SectionComponent data={data} setData={setData} />
-                </div>
-              )}
+        <div className="flex flex-col gap-6">
+          {/* Hero */}
+          <EditorCard title="Hero">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles size={16} className="text-purple-500" />
+              <span className="text-sm text-gray-500">Sección principal de la página de inicio</span>
             </div>
-          )
-        })}
-      </div>
-    </>
+            <div className="flex flex-col gap-4">
+              <FormField label={<>Nombre del doctor <span className="text-red-500">*</span></>} htmlFor="doctorName">
+                <input
+                  id="doctorName"
+                  className={inputCls("doctorName")}
+                  {...formik.getFieldProps("doctorName")}
+                  placeholder="Dra. Yasmin Medrano Avila"
+                />
+                {formik.touched.doctorName && formik.errors.doctorName && (
+                  <p className="text-xs text-red-500 mt-1">{formik.errors.doctorName}</p>
+                )}
+              </FormField>
+
+              <FormField label={<>Especialidades <span className="text-red-500">*</span></>} htmlFor="specialties">
+                <input
+                  id="specialties"
+                  className={inputCls("specialties")}
+                  {...formik.getFieldProps("specialties")}
+                  placeholder="MEDICINA ESTÉTICA · REJUVENECIMIENTO · TRATAMIENTOS CORPORALES"
+                />
+                {formik.touched.specialties && formik.errors.specialties && (
+                  <p className="text-xs text-red-500 mt-1">{formik.errors.specialties}</p>
+                )}
+              </FormField>
+
+              <FormField label="Subtítulo" htmlFor="subtitle">
+                <input
+                  id="subtitle"
+                  className={INPUT_CLS}
+                  {...formik.getFieldProps("subtitle")}
+                  placeholder="Medicina Estética Avanzada"
+                />
+              </FormField>
+
+              <FormField label="Descripción" htmlFor="description">
+                <textarea
+                  id="description"
+                  className={INPUT_CLS}
+                  rows={3}
+                  {...formik.getFieldProps("description")}
+                  placeholder="Realza tu belleza natural con tratamientos seguros y efectivos..."
+                />
+              </FormField>
+
+              <FormField
+                label="Texto resaltado"
+                htmlFor="highlightedText"
+                hint="Debe ser un fragmento exacto del texto de descripción"
+              >
+                <input
+                  id="highlightedText"
+                  className={INPUT_CLS}
+                  {...formik.getFieldProps("highlightedText")}
+                  placeholder="tratamientos seguros y efectivos"
+                />
+              </FormField>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Texto botón primario" htmlFor="btn1Text">
+                  <input
+                    id="btn1Text"
+                    className={INPUT_CLS}
+                    {...formik.getFieldProps("btn1Text")}
+                    placeholder="VER TRATAMIENTOS"
+                  />
+                </FormField>
+                <FormField label="Texto botón secundario" htmlFor="btn2Text">
+                  <input
+                    id="btn2Text"
+                    className={INPUT_CLS}
+                    {...formik.getFieldProps("btn2Text")}
+                    placeholder="AGENDA TU CITA"
+                  />
+                </FormField>
+              </div>
+            </div>
+          </EditorCard>
+
+          {/* Stats */}
+          <EditorCard title="Estadísticas">
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart2 size={16} className="text-green-500" />
+              <span className="text-sm text-gray-500">Números destacados del hero</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {([1, 2, 3] as const).map((n) => (
+                <div key={n} className="flex flex-col gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Estadística {n}</p>
+                  <FormField label="Valor" htmlFor={`stat${n}Value`}>
+                    <input
+                      id={`stat${n}Value`}
+                      className={INPUT_CLS}
+                      {...formik.getFieldProps(`stat${n}Value`)}
+                      placeholder="10+"
+                    />
+                  </FormField>
+                  <FormField label="Etiqueta" htmlFor={`stat${n}Label`}>
+                    <input
+                      id={`stat${n}Label`}
+                      className={INPUT_CLS}
+                      {...formik.getFieldProps(`stat${n}Label`)}
+                      placeholder="AÑOS DE EXPERIENCIA"
+                    />
+                  </FormField>
+                </div>
+              ))}
+            </div>
+          </EditorCard>
+
+          {/* FAQs */}
+          <EditorCard title="Preguntas Frecuentes">
+            <div className="flex items-center gap-2 mb-4">
+              <HelpCircle size={16} className="text-blue-500" />
+              <span className="text-sm text-gray-500">Sección de preguntas y respuestas</span>
+            </div>
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="Etiqueta de sección" htmlFor="faqSectionLabel">
+                  <input
+                    id="faqSectionLabel"
+                    className={INPUT_CLS}
+                    {...formik.getFieldProps("faqSectionLabel")}
+                    placeholder="¿TIENES PREGUNTAS?"
+                  />
+                </FormField>
+                <FormField label="Título de sección" htmlFor="faqTitle">
+                  <input
+                    id="faqTitle"
+                    className={INPUT_CLS}
+                    {...formik.getFieldProps("faqTitle")}
+                    placeholder="Preguntas Frecuentes"
+                  />
+                </FormField>
+              </div>
+
+              <FieldArray name="faqs">
+                {({ push, remove }) => (
+                  <div className="flex flex-col gap-3">
+                    {formik.values.faqs.map((_, i) => (
+                      <div key={i} className="border border-gray-100 rounded-lg p-4 flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Pregunta #{i + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => remove(i)}
+                            className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 size={13} />
+                            Eliminar
+                          </button>
+                        </div>
+                        <FormField label="Pregunta" htmlFor={`faqs[${i}].question`}>
+                          <input
+                            id={`faqs[${i}].question`}
+                            className={INPUT_CLS}
+                            {...formik.getFieldProps(`faqs[${i}].question`)}
+                            placeholder="¿Cuál es tu pregunta?"
+                          />
+                        </FormField>
+                        <FormField label="Respuesta" htmlFor={`faqs[${i}].answer`}>
+                          <textarea
+                            id={`faqs[${i}].answer`}
+                            className={INPUT_CLS}
+                            rows={3}
+                            {...formik.getFieldProps(`faqs[${i}].answer`)}
+                            placeholder="Escribe la respuesta aquí..."
+                          />
+                        </FormField>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => push({ question: "", answer: "" })}
+                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-400 hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
+                    >
+                      <Plus size={16} />
+                      Añadir pregunta
+                    </button>
+                  </div>
+                )}
+              </FieldArray>
+            </div>
+          </EditorCard>
+
+          {/* Save bottom */}
+          <div className="flex justify-end pb-4">
+            <button
+              type="submit"
+              disabled={!formik.isValid || formik.isSubmitting}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
+              style={{ backgroundColor: "#b5496a" }}
+            >
+              <Check size={15} />
+              {formik.isSubmitting ? "Guardando..." : "Guardar inicio"}
+            </button>
+          </div>
+        </div>
+      </form>
+    </FormikProvider>
   )
 }

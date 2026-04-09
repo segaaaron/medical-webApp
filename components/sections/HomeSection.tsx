@@ -2,19 +2,23 @@
 import { motion } from "framer-motion"
 import { LinkButton } from "@/components/ui/Button"
 import { StatCard } from "@/components/ui/StatCard"
-import type { HeroStat, HeroCTA } from "@/types"
+import { HeroCTA, HeroStat } from "@/types"
 
-interface HeroSectionProps {
-  stats: HeroStat[]
-  ctas: HeroCTA[]
-  tagline: string
-  doctorName: string
-  specialty: string
-  subtitle: string
-  backgroundImage: string
+export interface homeHeaderSection {
+  specialties: string,
+  doctorName: string,
+  subtitleSpecialities: string,
+  description: string,
 }
 
-export function HeroSectionBackUp({ stats, ctas, tagline, doctorName, specialty, subtitle, backgroundImage }: HeroSectionProps) {
+interface Prompt {
+  headerInfo: homeHeaderSection,
+  backgroundImage: string,
+  ctas: HeroCTA[],
+  stats: HeroStat[],
+}
+
+export function HomeSection({ headerInfo, backgroundImage, ctas, stats}: Prompt) {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
       {/* Background image */}
@@ -47,7 +51,7 @@ export function HeroSectionBackUp({ stats, ctas, tagline, doctorName, specialty,
           className="text-sm md:text-base uppercase tracking-[0.3em] mb-4 font-medium"
           style={{ color: "#e8a0b4" }}
         >
-          Medicina Estética · Rejuvenecimiento · Tratamientos Corporales
+          {headerInfo.specialties}
         </motion.p>
 
         <motion.h1
@@ -56,10 +60,10 @@ export function HeroSectionBackUp({ stats, ctas, tagline, doctorName, specialty,
           transition={{ duration: 0.8, delay: 0.2 }}
           className="font-bold text-4xl md:text-6xl lg:text-7xl mb-6 leading-tight"
         >
-          Dra. Yasmin Medrano Avila
+          {headerInfo.doctorName}
           <br />
           <span className="italic font-light text-3xl md:text-4xl lg:text-5xl" style={{ color: "#fce4ec" }}>
-            Medicina Estética Avanzada
+            {headerInfo.subtitleSpecialities}
           </span>
         </motion.h1>
 
@@ -78,9 +82,7 @@ export function HeroSectionBackUp({ stats, ctas, tagline, doctorName, specialty,
           className="text-lg md:text-2xl mb-10 max-w-3xl mx-auto font-light leading-relaxed"
           style={{ color: "#fce4ec" }}
         >
-          Realza tu belleza natural con{" "}
-          <span className="font-bold" style={{ color: "#c9a96e" }}>tratamientos seguros y efectivos</span>
-          {" "}diseñados especialmente para ti.
+          {headerInfo.description}
         </motion.p>
 
         <motion.div

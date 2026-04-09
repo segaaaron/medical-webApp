@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Menu, X, Phone } from "lucide-react"
 import type { NavLink } from "@/types"
 
@@ -9,6 +10,12 @@ interface NavbarProps {
 
 export function Navbar({ links }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const pathname = usePathname()
+
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/"
+    return pathname.startsWith(href)
+  }
 
   return (
     <nav className="w-full sticky top-0 z-50 shadow-lg" style={{ backgroundColor: "#3a0f20" }}>
@@ -30,9 +37,16 @@ export function Navbar({ links }: NavbarProps) {
             <li key={link.label}>
               <a
                 href={link.href}
-                className="px-3 py-2 text-sm text-white hover:text-yellow-200 transition-colors font-medium block"
+                className="px-3 py-2 text-sm font-medium block transition-colors relative"
+                style={{ color: isActive(link.href) ? "#e8a0b4" : "white" }}
               >
                 {link.label}
+                {isActive(link.href) && (
+                  <span
+                    className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full"
+                    style={{ backgroundColor: "#e8a0b4" }}
+                  />
+                )}
               </a>
             </li>
           ))}
@@ -72,8 +86,12 @@ export function Navbar({ links }: NavbarProps) {
               <li key={link.label}>
                 <a
                   href={link.href}
-                  className="block px-6 py-3 text-white transition-colors font-medium"
-                  style={{ borderBottom: "1px solid #5c1f35" }}
+                  className="block px-6 py-3 font-medium transition-colors"
+                  style={{
+                    borderBottom: "1px solid #5c1f35",
+                    color: isActive(link.href) ? "#e8a0b4" : "white",
+                    borderLeft: isActive(link.href) ? "3px solid #e8a0b4" : "3px solid transparent",
+                  }}
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}

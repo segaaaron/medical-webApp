@@ -1,4 +1,8 @@
-import { readContent } from "@/lib/store/content-store"
+import { getHomeData, getHomeDataService } from "@/lib/data/home"
+import { getFooterData } from "@/lib/data/footer"
+import { getPromoData } from "@/lib/data/promo"
+import { getAboutData } from "@/lib/data/about"
+import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 import { PromoBanner } from "@/components/layout/PromoBanner"
@@ -6,18 +10,26 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 
 // ─── Sections ─────────────────────────────────────────────────────────────────
-import { HeroSection } from "@/components/sections/HeroSection"
+import { HeroSectionBackUp } from "@/components/sections/HeroSection"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
-import { CourseSection } from "@/components/sections/CourseSection"
+import { ServiceSection, TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import { PresetsSection } from "@/components/sections/PresetsSection"
 import { FreeResourcesSection } from "@/components/sections/FreeResourcesSection"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { FAQSection } from "@/components/sections/FAQSection"
-
-// ─── Social links (functions — never serialized, used in Server Component) ────
-import { socialLinks } from "@/lib/data/navigation"
+import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
+import { HeroCTA } from "@/types"
+import { HomeSection } from "@/components/sections/HomeSection"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+
+/** Safely serialize an object for inline JSON-LD — escapes <, >, & to prevent script injection. */
+function safeJsonLd(obj: unknown): string {
+  return JSON.stringify(obj)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+}
 
 function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   return {
@@ -46,35 +58,99 @@ const breadcrumbJsonLd = {
   ],
 }
 
-export default async function HomePage() {
-  // Single source of truth: content-store merges data/content.json + defaults
-  const c = await readContent()
+interface SiteContentTreatmentsPage {
+  key: string
+  value: TreatmentsPageInfo
+}
 
-  const faqJsonLd = buildFaqJsonLd(c.faqs)
+interface BackendTreatment {
+  id: string
+  name: string
+  description: string | null
+  price: number
+  tag: string
+  imageUrl: string | null
+  active: boolean
+}
+
+export default async function HomePage() {
+  const [homeData, homeServiceData ,footerData, promoData, aboutData, treatment, infoResult] = await Promise.all([
+    getHomeData(),
+    getHomeDataService(),
+    getFooterData(),
+    getPromoData(),
+    getAboutData(),
+    backendFetch<BackendTreatment[]>("/treatments?active=true"),
+    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage"),
+  ])
+
+  const faqJsonLd = buildFaqJsonLd(homeData.faqs)
+  const backendError = treatment.error !== null
+  const backendTreatments = backendError
+    ? []
+    : (treatment.data ?? []).map((t) => ({
+        ...t,
+        imageUrl: resolveImageUrl(t.imageUrl),
+      }))
+
+  const pageInfo: TreatmentsPageInfo | undefined =
+  infoResult.error === null && infoResult.data?.value
+    ? {
+        ...infoResult.data.value,
+        doctorImage: infoResult.data.value.doctorImage
+          ? resolveImageUrl(infoResult.data.value.doctorImage as string)
+          : undefined,
+      }
+    : undefined
+
+  const handleFilterList = backendTreatments.filter(x => x.active)
+  const liveModules =
+    handleFilterList.length > 0
+      ? handleFilterList.map((t) => ({ title: t.name }))
+      : homeData.courseModules
+
+  const heroCTAsSection: HeroCTA[] = [
+    {label: homeServiceData.btn1Text, href: '/tratamientos', variant: 'primary'},
+    {label: homeServiceData.btn2Text, href: footerData.whatsappUrl, variant: 'primary'}
+  ]
 
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
-      <PromoBanner data={c.promoBanner} />
-      <Navbar links={c.navLinks} />
+      <PromoBanner data={promoData} />
+      <Navbar links={homeData.navLinks} />
       <main>
-        <HeroSection stats={c.heroStats} ctas={c.heroCTAs} />
-        <ValuePropositionSection features={c.valueFeatures} />
-        <CourseSection included={c.courseIncluded} modules={c.courseModules} pricing={c.coursePricing} />
-        <PresetsSection presets={c.presets} />
-        <FreeResourcesSection pdfs={c.freePDFs} />
-        <AboutSection bio={c.about.bio} stats={c.about.stats} />
-        <FAQSection faqs={c.faqs} />
+        { homeServiceData.id === null ? 
+        <HeroSectionBackUp
+          stats={homeData.heroStats}
+          ctas={homeData.heroCTAs}
+          tagline={homeData.branding.heroTagline}
+          doctorName={homeData.branding.doctorName}
+          specialty={homeData.branding.specialty}
+          subtitle={homeData.branding.heroSubtitle}
+          backgroundImage={homeData.branding.heroBackgroundImage}
+        /> : <HomeSection 
+          headerInfo={homeServiceData.headerSection} 
+          backgroundImage={homeServiceData.backgroundImage} 
+          ctas={heroCTAsSection} 
+          stats={homeServiceData.heroStats} />
+
+        }
+        <ValuePropositionSection features={aboutData.features} />
+        <ServiceSection included={homeData.courseIncluded} modules={liveModules} info={pageInfo} />
+        <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} />
+        {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
+        <AboutSection bio={aboutData.bio} />
+        <FAQSection faqs={homeData.faqs} />
       </main>
-      {/* socialLinks contains LucideIcon components — passed only to Footer (Server Component) */}
-      <Footer groups={c.footerGroups} socials={socialLinks} />
+      <Footer data={footerData} />
     </>
   )
 }

@@ -2,7 +2,7 @@ import { readContent, DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { socialLinks } from "@/lib/data/navigation"
+import { getFooterData } from "@/lib/data/footer"
 import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
 import type { Metadata } from "next"
 import type { ContactData } from "@/types/content"
@@ -88,8 +88,9 @@ function mapContact(raw: any): ContactData {
 }
 
 export default async function ContactoPage() {
-  const [c, { data: backendContact }] = await Promise.all([
+  const [c, footerData, { data: backendContact }] = await Promise.all([
     readContent(),
+    getFooterData(),
     backendFetch<unknown>("/contact"),
   ])
   const ct: ContactData = backendContact ? mapContact(backendContact) : c.contact
@@ -246,7 +247,7 @@ export default async function ContactoPage() {
           </div>
         </section>
       </main>
-      <Footer groups={c.footerGroups} socials={socialLinks} />
+      <Footer data={footerData} />
     </>
   )
 }

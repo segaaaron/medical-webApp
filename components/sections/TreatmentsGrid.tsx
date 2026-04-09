@@ -16,6 +16,7 @@ export interface Treatment {
 
 interface TreatmentsGridProps {
   treatments: Treatment[]
+  isHome: boolean
 }
 
 const FALLBACK_IMAGE = "/images/treatment-placeholder.svg"
@@ -34,12 +35,12 @@ function resolveTagColor(tag: string): string {
   return TAG_COLORS[tag] ?? DEFAULT_TAG_COLOR
 }
 
-export function TreatmentsGrid({ treatments }: TreatmentsGridProps) {
+export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
   if (treatments.length === 0) return null
 
   // Group by category
   const grouped = treatments.reduce<Record<string, Treatment[]>>((acc, t) => {
-    const key = "General"
+    const key =  isHome ? "" : "General"
     if (!acc[key]) acc[key] = []
     acc[key].push(t)
     return acc
@@ -57,15 +58,16 @@ export function TreatmentsGrid({ treatments }: TreatmentsGridProps) {
           transition={{ duration: 0.7 }}
         >
           <SectionHeader
-            eyebrow="Catálogo de Servicios"
-            title="Todos Nuestros Tratamientos"
-            subtitle={`Encuentra el tratamiento ideal para ti. <span style="color:#c9a96e;font-weight:700;">Agenda una consulta gratuita</span> y recibe un plan personalizado.`}
+            eyebrow={isHome ? "Áreas de Especialidad" : "Catálogo de Servicios"}
+            title={isHome ? "Algunas Categorías de Tratamiento" : "Todos Nuestros Tratamientos"}
+            subtitle={isHome ? `Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:#c9a96e;font-weight:700;">resultados visibles y duraderos.</span>` : `Encuentra el tratamiento ideal para ti. <span style="color:#c9a96e;font-weight:700;">Agenda una consulta gratuita</span> y recibe un plan personalizado.`}
             light
           />
         </motion.div>
 
         {Object.entries(grouped).map(([category]) => (
           <div key={category} className="mb-14">
+              { !isHome ? (
             <motion.h3
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -76,6 +78,7 @@ export function TreatmentsGrid({ treatments }: TreatmentsGridProps) {
             >
               {category}
             </motion.h3>
+              ) : (<></>)}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentTreatmentData.map((treatment, i) => (

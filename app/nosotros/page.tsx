@@ -1,12 +1,11 @@
-import { readContent } from "@/lib/store/content-store"
-import { backendFetch } from "@/lib/backend-client"
+import { getAboutData } from "@/lib/data/about"
+import { getFooterData } from "@/lib/data/footer"
+import { getHomeData } from "@/lib/data/home"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
-import { socialLinks } from "@/lib/data/navigation"
 import type { Metadata } from "next"
-import type { AboutStat, ValueFeature } from "@/types"
 
 export interface BioDoc {
   doctorTitle: string,
@@ -34,71 +33,6 @@ export interface BioSection {
   card3Description: string
   card4Title: string,
   card4Description: string
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapAboutApiToContent(raw: any): { bio: string[]; stats: AboutStat[]; valueFeatures: ValueFeature[] } | null {
-  if (!raw || raw.error) return null
-
-  const bio = raw.descriptionDoc
-    ? [raw.descriptionDoc]
-    : null
-
-  const stats: AboutStat[] = []
-  if (raw.stat1Value && raw.stat1Label) stats.push({ value: raw.stat1Value, label: raw.stat1Label })
-  if (raw.stat2Value && raw.stat2Label) stats.push({ value: raw.stat2Value, label: raw.stat2Label })
-  if (raw.stat3Value && raw.stat3Label) stats.push({ value: raw.stat3Value, label: raw.stat3Label })
-
-  const iconNames = ["Eye", "Award", "Zap", "TrendingUp"] as const
-  const valueFeatures: ValueFeature[] = []
-  for (let n = 1; n <= 4; n++) {
-    const title = raw[`feature${n}Title`]
-    const description = raw[`feature${n}Description`]
-    if (title && description) {
-      valueFeatures.push({ iconName: iconNames[n - 1], title, description })
-    }
-  }
-
-  if (!bio && stats.length === 0 && valueFeatures.length === 0) return null
-
-  return {
-    bio: bio ?? [],
-    stats: stats.length > 0 ? stats : [],
-    valueFeatures: valueFeatures.length > 0 ? valueFeatures : [],
-  }
-}
-
-function mapAboutApiToData(raw: any): { bio: BioDoc; stats: BioSection} | null {
-  const bio: BioDoc = {
-    doctorTitle: raw.sectionLabel,
-    doctorName: raw.doctorName,
-    doctorDescription: raw.descriptionDoc,
-    doctorImage: raw.imageUrl,
-    badgeDoctor: raw.experienceBadgeValue,
-    experienceInfoLabel: raw.stat1Label,
-    experienceInfoValue: raw.stat1Value,
-    pacientsLabel: raw.stat2Label,
-    pacientValue: raw.stat2Value,
-    treatmentLabel: raw.stat3Label,
-    treatmentValue: raw.stat3Value
-  }
-  const stats: BioSection = {
-    chooseUs: raw.whyChooseUsLabel,
-    title: raw.whyChooseUsTitle,
-    description: raw.whyChooseUsDescription,
-    card1Title: raw.feature1Title,
-    card1Description: raw.feature1Description,
-    card2Title: raw.feature2Title,
-    card2Description: raw.feature2Description,
-    card3Title: raw.feature3Title,
-    card3Description: raw.feature3Description,
-    card4Title: raw.feature4Title,
-    card4Description: raw.feature4Description
-  }
-  return {
-    bio: bio,
-    stats: stats,
-  }
 }
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
@@ -155,16 +89,11 @@ const aboutJsonLd = {
 }
 
 export default async function NosotrosPage() {
-  const c = await readContent()
-
-  const { data: aboutData } = await backendFetch("/about")
-  const apiContent = mapAboutApiToContent(aboutData)
-  const dataService = mapAboutApiToData(aboutData)
-
-  const bio = apiContent?.bio?.length ? apiContent.bio : c.about.bio
-  const stats = apiContent?.stats?.length ? apiContent.stats : c.about.stats
-  const features = apiContent?.valueFeatures?.length ? apiContent.valueFeatures : c.valueFeatures
-  console.log('DATA ABOUTUS ===>', dataService)
+  const [{ navLinks }, footerData, aboutData] = await Promise.all([
+    getHomeData(),
+    getFooterData(),
+    getAboutData(),
+  ])
 
   return (
     <>
@@ -172,7 +101,7 @@ export default async function NosotrosPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd) }}
       />
-      <Navbar links={c.navLinks} />
+      <Navbar links={navLinks} />
       <main>
         {/* Page hero */}
         <div className="py-16 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
@@ -185,10 +114,10 @@ export default async function NosotrosPage() {
           </p>
         </div>
 
-        <AboutSection bio={dataService?.bio ?? null} />
-        <ValuePropositionSection features={dataService?.stats ?? null} />
+        <AboutSection bio={aboutData.bio} />
+        <ValuePropositionSection features={aboutData.features} />
       </main>
-      <Footer groups={c.footerGroups} socials={socialLinks} />
+      <Footer data={footerData} />
     </>
   )
 }

@@ -20,6 +20,7 @@ interface PresetsSectionProps {
 }
 
 export function PresetsSection({ presets }: PresetsSectionProps) {
+
   return (
     <section id="servicios" className="py-20 px-6" style={{ backgroundColor: "#5c1f35" }}>
       <div className="container-xl">

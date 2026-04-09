@@ -2,10 +2,10 @@ import { readContent } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { CourseSection, type TreatmentsPageInfo } from "@/components/sections/CourseSection"
+import { ServiceSection, type TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import { PresetsSection } from "@/components/sections/PresetsSection"
 import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
-import { socialLinks } from "@/lib/data/navigation"
+import { getFooterData } from "@/lib/data/footer"
 import type { Metadata } from "next"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
@@ -88,8 +88,9 @@ const treatmentsJsonLd = {
 }
 
 export default async function TratamientosPage() {
-  const [c, backendResult, infoResult] = await Promise.all([
+  const [c, footerData, backendResult, infoResult] = await Promise.all([
     readContent(),
+    getFooterData(),
     backendFetch<BackendTreatment[]>("/treatments?active=true"),
     backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage"),
   ])
@@ -138,19 +139,18 @@ export default async function TratamientosPage() {
           </p>
         </div>
 
-        <CourseSection
+        <ServiceSection
           included={c.courseIncluded}
           modules={liveModules}
-          pricing={c.coursePricing}
           info={pageInfo}
         />
 
         {backendError
           ? <PresetsSection presets={c.presets} />
-          : <TreatmentsGrid treatments={backendTreatments} />
+          : <TreatmentsGrid treatments={backendTreatments} isHome={false}  />
         }
       </main>
-      <Footer groups={c.footerGroups} socials={socialLinks} />
+      <Footer data={footerData} />
     </>
   )
 }

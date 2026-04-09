@@ -32,11 +32,10 @@ export interface TreatmentsPageInfo {
 interface CourseSectionProps {
   included: CourseIncluded[]
   modules: CourseModule[]
-  pricing: CoursePricing
   info?: TreatmentsPageInfo
 }
 
-export function CourseSection({ included, modules, info }: CourseSectionProps) {
+export function ServiceSection({ included, modules, info }: CourseSectionProps) {
   const eyebrow = info?.label || "Nuestros Servicios"
   const title = info?.title || "Tratamientos de Medicina Estética"
   const subtitle = info?.subtitle ||
