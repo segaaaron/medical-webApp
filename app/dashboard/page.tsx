@@ -1,13 +1,30 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useFormik, FieldArray, FormikProvider } from "formik"
+import { useFormik, FormikProvider } from "formik"
 import * as Yup from "yup"
-import { Sparkles, BarChart2, HelpCircle, Plus, Trash2, Check } from "lucide-react"
+import { Sparkles, BarChart2, HelpCircle, Plus, Trash2, Check, GripVertical } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
@@ -87,6 +104,122 @@ function fromBackend(raw: any): HomeForm {
     faqTitle: raw.faqTitle ?? "",
     faqs: Array.isArray(raw.faqs) ? raw.faqs : [],
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FaqDndList({ formik }: { formik: any }) {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
+  const faqs: FaqItem[] = formik.values.faqs
+  const ids = faqs.map((_, i) => `faq-${i}`)
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = ids.indexOf(active.id as string)
+    const newIndex = ids.indexOf(over.id as string)
+    formik.setFieldValue("faqs", arrayMove(faqs, oldIndex, newIndex))
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          {faqs.map((_, i) => (
+            <SortableFAQItem
+              key={ids[i]}
+              id={ids[i]}
+              index={i}
+              inputCls={INPUT_CLS}
+              formik={formik}
+              onRemove={() => {
+                const updated = faqs.filter((_, idx) => idx !== i)
+                formik.setFieldValue("faqs", updated)
+              }}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
+      <button
+        type="button"
+        onClick={() => formik.setFieldValue("faqs", [...faqs, { question: "", answer: "" }])}
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-400 hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
+      >
+        <Plus size={16} />
+        Añadir pregunta
+      </button>
+    </div>
+  )
+}
+
+function SortableFAQItem({
+  id,
+  index,
+  inputCls,
+  formik,
+  onRemove,
+}: {
+  id: string
+  index: number
+  inputCls: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  formik: any
+  onRemove: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="border border-gray-100 rounded-lg p-4 flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 transition-colors touch-none"
+          >
+            <GripVertical size={16} />
+          </button>
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Pregunta #{index + 1}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
+        >
+          <Trash2 size={13} />
+          Eliminar
+        </button>
+      </div>
+      <FormField label="Pregunta" htmlFor={`faqs[${index}].question`}>
+        <input
+          id={`faqs[${index}].question`}
+          className={inputCls}
+          {...formik.getFieldProps(`faqs[${index}].question`)}
+          placeholder="¿Cuál es tu pregunta?"
+        />
+      </FormField>
+      <FormField label="Respuesta" htmlFor={`faqs[${index}].answer`}>
+        <textarea
+          id={`faqs[${index}].answer`}
+          className={inputCls}
+          rows={3}
+          {...formik.getFieldProps(`faqs[${index}].answer`)}
+          placeholder="Escribe la respuesta aquí..."
+        />
+      </FormField>
+    </div>
+  )
 }
 
 export default function DashboardHomePage() {
@@ -294,54 +427,7 @@ export default function DashboardHomePage() {
                 </FormField>
               </div>
 
-              <FieldArray name="faqs">
-                {({ push, remove }) => (
-                  <div className="flex flex-col gap-3">
-                    {formik.values.faqs.map((_, i) => (
-                      <div key={i} className="border border-gray-100 rounded-lg p-4 flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Pregunta #{i + 1}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => remove(i)}
-                            className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
-                          >
-                            <Trash2 size={13} />
-                            Eliminar
-                          </button>
-                        </div>
-                        <FormField label="Pregunta" htmlFor={`faqs[${i}].question`}>
-                          <input
-                            id={`faqs[${i}].question`}
-                            className={INPUT_CLS}
-                            {...formik.getFieldProps(`faqs[${i}].question`)}
-                            placeholder="¿Cuál es tu pregunta?"
-                          />
-                        </FormField>
-                        <FormField label="Respuesta" htmlFor={`faqs[${i}].answer`}>
-                          <textarea
-                            id={`faqs[${i}].answer`}
-                            className={INPUT_CLS}
-                            rows={3}
-                            {...formik.getFieldProps(`faqs[${i}].answer`)}
-                            placeholder="Escribe la respuesta aquí..."
-                          />
-                        </FormField>
-                      </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => push({ question: "", answer: "" })}
-                      className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-400 hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
-                    >
-                      <Plus size={16} />
-                      Añadir pregunta
-                    </button>
-                  </div>
-                )}
-              </FieldArray>
+              <FaqDndList formik={formik} />
             </div>
           </EditorCard>
 
