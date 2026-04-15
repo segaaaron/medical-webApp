@@ -80,7 +80,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
             </motion.h3>
               ) : (<></>)}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {currentTreatmentData.map((treatment, i) => (
                 <motion.div
                   key={treatment.id}
@@ -88,18 +88,19 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.07 }}
-                  className="rounded-2xl overflow-hidden flex flex-col hover:scale-[1.02] transition-transform"
+                  className="rounded-2xl overflow-hidden flex flex-row hover:scale-[1.02] transition-transform"
                   style={{ backgroundColor: "#3a0f20" }}
                 >
-                  <div className="w-full h-48 overflow-hidden">
+                  {/* Imagen izquierda */}
+                  <div className="w-36 shrink-0 self-stretch bg-[#2a0a18] overflow-hidden">
                     <img
                       src={treatment.imageUrl || FALLBACK_IMAGE}
                       alt={`${treatment.name} - Dra. Yasmin Medrano Avila`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover object-center"
                       loading="lazy"
                       decoding="async"
-                      width={400}
-                      height={192}
+                      width={144}
+                      height={180}
                       onError={(e) => {
                         const img = e.currentTarget
                         if (img.src !== window.location.origin + FALLBACK_IMAGE) {
@@ -109,25 +110,25 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                     />
                   </div>
 
-                  <div className="p-5 flex flex-col flex-1 ">
-                    <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-bold text-white text-base mb-2 leading-snug">
-                      {treatment.name}
-                    </h4>
-                                        {/* <Badge label={preset.tag} color={preset.tagColor} /> */}
-                    {treatment.tag && (
-                      <Badge label={treatment.tag} color={resolveTagColor(treatment.tag)} />
-                    )}
+                  {/* Contenido derecho */}
+                  <div className="p-4 flex flex-col flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h4 className="font-bold text-white text-sm leading-snug">
+                        {treatment.name}
+                      </h4>
+                      {treatment.tag && (
+                        <Badge label={treatment.tag} color={resolveTagColor(treatment.tag)} />
+                      )}
                     </div>
 
                     {treatment.description && (
-                      <p className="text-sm leading-relaxed mb-4 flex-1" style={{ color: "#e8a0b4" }}>
+                      <p className="text-xs leading-relaxed mb-3 flex-1 line-clamp-3" style={{ color: "#e8a0b4" }}>
                         {treatment.description}
                       </p>
                     )}
 
-                    <div className="flex items-center justify-between mt-auto pt-3 border-t" style={{ borderColor: "#5c1f35" }}>
-                      <span className="text-lg font-bold" style={{ color: "#c9a96e" }}>
+                    <div className="flex items-center justify-between mt-auto pt-2 border-t" style={{ borderColor: "#5c1f35" }}>
+                      <span className="text-sm font-bold" style={{ color: "#c9a96e" }}>
                         {treatment.price > 0
                           ? `Bs. ${treatment.price.toLocaleString("es-BO")}`
                           : "Consultar precio"}
@@ -136,7 +137,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                         href={`https://wa.me/59178751894?text=Hola%2C%20me%20interesa%20el%20tratamiento%20de%20${encodeURIComponent(treatment.name)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
                         style={{ backgroundColor: "#5c1f35", color: "#fce4ec" }}
                       >
                         Consultar

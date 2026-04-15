@@ -68,6 +68,7 @@ export function TreatmentForm({
     },
     validationSchema: treatmentSchema,
     enableReinitialize: true,
+    validateOnMount: true,
     onSubmit: async (data) => {
       setSaving(true)
       try {
@@ -196,7 +197,7 @@ export function TreatmentForm({
             id="t-price"
             className={INPUT_CLS}
             {...formik.getFieldProps("price")}
-            placeholder="Ej: $1,500 MXN"
+            placeholder="Ej: 1500 Bs"
           />
         </FormField>
 
