@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import Link from "next/link"
-import { ArrowLeft, Check, Upload, X } from "lucide-react"
+import { ArrowLeft, Check, Upload, X, ImageIcon } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
@@ -98,40 +98,62 @@ export default function NuevoBlogPage() {
           </FormField>
 
           <FormField label="Imagen de portada" htmlFor="blog-image">
-            <div className="space-y-2">
-              <label
-                htmlFor="blog-image"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
-              >
-                <Upload size={15} aria-hidden="true" />
-                Seleccionar imagen (JPG, PNG, WebP, GIF)
-                <input
-                  id="blog-image"
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) {
-                      setImageFile(file)
-                      setImagePreview(URL.createObjectURL(file))
-                    }
-                  }}
-                />
-              </label>
-              {imagePreview && (
-                <div className="relative w-fit">
-                  <img src={imagePreview} alt="Vista previa" className="h-32 rounded-lg object-cover border border-gray-200" />
-                  <button
-                    type="button"
-                    onClick={() => { setImagePreview(""); setImageFile(null) }}
-                    className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-200 p-0.5 hover:bg-red-50"
-                    aria-label="Eliminar imagen"
+            <div className="space-y-3">
+              {/* Preview card */}
+              <div className="w-full rounded-xl overflow-hidden border border-gray-200 bg-gray-50" style={{ minHeight: 180 }}>
+                {imagePreview ? (
+                  <div className="relative group">
+                    <img
+                      src={imagePreview}
+                      alt="Vista previa"
+                      className="w-full h-48 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <label
+                        htmlFor="blog-image"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg text-xs font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+                      >
+                        <Upload size={13} />
+                        Cambiar
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => { setImagePreview(""); setImageFile(null) }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 rounded-lg text-xs font-semibold text-white hover:bg-red-600 transition-colors"
+                        aria-label="Eliminar imagen"
+                      >
+                        <X size={13} />
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label
+                    htmlFor="blog-image"
+                    className="flex flex-col items-center justify-center gap-2 h-44 cursor-pointer hover:bg-gray-100 transition-colors"
                   >
-                    <X size={12} className="text-gray-500" />
-                  </button>
-                </div>
-              )}
+                    <ImageIcon size={32} className="text-gray-300" />
+                    <span className="text-sm text-gray-400">Sin imagen seleccionada</span>
+                    <span className="text-xs text-[#b5496a] font-medium flex items-center gap-1">
+                      <Upload size={12} /> Subir imagen
+                    </span>
+                  </label>
+                )}
+              </div>
+              <input
+                id="blog-image"
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setImageFile(file)
+                    setImagePreview(URL.createObjectURL(file))
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-400">Recomendado: 1200×630px. Formatos: JPG, PNG, WebP.</p>
             </div>
           </FormField>
 

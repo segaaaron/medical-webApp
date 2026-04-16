@@ -2,7 +2,9 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Menu, X, Phone } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 import type { NavLink } from "@/types"
+import { WHATSAPP_URL } from "@/lib/constants"
 
 interface NavbarProps {
   links: NavLink[]
@@ -55,7 +57,7 @@ export function Navbar({ links }: NavbarProps) {
         {/* CTA Button */}
         <div className="hidden lg:flex items-center gap-3">
           <a
-            href="https://wa.me/59178751894"
+            href={WHATSAPP_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold uppercase tracking-wide transition-opacity hover:opacity-80"
@@ -79,41 +81,60 @@ export function Navbar({ links }: NavbarProps) {
       </div>
 
       {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="lg:hidden border-t py-4" style={{ backgroundColor: "#3a0f20", borderColor: "#5c1f35" }}>
-          <ul className="flex flex-col">
-            {links.map((link) => (
-              <li key={link.label}>
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="lg:hidden border-t overflow-hidden"
+            style={{ backgroundColor: "#3a0f20", borderColor: "#5c1f35" }}
+          >
+            <ul className="flex flex-col py-4">
+              {links.map((link, i) => (
+                <motion.li
+                  key={link.label}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, delay: i * 0.05 }}
+                >
+                  <a
+                    href={link.href}
+                    className="block px-6 py-3 font-medium transition-colors"
+                    style={{
+                      borderBottom: "1px solid #5c1f35",
+                      color: isActive(link.href) ? "#e8a0b4" : "white",
+                      borderLeft: isActive(link.href) ? "3px solid #e8a0b4" : "3px solid transparent",
+                    }}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {link.label}
+                  </a>
+                </motion.li>
+              ))}
+              <motion.li
+                className="px-6 pt-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2, delay: links.length * 0.05 }}
+              >
                 <a
-                  href={link.href}
-                  className="block px-6 py-3 font-medium transition-colors"
-                  style={{
-                    borderBottom: "1px solid #5c1f35",
-                    color: isActive(link.href) ? "#e8a0b4" : "white",
-                    borderLeft: isActive(link.href) ? "3px solid #e8a0b4" : "3px solid transparent",
-                  }}
+                  href={WHATSAPP_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full text-sm font-bold uppercase tracking-wide"
+                  style={{ backgroundColor: "#b5496a", color: "white" }}
                   onClick={() => setMobileOpen(false)}
                 >
-                  {link.label}
+                  <Phone size={14} />
+                  Agendar Cita
                 </a>
-              </li>
-            ))}
-            <li className="px-6 pt-4">
-              <a
-                href="https://wa.me/59178751894"
-            target="_blank"
-            rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full text-sm font-bold uppercase tracking-wide"
-                style={{ backgroundColor: "#b5496a", color: "white" }}
-                onClick={() => setMobileOpen(false)}
-              >
-                <Phone size={14} />
-                Agendar Cita
-              </a>
-            </li>
-          </ul>
-        </div>
-      )}
+              </motion.li>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   )
 }

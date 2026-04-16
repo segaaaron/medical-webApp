@@ -17,6 +17,7 @@ import { PresetsSection } from "@/components/sections/PresetsSection"
 import { FreeResourcesSection } from "@/components/sections/FreeResourcesSection"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { FAQSection } from "@/components/sections/FAQSection"
+import { TestimonialsSection } from "@/components/sections/TestimonialsSection"
 import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
 import { HeroCTA } from "@/types"
 import { HomeSection } from "@/components/sections/HomeSection"
@@ -148,6 +149,7 @@ export default async function HomePage() {
         <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
         <AboutSection bio={aboutData.bio} />
+        {/* <TestimonialsSection /> */}
         <FAQSection faqs={homeData.faqs} />
       </main>
       <Footer data={footerData} />

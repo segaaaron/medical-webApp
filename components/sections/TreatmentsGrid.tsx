@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { Badge } from "../ui/Badge"
+import { WHATSAPP_TREATMENT_URL, WHATSAPP_URL } from "@/lib/constants"
 
 export interface Treatment {
   id: string
@@ -134,7 +135,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                           : "Consultar precio"}
                       </span>
                       <a
-                        href={`https://wa.me/59178751894?text=Hola%2C%20me%20interesa%20el%20tratamiento%20de%20${encodeURIComponent(treatment.name)}`}
+                        href={WHATSAPP_TREATMENT_URL(treatment.name)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
@@ -157,7 +158,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
           transition={{ duration: 0.6 }}
           className="text-center mt-8"
         >
-          <LinkButton href="https://wa.me/59178751894" variant="primary" className="px-12">
+          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12">
             AGENDA TU CONSULTA GRATUITA
           </LinkButton>
         </motion.div>

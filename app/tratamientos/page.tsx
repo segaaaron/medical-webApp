@@ -6,6 +6,7 @@ import { ServiceSection, type TreatmentsPageInfo } from "@/components/sections/C
 import { PresetsSection } from "@/components/sections/PresetsSection"
 import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
 import { getFooterData } from "@/lib/data/footer"
+import { PageHero } from "@/components/ui/PageHero"
 import type { Metadata } from "next"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
@@ -128,16 +129,11 @@ export default async function TratamientosPage() {
       />
       <Navbar links={c.navLinks} />
       <main>
-        {/* Page hero */}
-        <div className="py-16 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
-          <p className="text-sm uppercase tracking-[0.3em] font-semibold mb-3" style={{ color: "#e8a0b4" }}>
-            Medicina Estética
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Nuestros Tratamientos</h1>
-          <p className="text-base max-w-xl mx-auto" style={{ color: "#fce4ec" }}>
-            Tratamientos faciales y corporales con tecnología de vanguardia y los más altos estándares de seguridad médica.
-          </p>
-        </div>
+        <PageHero
+          eyebrow="Medicina Estética"
+          title="Nuestros Tratamientos"
+          subtitle="Tratamientos faciales y corporales con tecnología de vanguardia y los más altos estándares de seguridad médica."
+        />
 
         <ServiceSection
           included={c.courseIncluded}

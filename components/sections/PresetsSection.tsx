@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { Badge } from "@/components/ui/Badge"
 import { LinkButton } from "@/components/ui/Button"
+import { WHATSAPP_URL } from "@/lib/constants"
 import type { PresetCategory } from "@/types"
 
 // Images for each treatment category
@@ -64,7 +65,6 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-bold text-white text-base">{preset.name}</h3>
                   <Badge label={preset.tag} color={preset.tagColor} />
-                  <span>{preset.tagColor}</span>
                 </div>
                 <p className="text-sm leading-relaxed" style={{ color: "#e8a0b4" }}>
                   {preset.description}
@@ -81,7 +81,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <LinkButton href="https://wa.me/59178751894" variant="primary" className="px-12">
+          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12">
             CONSULTAR TRATAMIENTO
           </LinkButton>
         </motion.div>

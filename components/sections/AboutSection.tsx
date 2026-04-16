@@ -38,13 +38,13 @@ export function AboutSection({ bio }: AboutSectionProps) {
                 className="absolute -bottom-4 -right-4 w-72 h-96 md:w-80 md:h-[480px] rounded-2xl border-2 -z-10"
                 style={{ borderColor: "#b5496a" }}
               />
-              {/* <div
+              <div
                 className="absolute -top-4 -left-4 rounded-xl px-4 py-3 shadow-lg"
                 style={{ backgroundColor: "#c9a96e" }}
               >
                 <p className="text-xs font-black uppercase tracking-wide text-white">{bio?.badgeDoctor ?? ""}+</p>
                 <p className="text-xs font-medium text-white">{bio?.experienceInfoLabel ?? ""}</p>
-              </div> */}
+              </div>
             </div>
           </motion.div>
 

@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { CheckCircle, Play, FileText, Download } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
+import { WHATSAPP_URL } from "@/lib/constants"
 import type { CourseIncluded, CourseModule, CoursePricing, CourseItemIcon } from "@/types"
 
 // Icon map — resolved client-side, not serialized across the boundary
@@ -158,7 +159,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                 <p className="text-xs mb-8" style={{ color: "#e8a0b4" }}>
                   {priceDescription}
                 </p>
-                <LinkButton href="https://wa.me/59178751894" variant="primary" className="w-full justify-center py-4">
+                <LinkButton href={WHATSAPP_URL} variant="primary" className="w-full justify-center py-4">
                   {buttonText}
                 </LinkButton>
                 <p className="text-xs mt-4" style={{ color: "#7a6570" }}>
@@ -176,7 +177,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <LinkButton href="https://wa.me/59178751894" variant="warning" className="px-12">
+          <LinkButton href={WHATSAPP_URL} variant="warning" className="px-12">
             AGENDA TU CITA AHORA
           </LinkButton>
         </motion.div>

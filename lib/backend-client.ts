@@ -159,7 +159,20 @@ export function resolveImageUrl(raw: string | null | undefined): string {
   const cleaned = raw
     .replace(/^\/+(https?:\/\/)/, "$1")
     .replace(/^\/+(https?\/\/)/, "https://")
-  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) return cleaned
+  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+    // If the URL belongs to the backend domain, route it through the /api/uploads proxy
+    // to avoid Cross-Origin-Resource-Policy blocking in the browser.
+    try {
+      const url = new URL(cleaned)
+      const backendHost = new URL(BACKEND_URL || "https://service.drayasminmedrano-services.cloud").host
+      if (url.host === backendHost && url.pathname.startsWith("/uploads/")) {
+        return `/api${url.pathname}`
+      }
+    } catch {
+      // not a valid URL, fall through
+    }
+    return cleaned
+  }
   if (raw.startsWith("/uploads/")) return `/api${raw}`
   if (raw.startsWith("/")) return `${BACKEND_URL}${raw}`
   return raw

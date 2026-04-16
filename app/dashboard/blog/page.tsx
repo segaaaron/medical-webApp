@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Plus, Trash2, Pencil, X } from "lucide-react"
+import { Plus, Trash2, Pencil, X, ImageIcon } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { DeleteBlogDialog } from "@/components/ui/DialogAlert"
+import { resolveImageUrl } from "@/lib/image-utils"
 
 interface BlogPost {
   id: string
@@ -97,17 +98,35 @@ export default function BlogDashboardPage() {
           </div>
         ) : (
           posts.map((p) => (
-            <div key={p.id} className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
+            <div key={p.id} className="bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 pr-4 overflow-hidden">
+              {/* Image preview */}
+              <div className="w-24 h-20 shrink-0 bg-gray-100 overflow-hidden">
+                {p.imageUrl ? (
+                  <img
+                    src={resolveImageUrl(p.imageUrl)}
+                    alt={p.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <ImageIcon size={20} className="text-gray-300" />
+                  </div>
+                )}
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0 py-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-gray-800 text-sm">{p.title}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${p.published ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
+                  <span className="font-semibold text-gray-800 text-sm truncate">{p.title}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${p.published ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
                     {p.published ? "Publicado" : "Borrador"}
                   </span>
                 </div>
                 {p.excerpt && <p className="text-xs text-gray-500 truncate">{p.excerpt}</p>}
                 <p className="text-xs text-gray-400 mt-0.5">{new Date(p.createdAt).toLocaleDateString("es-BO")}</p>
               </div>
+
+              {/* Actions */}
               <div className="flex gap-2 shrink-0">
                 <Link
                   href={`/dashboard/blog/${p.id}/editar`}

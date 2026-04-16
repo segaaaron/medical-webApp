@@ -6,6 +6,8 @@ import { getFooterData } from "@/lib/data/footer"
 import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
 import type { Metadata } from "next"
 import type { ContactData } from "@/types/content"
+import { PageHero } from "@/components/ui/PageHero"
+import { ContactForm } from "@/components/sections/ContactForm"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -103,21 +105,16 @@ export default async function ContactoPage() {
       />
       <Navbar links={c.navLinks} />
       <main>
-        {/* Page hero */}
-        <div className="py-16 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
-          <p className="text-sm uppercase tracking-[0.3em] font-semibold mb-3" style={{ color: "#e8a0b4" }}>
-            Estamos para ti
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Contacto</h1>
-          <p className="text-base max-w-xl mx-auto" style={{ color: "#fce4ec" }}>
-            Agenda tu consulta de valoración gratuita y da el primer paso hacia tu transformación.
-          </p>
-        </div>
+        <PageHero
+          eyebrow="Estamos para ti"
+          title="Contacto"
+          subtitle="Agenda tu consulta de valoración gratuita y da el primer paso hacia tu transformación."
+        />
 
         {/* Contact section */}
         <section className="py-20 px-6" style={{ backgroundColor: "#3a0f20" }}>
-          <div className="container-xl max-w-4xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          <div className="container-xl max-w-6xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
 
               {/* Contact cards */}
               <div className="flex flex-col gap-6">
@@ -264,6 +261,12 @@ export default async function ContactoPage() {
                   <MessageCircle size={18} />
                   AGENDAR MI CONSULTA GRATIS
                 </a>
+              </div>
+
+              {/* Contact form */}
+              <div className="flex flex-col gap-4 md:col-span-2 xl:col-span-1">
+                <h2 className="text-2xl font-bold text-white mb-2">Envíanos un Mensaje</h2>
+                <ContactForm />
               </div>
             </div>
           </div>
