@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -12,10 +13,17 @@ async function getSession() {
 
 // PUT /api/appointments/:id — update status (protected)
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
+  if (!isValidId(id)) return invalidIdResponse()
+
   const body = await req.json()
   const { data, error } = await backendFetch(`/appointments/${id}`, { method: "PUT", body, auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
@@ -24,10 +32,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 // DELETE /api/appointments/:id — protected
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
+  if (!isValidId(id)) return invalidIdResponse()
+
   const { error } = await backendFetch(`/appointments/${id}`, { method: "DELETE", auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
   return new NextResponse(null, { status: 204 })

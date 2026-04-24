@@ -87,10 +87,24 @@ async function resolveToken(): Promise<string | null> {
   return autoLogin()
 }
 
+// Validate backend path to prevent SSRF — must start with / and contain no traversal
+function validateBackendPath(path: string): boolean {
+  if (!path.startsWith("/")) return false
+  if (path.includes("..")) return false
+  if (path.startsWith("//")) return false
+  // Must be a relative path — no protocol schemes
+  if (/^[a-z][a-z0-9+\-.]*:/i.test(path)) return false
+  return true
+}
+
 export async function backendFetch<T>(
   path: string,
   { method = "GET", body, formData, auth = false }: FetchOptions = {}
 ): Promise<{ data: T | null; error: string | null }> {
+  if (!validateBackendPath(path)) {
+    return { data: null, error: "Invalid backend path" }
+  }
+
   try {
     const headers: Record<string, string> = formData
       ? {} // Let fetch set Content-Type with boundary for multipart

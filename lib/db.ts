@@ -6,7 +6,9 @@ const globalPool = globalThis as typeof globalThis & { _pgPool?: Pool }
 function createPool(): Pool {
   return new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false,
+    ssl: process.env.DATABASE_SSL === "true"
+      ? { rejectUnauthorized: process.env.NODE_ENV === "production" }
+      : false,
     max: 10,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,

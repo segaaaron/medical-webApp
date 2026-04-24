@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <!-- Gradiente dorado izquierda oscuro → derecha brillante, igual que el logo -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#7A5510"/>
+      <stop offset="45%"  stop-color="#C8831A"/>
+      <stop offset="100%" stop-color="#E09020"/>
+    </linearGradient>
+
+    <!-- Gradiente para el arco swoosh — mas sutil en el inicio -->
+    <linearGradient id="swooshGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#6B4A0E" stop-opacity="0.7"/>
+      <stop offset="60%"  stop-color="#C8831A"/>
+      <stop offset="100%" stop-color="#E09020"/>
+    </linearGradient>
+
+    <!-- Sombra interior suave -->
+    <filter id="innerGlow">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Fondo negro profundo -->
+  <circle cx="32" cy="32" r="32" fill="#080808"/>
+
+  <!-- Borde dorado exterior fino -->
+  <circle cx="32" cy="32" r="30.5" fill="none" stroke="url(#goldGrad)" stroke-width="1.2"/>
+
+  <!-- Arco swoosh — replica el elemento circular del logo -->
+  <!-- Arco grande, empieza abajo-izquierda, sube, pasa por arriba, baja por la derecha -->
+  <path
+    d="M 14 44 A 20 20 0 1 1 50 28"
+    fill="none"
+    stroke="url(#swooshGrad)"
+    stroke-width="1.8"
+    stroke-linecap="round"
+  />
+
+  <!-- Letra Y — serif, dorada, ligeramente a la izquierda -->
+  <text
+    x="22"
+    y="43"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="28"
+    font-weight="700"
+    fill="url(#goldGrad)"
+    text-anchor="middle"
+  >Y</text>
+
+  <!-- Letra M — serif, dorada, ligeramente a la derecha, se superpone con Y -->
+  <text
+    x="42"
+    y="43"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="28"
+    font-weight="700"
+    fill="url(#goldGrad)"
+    text-anchor="middle"
+  >M</text>
+</svg>

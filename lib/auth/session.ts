@@ -1,11 +1,20 @@
 // Web Crypto API — compatible with Node.js 18+ (API routes) and Edge Runtime (middleware)
 
 export const COOKIE_NAME = "jn_session"
-const TOKEN_TTL_MS = 8 * 60 * 60 * 1000 // 8 hours
+const TOKEN_TTL_MS = 2 * 60 * 60 * 1000 // 2 hours
 
 function getSecret(): string {
-  // Fallback ensures the app never crashes on missing env var during development
-  return process.env.DASHBOARD_SECRET ?? "dev_fallback_secret_set_DASHBOARD_SECRET_in_env"
+  const secret = process.env.DASHBOARD_SECRET
+  if (!secret) {
+    throw new Error(
+      "DASHBOARD_SECRET environment variable is not set. " +
+        "Generate a secure secret with: node -e \"console.log(require('crypto').randomBytes(64).toString('base64'))\""
+    )
+  }
+  if (secret.length < 32) {
+    throw new Error("DASHBOARD_SECRET must be at least 32 characters long.")
+  }
+  return secret
 }
 
 async function hmac(data: string, secret: string): Promise<string> {

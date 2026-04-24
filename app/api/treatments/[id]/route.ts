@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -12,6 +13,7 @@ async function getSession() {
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
+  if (!isValidId(id)) return invalidIdResponse()
 
   const { data, error } = await backendFetch(`/treatments/${id}`)
 
@@ -28,10 +30,17 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
+  if (!isValidId(id)) return invalidIdResponse()
+
   const contentType = req.headers.get("content-type") ?? ""
   if (contentType.includes("multipart/form-data")) {
     const formData = await req.formData()
@@ -47,10 +56,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { id } = await params
+  if (!isValidId(id)) return invalidIdResponse()
+
   const { error } = await backendFetch(`/treatments/${id}`, { method: "DELETE", auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
   return new NextResponse(null, { status: 204 })

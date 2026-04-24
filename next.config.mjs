@@ -6,8 +6,18 @@ const nextConfig = {
   }),
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "**" },
-      { protocol: "http", hostname: "**" },
+      {
+        protocol: "https",
+        hostname: "service.drayasminmedrano-services.cloud",
+        pathname: "/uploads/**",
+      },
+      {
+        // Local Next.js upload proxy — serves uploads through /api/uploads/*
+        protocol: "http",
+        hostname: "localhost",
+        port: "3000",
+        pathname: "/api/uploads/**",
+      },
     ],
   },
 };

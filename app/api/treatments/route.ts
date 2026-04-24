@@ -2,11 +2,22 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+
+// Allowed query parameters for treatments endpoint
+const ALLOWED_TREATMENT_PARAMS = new Set(["category", "page", "limit", "search", "active"])
 
 // GET /api/treatments — public
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const query = searchParams.toString()
+  const filtered = new URLSearchParams()
+  for (const [key, value] of searchParams.entries()) {
+    if (ALLOWED_TREATMENT_PARAMS.has(key)) {
+      // Limit value length to prevent injection via query params
+      filtered.set(key, value.slice(0, 200))
+    }
+  }
+  const query = filtered.toString()
   const path = query ? `/treatments?${query}` : "/treatments"
   const { data, error } = await backendFetch(path)
   if (error) return NextResponse.json({ error }, { status: 502 })
@@ -15,6 +26,11 @@ export async function GET(req: NextRequest) {
 
 // POST /api/treatments — protected
 export async function POST(req: NextRequest) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 

@@ -9,6 +9,7 @@ import {
   revokeBackendRefreshToken,
 } from "@/lib/auth/backend-tokens"
 import { cookies } from "next/headers"
+import { logger } from "@/lib/logger"
 
 const BACKEND_URL =
   process.env.BACKEND_URL ?? "https://service.drayasminmedrano-services.cloud"
@@ -46,7 +47,7 @@ const SESSION_COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   path: "/",
-  maxAge: 8 * 60 * 60, // 8 horas
+  maxAge: 2 * 60 * 60, // 2 horas
 }
 
 // POST /api/auth — login
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
       "unknown"
 
     if (isRateLimited(ip)) {
+      logger.warn("auth.rate_limited", { ip })
       return NextResponse.json(
         { error: "Demasiados intentos. Intenta nuevamente en 15 minutos." },
         { status: 429 }
@@ -81,6 +83,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!backendRes.ok) {
+      logger.warn("auth.login.failure", { ip, user: email, detail: String(backendRes.status) })
       const body = await backendRes.json().catch(() => ({}))
       const message =
         backendRes.status === 401
@@ -100,9 +103,10 @@ export async function POST(req: NextRequest) {
     cookieStore.set(BACKEND_ACCESS_COOKIE, accessToken, ACCESS_COOKIE_OPTIONS)
     cookieStore.set(BACKEND_REFRESH_COOKIE, refreshToken, REFRESH_COOKIE_OPTIONS)
 
+    logger.info("auth.login.success", { ip, user: user.email })
     return NextResponse.json({ ok: true, user: { email: user.email, name: user.name } })
   } catch (err) {
-    console.error("[POST /api/auth]", err)
+    logger.error("auth.error", { detail: err instanceof Error ? err.message : String(err) })
     return NextResponse.json({ error: "Error en autenticación" }, { status: 500 })
   }
 }
@@ -121,6 +125,7 @@ export async function DELETE() {
   cookieStore.set(BACKEND_ACCESS_COOKIE, "", CLEAR_COOKIE_OPTIONS)
   cookieStore.set(BACKEND_REFRESH_COOKIE, "", CLEAR_COOKIE_OPTIONS)
 
+  logger.info("auth.logout")
   return NextResponse.json({ ok: true })
 }
 

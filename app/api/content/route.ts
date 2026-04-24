@@ -4,6 +4,8 @@ import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
 import { DEFAULTS } from "@/lib/store/content-store"
 import type { ContentStore, ContentOverride } from "@/types/content"
+import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+import { logger } from "@/lib/logger"
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -28,7 +30,7 @@ export async function GET() {
   // If backend is unreachable or returns error, serve DEFAULTS so the
   // dashboard always renders the forms and the public site keeps working.
   if (error) {
-    console.warn("[GET /api/content] Backend unavailable, serving defaults:", error)
+    logger.warn("backend.unavailable", { endpoint: "/api/content", detail: error })
     return NextResponse.json(DEFAULTS)
   }
 
@@ -37,6 +39,11 @@ export async function GET() {
 
 // POST /api/content — protected
 export async function POST(req: NextRequest) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
 

@@ -3,6 +3,8 @@ import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { staticBlogPosts } from "@/lib/data/blog-posts"
+import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+import { logger } from "@/lib/logger"
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -11,15 +13,24 @@ async function getSession() {
   return verifyToken(token)
 }
 
+// Allowed query parameters for blog endpoint
+const ALLOWED_BLOG_PARAMS = new Set(["page", "limit", "published", "search", "category", "tag"])
+
 // GET /api/blog — public, falls back to static posts if backend unavailable
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const query = searchParams.toString()
+  const filtered = new URLSearchParams()
+  for (const [key, value] of searchParams.entries()) {
+    if (ALLOWED_BLOG_PARAMS.has(key)) {
+      filtered.set(key, value.slice(0, 200))
+    }
+  }
+  const query = filtered.toString()
   const path = query ? `/blog?${query}` : "/blog"
   const { data, error } = await backendFetch<unknown[]>(path)
 
   if (error) {
-    console.warn("[GET /api/blog] Backend unavailable, serving static posts:", error)
+    logger.warn("backend.unavailable", { endpoint: "/api/blog", detail: error })
     return NextResponse.json(
       staticBlogPosts.map((p) => ({
         ...p,
@@ -47,6 +58,11 @@ export async function GET(req: NextRequest) {
 
 // POST /api/blog — protected
 export async function POST(req: NextRequest) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 

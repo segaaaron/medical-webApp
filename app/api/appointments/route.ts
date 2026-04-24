@@ -10,13 +10,22 @@ async function getSession() {
   return verifyToken(token)
 }
 
+// Allowed query parameters for appointments endpoint
+const ALLOWED_APPOINTMENT_PARAMS = new Set(["status", "page", "limit", "date", "from", "to"])
+
 // GET /api/appointments — protected (admin only)
 export async function GET(req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const { searchParams } = new URL(req.url)
-  const query = searchParams.toString()
+  const filtered = new URLSearchParams()
+  for (const [key, value] of searchParams.entries()) {
+    if (ALLOWED_APPOINTMENT_PARAMS.has(key)) {
+      filtered.set(key, value.slice(0, 200))
+    }
+  }
+  const query = filtered.toString()
   const path = query ? `/appointments?${query}` : "/appointments"
   const { data, error } = await backendFetch(path, { auth: true })
   if (error) return NextResponse.json({ error }, { status: 502 })
