@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Check, Upload, X } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
+import RichTextEditor from "@/components/dashboard/RichTextEditor"
 
 const TAGS = ["POPULAR", "INNOVADOR", "RECOMENDADO", "DEFINITIVO", "ESENCIAL", "ESPECIALIZADO"]
 
@@ -15,7 +16,13 @@ const INPUT_CLS =
 
 const treatmentSchema = Yup.object({
   name: Yup.string().min(5, "El nombre debe tener al menos 5 caracteres").required("El nombre debe tener al menos 5 caracteres"),
-  description: Yup.string().min(5, "La descripción debe tener al menos 5 caracteres").required("La descripción debe tener al menos 5 caracteres"),
+  description: Yup.string()
+    .required("La descripción es obligatoria")
+    .test("has-text", "La descripción debe tener al menos 5 caracteres", (val) => {
+      if (!val) return false
+      const text = val.replace(/<[^>]*>/g, "").trim()
+      return text.length >= 5
+    }),
   tag: Yup.string().default(""),
   price: Yup.string().default(""),
   active: Yup.boolean().default(false),
@@ -182,12 +189,12 @@ export function TreatmentForm({
         </FormField>
 
         <FormField label="Descripción del tratamiento" htmlFor="t-desc">
-          <textarea
-            id="t-desc"
-            className={INPUT_CLS}
-            rows={4}
-            {...formik.getFieldProps("description")}
+          <RichTextEditor
+            value={formik.values.description}
+            onChange={(html) => formik.setFieldValue("description", html)}
+            onBlur={() => formik.setFieldTouched("description", true)}
             placeholder="Describe brevemente en qué consiste este tratamiento..."
+            hasError={!!(formik.touched.description && formik.errors.description)}
           />
           {formik.touched.description && formik.errors.description && <p className="text-xs text-red-500 mt-1">{formik.errors.description}</p>}
         </FormField>

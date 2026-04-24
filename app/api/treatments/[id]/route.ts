@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
 
 async function getSession() {
@@ -15,15 +15,24 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   if (!isValidId(id)) return invalidIdResponse()
 
-  const { data, error } = await backendFetch(`/treatments/${id}`)
+  const { data, error } = await backendFetch<Record<string, unknown>>(`/treatments/${id}`)
 
-  if (!error && data) return NextResponse.json(data)
+  function normalize(t: Record<string, unknown>) {
+    return {
+      ...t,
+      imageUrl: resolveImageUrl(
+        (t.imageUrl ?? t.image_url ?? t.image ?? t.coverImage) as string | null
+      ),
+    }
+  }
+
+  if (!error && data) return NextResponse.json(normalize(data))
 
   // Fallback: fetch the list and find by id
   const { data: list } = await backendFetch<unknown[]>("/treatments")
   if (Array.isArray(list)) {
     const found = list.find((t) => (t as Record<string, unknown>).id === id)
-    if (found) return NextResponse.json(found)
+    if (found) return NextResponse.json(normalize(found as Record<string, unknown>))
   }
 
   return NextResponse.json({ error: "Treatment not found" }, { status: 404 })

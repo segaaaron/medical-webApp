@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
 
 // Allowed query parameters for treatments endpoint
@@ -19,9 +19,22 @@ export async function GET(req: NextRequest) {
   }
   const query = filtered.toString()
   const path = query ? `/treatments?${query}` : "/treatments"
-  const { data, error } = await backendFetch(path)
+  const { data, error } = await backendFetch<unknown[]>(path)
   if (error) return NextResponse.json({ error }, { status: 502 })
-  return NextResponse.json(data)
+
+  const treatments = Array.isArray(data)
+    ? data.map((t: unknown) => {
+        const item = t as Record<string, unknown>
+        return {
+          ...item,
+          imageUrl: resolveImageUrl(
+            (item.imageUrl ?? item.image_url ?? item.image ?? item.coverImage) as string | null
+          ),
+        }
+      })
+    : data
+
+  return NextResponse.json(treatments)
 }
 
 // POST /api/treatments — protected

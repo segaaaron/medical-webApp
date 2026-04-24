@@ -10,6 +10,7 @@ import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 import { resolveImageUrl } from "@/lib/image-utils"
+import RichTextEditor from "@/components/dashboard/RichTextEditor"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
@@ -211,12 +212,11 @@ export default function EditarBlogPage() {
           </FormField>
 
           <FormField label="Contenido *" htmlFor="blog-content">
-            <textarea
-              id="blog-content"
-              className={INPUT_CLS}
-              rows={10}
-              {...formik.getFieldProps("content")}
-              aria-required="true"
+            <RichTextEditor
+              value={formik.values.content}
+              onChange={(html) => formik.setFieldValue("content", html)}
+              onBlur={() => formik.setFieldTouched("content", true)}
+              hasError={!!(formik.touched.content && formik.errors.content)}
             />
             {formik.touched.content && formik.errors.content && <p className="text-xs text-red-500 mt-1">{formik.errors.content}</p>}
           </FormField>

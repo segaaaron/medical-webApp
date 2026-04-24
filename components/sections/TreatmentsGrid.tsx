@@ -1,5 +1,6 @@
 "use client"
 import { motion } from "framer-motion"
+import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { Badge } from "../ui/Badge"
@@ -22,6 +23,10 @@ interface TreatmentsGridProps {
 
 const FALLBACK_IMAGE = "/images/treatment-placeholder.svg"
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+}
+
 const TAG_COLORS: Record<string, string> = {
   POPULAR:       "#b5496a",
   INNOVADOR:     "#8f3452",
@@ -35,6 +40,7 @@ const DEFAULT_TAG_COLOR = "#a0336e"
 function resolveTagColor(tag: string): string {
   return TAG_COLORS[tag] ?? DEFAULT_TAG_COLOR
 }
+
 
 export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
   if (treatments.length === 0) return null
@@ -85,14 +91,18 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
               {currentTreatmentData.map((treatment, i) => (
                 <motion.div
                   key={treatment.id}
+                  id={`treatment-${treatment.id}`}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.07 }}
-                  className="rounded-2xl overflow-hidden flex flex-row hover:scale-[1.02] transition-transform"
+                  className={`rounded-2xl overflow-hidden flex flex-row hover:scale-[1.02] transition-transform${isHome ? " cursor-pointer" : ""}`}
                   style={{ backgroundColor: "#3a0f20" }}
+                  {...(isHome && {
+                    onClick: () => { window.location.href = `/tratamientos#treatment-${treatment.id}` }
+                  })}
                 >
-                  {/* Imagen izquierda */}
+                  {/* Imagen */}
                   <div className="w-36 shrink-0 self-stretch bg-[#2a0a18] overflow-hidden">
                     <img
                       src={treatment.imageUrl || FALLBACK_IMAGE}
@@ -100,8 +110,6 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                       className="w-full h-full object-cover object-center"
                       loading="lazy"
                       decoding="async"
-                      width={144}
-                      height={180}
                       onError={(e) => {
                         const img = e.currentTarget
                         if (img.src !== window.location.origin + FALLBACK_IMAGE) {
@@ -111,7 +119,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                     />
                   </div>
 
-                  {/* Contenido derecho */}
+                  {/* Contenido */}
                   <div className="p-4 flex flex-col flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h4 className="font-bold text-white text-sm leading-snug">
@@ -124,7 +132,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
 
                     {treatment.description && (
                       <p className="text-xs leading-relaxed mb-3 flex-1 line-clamp-3" style={{ color: "#e8a0b4" }}>
-                        {treatment.description}
+                        {stripHtml(treatment.description)}
                       </p>
                     )}
 
@@ -134,15 +142,28 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                           ? `Bs. ${treatment.price.toLocaleString("es-BO")}`
                           : "Consultar precio"}
                       </span>
-                      <a
-                        href={WHATSAPP_TREATMENT_URL(treatment.name)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                        style={{ backgroundColor: "#5c1f35", color: "#fce4ec" }}
-                      >
-                        Consultar
-                      </a>
+                      <div className="flex items-center gap-2">
+                        {!isHome && (
+                          <Link
+                            href={`/tratamientos/${treatment.id}`}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors"
+                            style={{ borderColor: "#b5496a", color: "#e8a0b4" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Leer más
+                          </Link>
+                        )}
+                        <a
+                          href={WHATSAPP_TREATMENT_URL(treatment.name)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                          style={{ backgroundColor: "#5c1f35", color: "#fce4ec" }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Consultar
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

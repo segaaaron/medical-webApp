@@ -79,7 +79,7 @@ export default function TratamientosDashboardPage() {
               <div className="w-28 shrink-0 bg-gray-100">
                 {t.imageUrl ? (
                   <img
-                    src={resolveImageUrl(t.imageUrl)}
+                    src={t.imageUrl}
                     alt={t.name}
                     className="w-full h-full object-cover"
                   />

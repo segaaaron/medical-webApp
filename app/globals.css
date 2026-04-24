@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
 
 html,
 body {
@@ -269,3 +270,95 @@ html {
 .animate-toast-in {
   animation: toast-in 0.2s ease-out both;
 }
+
+/* Blog public content rendering */
+.blog-content { color: #4a3040; font-size: 1rem; line-height: 1.75; }
+.blog-content h1 { font-size: 1.75rem; font-weight: 700; margin: 2rem 0 0.75rem; line-height: 1.3; }
+.blog-content h2 { font-size: 1.4rem; font-weight: 700; margin: 1.75rem 0 0.65rem; line-height: 1.35; }
+.blog-content h3 { font-size: 1.15rem; font-weight: 600; margin: 1.5rem 0 0.5rem; line-height: 1.4; }
+.blog-content p { margin: 0 0 1rem; }
+.blog-content ul { list-style-type: disc; padding-left: 1.5rem; margin: 0 0 1rem; }
+.blog-content ol { list-style-type: decimal; padding-left: 1.5rem; margin: 0 0 1rem; }
+.blog-content li { margin-bottom: 0.35rem; }
+.blog-content strong { font-weight: 700; }
+.blog-content em { font-style: italic; }
+.blog-content s { text-decoration: line-through; }
+.blog-content a { color: #b5496a; text-decoration: underline; }
+.blog-content a:hover { color: #8f3452; }
+.blog-content blockquote { border-left: 4px solid #b5496a; padding: 0.5rem 0 0.5rem 1.25rem; margin: 1.25rem 0; font-style: italic; background: #fdf0f4; border-radius: 0 0.5rem 0.5rem 0; }
+.blog-content code { background: #f5edf0; border-radius: 0.25rem; padding: 0.1em 0.4em; font-size: 0.875em; font-family: ui-monospace, monospace; }
+.blog-content pre { background: #1d1e20; color: #f9fafb; border-radius: 0.75rem; padding: 1.25rem 1.5rem; overflow-x: auto; margin: 1.25rem 0; }
+.blog-content pre code { background: none; color: inherit; padding: 0; font-size: 0.875em; }
+.blog-content hr { border: none; border-top: 1px solid #f0dde4; margin: 2rem 0; }
+.blog-content u { text-decoration: underline; }
+.blog-content mark { border-radius: 0.2em; padding: 0.1em 0.2em; }
+.blog-content sub { vertical-align: sub; font-size: smaller; }
+.blog-content sup { vertical-align: super; font-size: smaller; }
+.blog-content img { max-width: 100%; border-radius: 0.75rem; margin: 1rem 0; display: block; }
+.blog-content [style*="text-align: center"] { text-align: center; }
+.blog-content [style*="text-align: right"] { text-align: right; }
+.blog-content [style*="text-align: justify"] { text-align: justify; }
+
+/* Treatment description full (page /tratamientos, dark background) */
+.treatment-desc-full { color: #e8a0b4; }
+.treatment-desc-full p { margin: 0 0 0.4rem; line-height: 1.6; }
+.treatment-desc-full h1, .treatment-desc-full h2, .treatment-desc-full h3 { font-weight: 700; color: #fce4ec; margin: 0.6rem 0 0.3rem; }
+.treatment-desc-full h1 { font-size: 1rem; }
+.treatment-desc-full h2 { font-size: 0.9rem; }
+.treatment-desc-full h3 { font-size: 0.85rem; }
+.treatment-desc-full strong { font-weight: 700; color: #fce4ec; }
+.treatment-desc-full em { font-style: italic; }
+.treatment-desc-full u { text-decoration: underline; }
+.treatment-desc-full s { text-decoration: line-through; }
+.treatment-desc-full ul { list-style-type: disc; padding-left: 1.2rem; margin: 0.3rem 0; }
+.treatment-desc-full ol { list-style-type: decimal; padding-left: 1.2rem; margin: 0.3rem 0; }
+.treatment-desc-full li { margin-bottom: 0.2rem; }
+.treatment-desc-full a { color: #c9a96e; text-decoration: underline; }
+.treatment-desc-full blockquote { border-left: 3px solid #b5496a; padding-left: 0.75rem; color: #c9a96e; margin: 0.5rem 0; font-style: italic; }
+.treatment-desc-full mark { border-radius: 0.2em; padding: 0.1em 0.2em; }
+.treatment-desc-full img { max-width: 100%; border-radius: 0.5rem; margin: 0.5rem 0; }
+
+/* Scroll anchor offset for treatment cards (accounts for fixed navbar) */
+[id^="treatment-"] { scroll-margin-top: 80px; }
+
+/* Tiptap rich text editor */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.tiptap {
+  caret-color: #b5496a;
+}
+
+.tiptap:focus {
+  outline: none;
+}
+
+/* Prose styles within the editor */
+.tiptap h1 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; }
+.tiptap h2 { font-size: 1.25rem; font-weight: 700; margin: 0.875rem 0 0.4rem; }
+.tiptap h3 { font-size: 1.1rem; font-weight: 600; margin: 0.75rem 0 0.35rem; }
+.tiptap p { margin: 0.4rem 0; line-height: 1.7; }
+.tiptap ul { list-style-type: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+.tiptap ol { list-style-type: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
+.tiptap li { margin: 0.2rem 0; }
+.tiptap blockquote { border-left: 3px solid #b5496a; padding-left: 1rem; color: #6b7280; margin: 0.75rem 0; font-style: italic; }
+.tiptap code { background: #f3f4f6; border-radius: 0.25rem; padding: 0.1em 0.35em; font-size: 0.85em; font-family: ui-monospace, monospace; }
+.tiptap pre { background: #1d1e20; color: #f9fafb; border-radius: 0.5rem; padding: 1rem; overflow-x: auto; margin: 0.75rem 0; }
+.tiptap pre code { background: none; padding: 0; color: inherit; font-size: 0.875em; }
+.tiptap hr { border: none; border-top: 1px solid #e5e7eb; margin: 1rem 0; }
+.tiptap a { color: #b5496a; text-decoration: underline; }
+.tiptap strong { font-weight: 700; }
+.tiptap em { font-style: italic; }
+.tiptap u { text-decoration: underline; }
+.tiptap img { max-width: 100%; border-radius: 0.5rem; margin: 0.5rem 0; }
+.tiptap mark { border-radius: 0.2em; padding: 0.1em 0.2em; }
+.tiptap sub { vertical-align: sub; font-size: smaller; }
+.tiptap sup { vertical-align: super; font-size: smaller; }
+.tiptap [style*="text-align: center"] { text-align: center; }
+.tiptap [style*="text-align: right"] { text-align: right; }
+.tiptap [style*="text-align: justify"] { text-align: justify; }
