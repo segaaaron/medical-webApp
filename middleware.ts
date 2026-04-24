@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server"
-import { randomUUID } from "crypto"
 
 const COOKIE_NAME = "jn_session"
 
@@ -62,7 +61,8 @@ function applySecurityHeaders(response: NextResponse, requestId?: string): NextR
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const requestId = randomUUID()
+  // crypto.randomUUID() is available globally in Edge Runtime (Web Crypto API)
+  const requestId = crypto.randomUUID()
 
   // Allow /dashboard/login through without auth check
   if (pathname === "/dashboard/login") {
