@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/dashboard/PageHeader"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
-import { resolveImageUrl } from "@/lib/image-utils"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
@@ -79,7 +78,7 @@ function fromBackend(raw: any): AboutForm {
     sectionLabel: raw.sectionLabel ?? "",
     doctorName: raw.doctorName ?? "",
     descriptionDoc: raw.descriptionDoc ?? "",
-    imageUrl: raw.imageUrl ?? "",
+    imageUrl: raw.imageUrl ?? raw.image_url ?? "",
     experienceBadgeValue: raw.experienceBadgeValue ?? "",
     experienceBadgeLabel: raw.experienceBadgeLabel ?? "",
     stat1Value: raw.stat1Value ?? "",
@@ -152,7 +151,7 @@ export default function AcercaDeDashboardPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data && !data.error) formik.resetForm({ values: fromBackend(data) })
-        if (data.imageUrl) setImagePreview(resolveImageUrl(data.imageUrl))
+        if (data.imageUrl) setImagePreview(data.imageUrl)
       })
       .catch(() => {
          showToast("error", "No se pudo conectar al servidor.")

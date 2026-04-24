@@ -1,9 +1,7 @@
 "use client"
-import Image from "next/image"
 import { motion } from "framer-motion"
 import { StatCard } from "@/components/ui/StatCard"
 import { BioDoc } from "@/app/nosotros/page"
-import { resolveImageUrl } from "@/lib/image-utils"
 
 interface AboutSectionProps {
   bio: BioDoc | null
@@ -26,12 +24,10 @@ export function AboutSection({ bio }: AboutSectionProps) {
               <div className="w-72 h-96 md:w-80 md:h-[480px] rounded-2xl overflow-hidden"
                 style={{ backgroundColor: "#5c1f35" }}
               >
-                <Image
-                  src={resolveImageUrl(bio?.doctorImage ?? "") || "/images/DraMedrano.jpeg"}
+                <img
+                  src={bio?.doctorImage || "/images/DraMedrano.jpeg"}
                   alt="Dra. Yasmin Medrano Avila - Medica especialista en medicina estetica con mas de 10 anos de experiencia"
                   className="w-full h-full object-cover object-top"
-                  width={320}
-                  height={480}
                 />
               </div>
               <div

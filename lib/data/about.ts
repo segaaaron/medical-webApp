@@ -1,4 +1,4 @@
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import type { BioDoc, BioSection } from "@/app/nosotros/page"
 
 export interface AboutData {
@@ -46,7 +46,7 @@ function mapAbout(raw: any): AboutData {
     doctorTitle: raw.sectionLabel || BIO_FALLBACK.doctorTitle,
     doctorName: raw.doctorName || BIO_FALLBACK.doctorName,
     doctorDescription: raw.descriptionDoc || BIO_FALLBACK.doctorDescription,
-    doctorImage: raw.imageUrl || BIO_FALLBACK.doctorImage,
+    doctorImage: resolveImageUrl(raw.imageUrl ?? raw.image_url ?? raw.image ?? null) || BIO_FALLBACK.doctorImage,
     badgeDoctor: raw.experienceBadgeValue || BIO_FALLBACK.badgeDoctor,
     experienceInfoLabel: raw.stat1Label || BIO_FALLBACK.experienceInfoLabel,
     experienceInfoValue: raw.stat1Value || BIO_FALLBACK.experienceInfoValue,
