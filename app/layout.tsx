@@ -52,6 +52,9 @@ export const metadata: Metadata = {
   authors: [{ name: "Dra. Yasmin Medrano Avila" }],
   creator: "Dra. Yasmin Medrano Avila",
   publisher: "Dra. Yasmin Medrano Avila",
+  verification: {
+    google: "mP89lsorVeyGLDWP6kHRjQUcD-TGByGX1O9b5324zf8",
+  },
   robots: {
     index: true,
     follow: true,
@@ -152,14 +155,18 @@ const jsonLd = {
       name: "Dra. Yasmin Medrano Avila — Medicina Estética Avanzada",
       inLanguage: "es",
       publisher: { "@id": `${BASE_URL}/#business` },
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${BASE_URL}/?q={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
+    },
+    {
+      "@type": "SiteNavigationElement",
+      "@id": `${BASE_URL}/#navigation`,
+      name: "Navegación Principal",
+      hasPart: [
+        { "@type": "WebPage", name: "Inicio", url: BASE_URL },
+        { "@type": "WebPage", name: "Tratamientos", url: `${BASE_URL}/tratamientos` },
+        { "@type": "WebPage", name: "Nosotros", url: `${BASE_URL}/nosotros` },
+        { "@type": "WebPage", name: "Blog", url: `${BASE_URL}/blog` },
+        { "@type": "WebPage", name: "Contacto", url: `${BASE_URL}/contacto` },
+      ],
     },
   ],
 };

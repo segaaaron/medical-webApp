@@ -72,10 +72,24 @@ export default async function TratamientoDetallePage({ params }: Props) {
 
   const navLinks = c?.navLinks ?? DEFAULTS.navLinks
 
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Tratamientos", item: `${BASE_URL}/tratamientos` },
+      { "@type": "ListItem", position: 3, name: treatment.name },
+    ],
+  }
+
   return (
     <>
       <Navbar links={navLinks} />
       <main style={{ backgroundColor: "#fff", minHeight: "100vh" }}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+        />
 
         {/* Back link */}
         <div className="max-w-3xl mx-auto px-6 pt-6">
