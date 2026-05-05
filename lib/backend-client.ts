@@ -164,6 +164,18 @@ export async function backendFetch<T>(
 }
 
 /**
+ * Extracts an array from either a direct array or a paginated { data: T[] } response.
+ * Handles backend pagination change transparently.
+ */
+export function extractList<T>(data: unknown): T[] {
+  if (Array.isArray(data)) return data as T[]
+  if (data && typeof data === "object" && "data" in data && Array.isArray((data as { data: unknown }).data)) {
+    return (data as { data: T[] }).data
+  }
+  return []
+}
+
+/**
  * Resolves a backend image path to a browser-safe URL.
  * - Relative /uploads/* paths are proxied through Next.js (/api/uploads/*)
  *   to avoid Cross-Origin-Resource-Policy blocking.

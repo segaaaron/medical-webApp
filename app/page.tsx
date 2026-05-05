@@ -2,7 +2,7 @@ import { getHomeData, getHomeDataService } from "@/lib/data/home"
 import { getFooterData } from "@/lib/data/footer"
 import { getPromoData } from "@/lib/data/promo"
 import { getAboutData } from "@/lib/data/about"
-import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 import { PromoBanner } from "@/components/layout/PromoBanner"
@@ -89,7 +89,7 @@ export default async function HomePage() {
   const backendError = treatment.error !== null
   const backendTreatments = backendError
     ? []
-    : (treatment.data ?? []).map((t) => ({
+    : extractList<BackendTreatment>(treatment.data).map((t) => ({
         ...t,
         imageUrl: resolveImageUrl(t.imageUrl),
       }))

@@ -1,5 +1,5 @@
 import { readContent } from "@/lib/store/content-store"
-import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { ServiceSection, type TreatmentsPageInfo } from "@/components/sections/CourseSection"
@@ -110,7 +110,7 @@ export default async function TratamientosPage() {
   const backendError = backendResult.error !== null
   const backendTreatments = backendError
     ? []
-    : (backendResult.data ?? []).map((t) => ({
+    : extractList<BackendTreatment>(backendResult.data).map((t) => ({
         ...t,
         imageUrl: resolveImageUrl(t.imageUrl),
       }))

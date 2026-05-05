@@ -1,5 +1,5 @@
 import { DEFAULTS } from "@/lib/store/content-store"
-import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -46,8 +46,9 @@ function toStaticPost(p: BackendBlogPost): StaticBlogPost {
 
 /** Get all published posts — backend first, static fallback */
 async function getAllPosts(): Promise<StaticBlogPost[]> {
-  const { data } = await backendFetch<BackendBlogPost[]>("/blog")
-  if (!data) {
+  const { data: rawData } = await backendFetch("/blog")
+  const data = extractList<BackendBlogPost>(rawData)
+  if (data.length === 0) {
     console.warn("[getAllPosts] Backend unavailable, using static posts")
     return staticBlogPosts
   }

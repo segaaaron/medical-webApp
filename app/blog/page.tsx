@@ -1,5 +1,5 @@
 import { DEFAULTS } from "@/lib/store/content-store"
-import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -69,11 +69,10 @@ function formatDate(dateStr: string) {
  * Uses the same resilient pattern as /api/blog route.
  */
 async function fetchPublishedPosts() {
-  const { data, error } = await backendFetch<BlogPost[]>("/blog")
+  const { data: rawData, error } = await backendFetch("/blog")
 
-  if (error || !data) {
+  if (error || !rawData) {
     console.warn("[BlogPage] Backend unavailable, using static posts:", error)
-    // Return static posts as published BlogPost[]
     return staticBlogPosts.map((p) => ({
       id: p.id,
       title: p.title,
@@ -87,7 +86,7 @@ async function fetchPublishedPosts() {
     })) as BlogPost[]
   }
 
-  return data
+  return extractList<BlogPost>(rawData)
 }
 
 export default async function BlogPage() {

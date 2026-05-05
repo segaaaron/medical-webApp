@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 import { staticBlogPosts } from "@/lib/data/blog-posts"
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, extractList } from "@/lib/backend-client"
 
 export const dynamic = "force-dynamic"
 
@@ -20,8 +20,9 @@ interface BackendTreatment {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch blog posts from backend (fallback to static)
-  const { data: blogData } = await backendFetch<BackendBlogPost[]>("/blog?published=true")
-  const blogEntries: MetadataRoute.Sitemap = blogData && blogData.length > 0
+  const { data: rawBlogData } = await backendFetch("/blog?published=true")
+  const blogData = extractList<BackendBlogPost>(rawBlogData)
+  const blogEntries: MetadataRoute.Sitemap = blogData.length > 0
     ? blogData
         .filter((p) => p.published)
         .map((post) => ({
@@ -38,17 +39,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
 
   // Fetch active treatments from backend
-  const { data: treatmentData } = await backendFetch<BackendTreatment[]>("/treatments?active=true")
+  const { data: rawTreatmentData } = await backendFetch("/treatments?active=true")
+  const treatmentData = extractList<BackendTreatment>(rawTreatmentData)
   const treatmentEntries: MetadataRoute.Sitemap = treatmentData
-    ? treatmentData
-        .filter((t) => t.active)
-        .map((t) => ({
-          url: `${BASE_URL}/tratamientos/${t.id}`,
-          lastModified: new Date(),
-          changeFrequency: "monthly" as const,
-          priority: 0.8,
-        }))
-    : []
+    .filter((t) => t.active)
+    .map((t) => ({
+      url: `${BASE_URL}/tratamientos/${t.id}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    }))
 
   return [
     {
