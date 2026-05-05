@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { proxyError } from "@/lib/api-helpers"
 
 // GET /api/about — public
 export async function GET() {
-  const { data, error } = await backendFetch("/about")
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status } = await backendFetch("/about")
+  if (error) return proxyError(error, status)
   if (data && typeof data === "object") {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const d = data as any
@@ -39,13 +40,13 @@ export async function PUT(req: NextRequest) {
       formData.append("image", imageEntry)
     }
 
-    const { data, error } = await backendFetch("/about", { method: "PUT", formData, auth: true })
-    if (error) return NextResponse.json({ error }, { status: 502 })
+    const { data, error, status } = await backendFetch("/about", { method: "PUT", formData, auth: true })
+    if (error) return proxyError(error, status)
     return NextResponse.json(data)
   }
 
   const body = await req.json()
-  const { data, error } = await backendFetch("/about", { method: "PUT", body, auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status } = await backendFetch("/about", { method: "PUT", body, auth: true })
+  if (error) return proxyError(error, status)
   return NextResponse.json(data)
 }

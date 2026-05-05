@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { saveRole } from "@/lib/hooks/use-role"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react"
@@ -37,6 +38,7 @@ function LoginForm() {
           setError(data.error ?? "Usuario o contraseña incorrectos.")
           return
         }
+        saveRole(data.user?.role)
         router.push(from)
         router.refresh()
       } catch {

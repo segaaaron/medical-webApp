@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
-import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 // Allowed query parameters for treatments endpoint
 const ALLOWED_TREATMENT_PARAMS = new Set(["category", "page", "limit", "search", "active"])
 
-// GET /api/treatments — public
+// GET /api/treatments — public (auth forwarded when session present, backend may return all for admins)
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const filtered = new URLSearchParams()
@@ -19,20 +19,25 @@ export async function GET(req: NextRequest) {
   }
   const query = filtered.toString()
   const path = query ? `/treatments?${query}` : "/treatments"
-  const { data, error } = await backendFetch<unknown[]>(path)
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const session = await getSession()
+  const { data, error, status } = await backendFetch<unknown>(path, { auth: !!session })
+  if (error) return proxyError(error, status)
 
-  const treatments = Array.isArray(data)
-    ? data.map((t: unknown) => {
-        const item = t as Record<string, unknown>
-        return {
-          ...item,
-          imageUrl: resolveImageUrl(
-            (item.imageUrl ?? item.image_url ?? item.image ?? item.coverImage) as string | null
-          ),
-        }
-      })
-    : data
+  const rawList: unknown[] = Array.isArray(data)
+    ? data
+    : Array.isArray((data as Record<string, unknown>)?.data)
+      ? (data as Record<string, unknown>).data as unknown[]
+      : []
+
+  const treatments = rawList.map((t: unknown) => {
+    const item = t as Record<string, unknown>
+    return {
+      ...item,
+      imageUrl: resolveImageUrl(
+        (item.imageUrl ?? item.image_url ?? item.image ?? item.coverImage) as string | null
+      ),
+    }
+  })
 
   return NextResponse.json(treatments)
 }
@@ -50,14 +55,14 @@ export async function POST(req: NextRequest) {
   const contentType = req.headers.get("content-type") ?? ""
   if (contentType.includes("multipart/form-data")) {
     const formData = await req.formData()
-    const { data, error } = await backendFetch("/treatments", { method: "POST", formData, auth: true })
-    if (error) return NextResponse.json({ error }, { status: 502 })
+    const { data, error, status: s1 } = await backendFetch("/treatments", { method: "POST", formData, auth: true })
+    if (error) return proxyError(error, s1)
     return NextResponse.json(data, { status: 201 })
   }
 
   const body = await req.json()
-  const { data, error } = await backendFetch("/treatments", { method: "POST", body, auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status: s2 } = await backendFetch("/treatments", { method: "POST", body, auth: true })
+  if (error) return proxyError(error, s2)
   return NextResponse.json(data, { status: 201 })
 }
 

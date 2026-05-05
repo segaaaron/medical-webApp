@@ -4,6 +4,17 @@
 
 import { NextRequest, NextResponse } from "next/server"
 
+// ── Backend Error Forwarding ──────────────────────────────────────────────────
+
+/**
+ * Maps a backend error to a NextResponse.
+ * 4xx errors are forwarded as-is; 5xx / unreachable become 502.
+ */
+export function proxyError(error: string | null, backendStatus: number): NextResponse {
+  const status = backendStatus >= 400 && backendStatus < 500 ? backendStatus : 502
+  return NextResponse.json({ error: error ?? "Error del servidor" }, { status })
+}
+
 // ── ID Validation ─────────────────────────────────────────────────────────────
 
 const UUID_RE =

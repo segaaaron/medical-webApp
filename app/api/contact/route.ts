@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
-import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 // GET /api/contact — public
 export async function GET() {
-  const { data, error } = await backendFetch("/contact")
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status } = await backendFetch("/contact")
+  if (error) return proxyError(error, status)
   return NextResponse.json(data)
 }
 
@@ -25,7 +25,7 @@ export async function PUT(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { data, error } = await backendFetch("/contact", { method: "PUT", body, auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status } = await backendFetch("/contact", { method: "PUT", body, auth: true })
+  if (error) return proxyError(error, status)
   return NextResponse.json(data)
 }

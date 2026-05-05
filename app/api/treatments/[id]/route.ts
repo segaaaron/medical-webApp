@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
-import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -29,13 +29,16 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!error && data) return NextResponse.json(normalize(data))
 
   // Fallback: fetch the list and find by id
-  const { data: list } = await backendFetch<unknown[]>("/treatments")
-  if (Array.isArray(list)) {
-    const found = list.find((t) => (t as Record<string, unknown>).id === id)
-    if (found) return NextResponse.json(normalize(found as Record<string, unknown>))
-  }
+  const { data: listData } = await backendFetch<unknown>("/treatments")
+  const list: unknown[] = Array.isArray(listData)
+    ? listData
+    : Array.isArray((listData as Record<string, unknown>)?.data)
+      ? (listData as Record<string, unknown>).data as unknown[]
+      : []
+  const found = list.find((t) => (t as Record<string, unknown>).id === id)
+  if (found) return NextResponse.json(normalize(found as Record<string, unknown>))
 
-  return NextResponse.json({ error: "Treatment not found" }, { status: 404 })
+  return NextResponse.json({ error: "Tratamiento no encontrado" }, { status: 404 })
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -53,14 +56,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const contentType = req.headers.get("content-type") ?? ""
   if (contentType.includes("multipart/form-data")) {
     const formData = await req.formData()
-    const { data, error } = await backendFetch(`/treatments/${id}`, { method: "PUT", formData, auth: true })
-    if (error) return NextResponse.json({ error }, { status: 502 })
+    const { data, error, status: s1 } = await backendFetch(`/treatments/${id}`, { method: "PUT", formData, auth: true })
+    if (error) return proxyError(error, s1)
     return NextResponse.json(data)
   }
 
   const body = await req.json()
-  const { data, error } = await backendFetch(`/treatments/${id}`, { method: "PUT", body, auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status: s2 } = await backendFetch(`/treatments/${id}`, { method: "PUT", body, auth: true })
+  if (error) return proxyError(error, s2)
   return NextResponse.json(data)
 }
 
@@ -76,7 +79,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params
   if (!isValidId(id)) return invalidIdResponse()
 
-  const { error } = await backendFetch(`/treatments/${id}`, { method: "DELETE", auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { error, status } = await backendFetch(`/treatments/${id}`, { method: "DELETE", auth: true })
+  if (error) return proxyError(error, status)
   return new NextResponse(null, { status: 204 })
 }

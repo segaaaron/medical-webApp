@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
-import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -25,8 +25,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!isValidId(id)) return invalidIdResponse()
 
   const body = await req.json()
-  const { data, error } = await backendFetch(`/appointments/${id}`, { method: "PUT", body, auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status: putStatus } = await backendFetch(`/appointments/${id}`, { method: "PUT", body, auth: true })
+  if (error) return proxyError(error, putStatus)
   return NextResponse.json(data)
 }
 
@@ -43,7 +43,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params
   if (!isValidId(id)) return invalidIdResponse()
 
-  const { error } = await backendFetch(`/appointments/${id}`, { method: "DELETE", auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { error, status } = await backendFetch(`/appointments/${id}`, { method: "DELETE", auth: true })
+  if (error) return proxyError(error, status)
   return new NextResponse(null, { status: 204 })
 }

@@ -13,6 +13,7 @@ import {
   BACKEND_ACCESS_COOKIE,
   BACKEND_REFRESH_COOKIE,
   ACCESS_COOKIE_OPTIONS,
+  REFRESH_COOKIE_OPTIONS,
   refreshBackendAccessToken,
 } from "@/lib/auth/backend-tokens"
 
@@ -72,10 +73,11 @@ async function resolveToken(): Promise<string | null> {
 
     const refreshToken = cookieStore.get(BACKEND_REFRESH_COOKIE)?.value
     if (refreshToken) {
-      const newToken = await refreshBackendAccessToken(refreshToken)
-      if (newToken) {
-        cookieStore.set(BACKEND_ACCESS_COOKIE, newToken, ACCESS_COOKIE_OPTIONS)
-        return newToken
+      const tokens = await refreshBackendAccessToken(refreshToken)
+      if (tokens) {
+        cookieStore.set(BACKEND_ACCESS_COOKIE, tokens.accessToken, ACCESS_COOKIE_OPTIONS)
+        cookieStore.set(BACKEND_REFRESH_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS)
+        return tokens.accessToken
       }
     }
   } catch {
@@ -100,9 +102,9 @@ function validateBackendPath(path: string): boolean {
 export async function backendFetch<T>(
   path: string,
   { method = "GET", body, formData, auth = false }: FetchOptions = {}
-): Promise<{ data: T | null; error: string | null }> {
+): Promise<{ data: T | null; error: string | null; status: number }> {
   if (!validateBackendPath(path)) {
-    return { data: null, error: "Invalid backend path" }
+    return { data: null, error: "Invalid backend path", status: 400 }
   }
 
   try {
@@ -141,23 +143,23 @@ export async function backendFetch<T>(
             cache: "no-store",
           })
           if (retry.ok) {
-            if (retry.status === 204) return { data: null, error: null }
+            if (retry.status === 204) return { data: null, error: null, status: 204 }
             const retryData: T = await retry.json()
-            return { data: retryData, error: null }
+            return { data: retryData, error: null, status: retry.status }
           }
         }
       }
 
       const err = await res.json().catch(() => ({ error: res.statusText }))
-      return { data: null, error: err.error ?? "Backend error" }
+      return { data: null, error: err.error ?? "Backend error", status: res.status }
     }
 
-    if (res.status === 204) return { data: null, error: null }
+    if (res.status === 204) return { data: null, error: null, status: 204 }
 
     const data: T = await res.json()
-    return { data, error: null }
+    return { data, error: null, status: res.status }
   } catch {
-    return { data: null, error: "Could not reach backend" }
+    return { data: null, error: "Could not reach backend", status: 0 }
   }
 }
 

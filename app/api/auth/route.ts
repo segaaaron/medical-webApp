@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     cookieStore.set(BACKEND_REFRESH_COOKIE, refreshToken, REFRESH_COOKIE_OPTIONS)
 
     logger.info("auth.login.success", { ip, user: user.email })
-    return NextResponse.json({ ok: true, user: { email: user.email, name: user.name } })
+    return NextResponse.json({ ok: true, user: { email: user.email, name: user.name, role: user.role } })
   } catch (err) {
     logger.error("auth.error", { detail: err instanceof Error ? err.message : String(err) })
     return NextResponse.json({ error: "Error en autenticación" }, { status: 500 })

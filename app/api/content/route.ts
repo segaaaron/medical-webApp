@@ -4,7 +4,7 @@ import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
 import { DEFAULTS } from "@/lib/store/content-store"
 import type { ContentStore, ContentOverride } from "@/types/content"
-import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
+import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 import { logger } from "@/lib/logger"
 
 async function getSession() {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: "No autorizado" }, { status: 401 })
 
   const body = await req.json()
-  const { data, error } = await backendFetch("/content", { method: "POST", body, auth: true })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  const { data, error, status } = await backendFetch("/content", { method: "POST", body, auth: true })
+  if (error) return proxyError(error, status)
   return NextResponse.json(data ?? { ok: true })
 }

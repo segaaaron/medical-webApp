@@ -33,11 +33,11 @@ export const CLEAR_COOKIE_OPTIONS = {
 
 /**
  * Calls the backend to refresh the access token using the refresh token.
- * Returns the new accessToken or null on failure.
+ * Backend now rotates the refresh token — returns both tokens or null on failure.
  */
 export async function refreshBackendAccessToken(
   refreshToken: string
-): Promise<string | null> {
+): Promise<{ accessToken: string; refreshToken: string } | null> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
       method: "POST",
@@ -45,8 +45,9 @@ export async function refreshBackendAccessToken(
       body: JSON.stringify({ refreshToken }),
     })
     if (!res.ok) return null
-    const { accessToken } = await res.json()
-    return accessToken ?? null
+    const { accessToken, refreshToken: newRefreshToken } = await res.json()
+    if (!accessToken) return null
+    return { accessToken, refreshToken: newRefreshToken ?? refreshToken }
   } catch {
     return null
   }
