@@ -1,7 +1,6 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { clearRole } from "@/lib/hooks/use-role"
 import {
   LayoutDashboard,
   LogOut,
@@ -39,7 +38,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   async function handleLogout() {
     await fetch("/api/auth", { method: "DELETE" })
-    clearRole()
     window.location.href = "/dashboard/login"
   }
 

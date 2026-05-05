@@ -7,9 +7,7 @@ import { Plus, Trash2, Pencil } from "lucide-react"
 import Link from "next/link"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { useToast } from "@/components/dashboard/Toast"
-import { resolveImageUrl } from "@/lib/image-utils"
 import { DeleteTreatmentDialog } from "@/components/ui/DialogAlert"
-import { useRole } from "@/lib/hooks/use-role"
 
 interface Treatment {
   id: string
@@ -23,8 +21,6 @@ interface Treatment {
 
 export default function TratamientosDashboardPage() {
   const showToast = useToast()
-  const role = useRole()
-  const isAdmin = role === "ADMIN" || role === null
   const [treatments, setTreatments] = useState<Treatment[]>([])
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<Treatment | null>(null)
@@ -56,16 +52,14 @@ export default function TratamientosDashboardPage() {
 
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm text-gray-500">{treatments.length} tratamiento(s)</p>
-        {isAdmin && (
-          <Link
-            href="/dashboard/tratamientos/nuevo"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#b5496a" }}
-          >
-            <Plus size={15} />
-            Nuevo tratamiento
-          </Link>
-        )}
+        <Link
+          href="/dashboard/tratamientos/nuevo"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
+          style={{ backgroundColor: "#b5496a" }}
+        >
+          <Plus size={15} />
+          Nuevo tratamiento
+        </Link>
       </div>
 
       {loading ? (
@@ -119,24 +113,20 @@ export default function TratamientosDashboardPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2 shrink-0">
-                  {isAdmin && (
-                    <>
-                      <Link
-                        href={`/dashboard/tratamientos/${t.id}/editar`}
-                        className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
-                        aria-label="Editar"
-                      >
-                        <Pencil size={14} />
-                      </Link>
-                      <button
-                        onClick={() => setDeleteTarget(t)}
-                        className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
-                        aria-label="Eliminar"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </>
-                  )}
+                  <Link
+                    href={`/dashboard/tratamientos/${t.id}/editar`}
+                    className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
+                    aria-label="Editar"
+                  >
+                    <Pencil size={14} />
+                  </Link>
+                  <button
+                    onClick={() => setDeleteTarget(t)}
+                    className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
+                    aria-label="Eliminar"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
               </div>
             </div>

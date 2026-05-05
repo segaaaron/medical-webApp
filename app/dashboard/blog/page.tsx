@@ -4,7 +4,6 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Plus, Trash2, Pencil, X, ImageIcon } from "lucide-react"
-import { useRole } from "@/lib/hooks/use-role"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { DeleteBlogDialog } from "@/components/ui/DialogAlert"
 import { resolveImageUrl } from "@/lib/image-utils"
@@ -22,8 +21,6 @@ interface BlogPost {
 }
 
 export default function BlogDashboardPage() {
-  const role = useRole()
-  const isAdmin = role === "ADMIN" || role === null
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -83,17 +80,15 @@ export default function BlogDashboardPage() {
       <div className="mt-6 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500">{posts.length} articulo(s)</p>
-          {isAdmin && (
-            <Link
-              href="/dashboard/blog/nuevo"
-              aria-label="Crear nuevo articulo"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: "#b5496a" }}
-            >
-              <Plus size={15} aria-hidden="true" />
-              Nuevo articulo
-            </Link>
-          )}
+          <Link
+            href="/dashboard/blog/nuevo"
+            aria-label="Crear nuevo articulo"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
+            style={{ backgroundColor: "#b5496a" }}
+          >
+            <Plus size={15} aria-hidden="true" />
+            Nuevo articulo
+          </Link>
         </div>
 
         {loading ? (
@@ -135,24 +130,22 @@ export default function BlogDashboardPage() {
               </div>
 
               {/* Actions */}
-              {isAdmin && (
-                <div className="flex gap-2 shrink-0">
-                  <Link
-                    href={`/dashboard/blog/${p.id}/editar`}
-                    aria-label={`Editar "${p.title}"`}
-                    className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#b5496a]/50 hover:text-[#b5496a] transition-colors"
-                  >
-                    <Pencil size={14} aria-hidden="true" />
-                  </Link>
-                  <button
-                    onClick={() => setDeleteTarget(p)}
-                    aria-label={`Eliminar "${p.title}"`}
-                    className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={14} aria-hidden="true" />
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-2 shrink-0">
+                <Link
+                  href={`/dashboard/blog/${p.id}/editar`}
+                  aria-label={`Editar "${p.title}"`}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#b5496a]/50 hover:text-[#b5496a] transition-colors"
+                >
+                  <Pencil size={14} aria-hidden="true" />
+                </Link>
+                <button
+                  onClick={() => setDeleteTarget(p)}
+                  aria-label={`Eliminar "${p.title}"`}
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 size={14} aria-hidden="true" />
+                </button>
+              </div>
             </div>
           ))
         )}
