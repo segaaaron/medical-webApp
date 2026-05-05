@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -41,7 +42,7 @@ export default function NuevoBlogPage() {
         fd.append("published", String(values.published))
         fd.append("image", imageFile ?? "")
 
-        const res = await fetch("/api/blog", {
+        const res = await guardedFetch("/api/blog", {
           method: "POST",
           body: fd,
         })

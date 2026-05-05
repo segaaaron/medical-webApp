@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useRef, useState } from "react"
 import { useFormik } from "formik"
@@ -87,7 +88,7 @@ export default function PromocionesPage() {
           fd.append("image", imageFile)
         }
 
-        const res = await fetch("/api/promo-banner", { method: "PUT", body: fd })
+        const res = await guardedFetch("/api/promo-banner", { method: "PUT", body: fd })
         if (!res.ok) throw new Error()
         const updated = await res.json()
         if (updated && !updated.error) formik.resetForm({ values: fromBackend(updated) })

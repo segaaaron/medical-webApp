@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -21,7 +22,7 @@ export default function NuevoTratamientoPage() {
     }
 
     try {
-      const res = await fetch("/api/treatments", {
+      const res = await guardedFetch("/api/treatments", {
         method: "POST",
         body: buildTreatmentFormData(values),
       })

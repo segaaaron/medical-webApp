@@ -12,10 +12,12 @@ async function getSession() {
 
 // GET /api/treatments/info — public
 export async function GET() {
-  const { data, error } = await backendFetch<{ key: string; value: Record<string, unknown> }>(
-    "/site-content/treatmentsPage"
+  const session = await getSession()
+  const { data, error, status } = await backendFetch<{ key: string; value: Record<string, unknown> }>(
+    "/site-content/treatmentsPage",
+    { auth: !!session }
   )
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  if (error) return NextResponse.json({ error }, { status: status >= 400 && status < 500 ? status : 502 })
 
   // Backend returns { id, key, value: {...}, createdAt, updatedAt }
   // We only expose the value object to the client
@@ -57,11 +59,11 @@ export async function PUT(req: NextRequest) {
     responseData.append("image", imageEntry)
   }
 
-  const { data, error } = await backendFetch("/site-content", {
+  const { data, error, status: putStatus } = await backendFetch("/site-content", {
     method: "PUT",
     formData: responseData,
     auth: true,
   })
-  if (error) return NextResponse.json({ error }, { status: 502 })
+  if (error) return NextResponse.json({ error }, { status: putStatus >= 400 && putStatus < 500 ? putStatus : 502 })
   return NextResponse.json(data)
 }

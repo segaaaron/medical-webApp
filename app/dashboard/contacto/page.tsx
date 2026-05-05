@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import { Check, MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
@@ -84,7 +85,7 @@ export default function ContactoDashboardPage() {
   async function handleSave() {
     setSaving(true)
     try {
-      const res = await fetch("/api/contact", {
+      const res = await guardedFetch("/api/contact", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(toBackend(form)),

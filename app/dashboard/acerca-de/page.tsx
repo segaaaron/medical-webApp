@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useRef, useState } from "react"
 import { useFormik } from "formik"
@@ -122,9 +123,9 @@ export default function AcercaDeDashboardPage() {
           const fd = new FormData()
           fd.append("image", imageFile)
           Object.entries(values).forEach(([key, val]) => fd.append(key, val))
-          res = await fetch("/api/about", { method: "PUT", body: fd })
+          res = await guardedFetch("/api/about", { method: "PUT", body: fd })
         } else {
-          res = await fetch("/api/about", {
+          res = await guardedFetch("/api/about", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(values),

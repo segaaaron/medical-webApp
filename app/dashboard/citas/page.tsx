@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useState } from "react"
 import { Trash2, ChevronDown, X } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
@@ -48,7 +49,7 @@ export default function CitasDashboardPage() {
   async function load(status = filter) {
     setLoading(true)
     const url = status ? `/api/appointments?status=${status}` : "/api/appointments"
-    const res = await fetch(url)
+    const res = await guardedFetch(url)
     if (res.ok) setAppointments(await res.json())
     else setError("No se pudo cargar las citas.")
     setLoading(false)
@@ -63,7 +64,7 @@ export default function CitasDashboardPage() {
 
   async function handleStatus(id: string, status: Appointment["status"]) {
     setUpdating(id)
-    const res = await fetch(`/api/appointments/${id}`, {
+    const res = await guardedFetch(`/api/appointments/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
@@ -75,7 +76,7 @@ export default function CitasDashboardPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("¿Eliminar esta cita?")) return
-    const res = await fetch(`/api/appointments/${id}`, { method: "DELETE" })
+    const res = await guardedFetch(`/api/appointments/${id}`, { method: "DELETE" })
     if (!res.ok) {
       setError("No se pudo eliminar la cita. Intenta de nuevo.")
       return

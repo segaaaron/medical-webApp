@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
@@ -22,7 +23,7 @@ export default function EditarTratamientoPage() {
   useEffect(() => {
     async function fetchTreatment() {
       try {
-        const res = await fetch(`/api/treatments/${id}`)
+        const res = await guardedFetch(`/api/treatments/${id}`)
         if (!res.ok) {
           showToast("error", "No se pudo cargar el tratamiento.")
           return
@@ -53,7 +54,7 @@ export default function EditarTratamientoPage() {
     }
 
     try {
-      const res = await fetch(`/api/treatments/${id}`, {
+      const res = await guardedFetch(`/api/treatments/${id}`, {
         method: "PUT",
         body: buildTreatmentFormData(values),
       })

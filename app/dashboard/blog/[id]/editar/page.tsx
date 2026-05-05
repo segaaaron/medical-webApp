@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
@@ -50,7 +51,7 @@ export default function EditarBlogPage() {
         if (imageFile) fd.append("image", imageFile)
         else if (imageRemoved) fd.append("image", "")
 
-        const res = await fetch(`/api/blog/${id}`, {
+        const res = await guardedFetch(`/api/blog/${id}`, {
           method: "PUT",
           body: fd,
         })
@@ -71,7 +72,7 @@ export default function EditarBlogPage() {
   useEffect(() => {
     async function fetchPost() {
       try {
-        const res = await fetch(`/api/blog/${id}`)
+        const res = await guardedFetch(`/api/blog/${id}`)
         if (!res.ok) {
           showToast("error", "No se pudo cargar el artículo.")
           return

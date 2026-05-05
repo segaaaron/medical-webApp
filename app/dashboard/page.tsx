@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import { useFormik, FormikProvider } from "formik"
@@ -233,7 +234,7 @@ export default function DashboardHomePage() {
     validateOnMount: true,
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        const res = await fetch("/api/home", {
+        const res = await guardedFetch("/api/home", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),

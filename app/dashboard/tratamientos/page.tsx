@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -30,7 +31,7 @@ export default function TratamientosDashboardPage() {
 
   async function load() {
     setLoading(true)
-    const res = await fetch("/api/treatments")
+    const res = await guardedFetch("/api/treatments")
     if (res.ok) setTreatments(await res.json())
     setLoading(false)
   }
@@ -39,7 +40,7 @@ export default function TratamientosDashboardPage() {
 
   async function confirmDelete() {
     if (!deleteTarget) return
-    const res = await fetch(`/api/treatments/${deleteTarget.id}`, { method: "DELETE" })
+    const res = await guardedFetch(`/api/treatments/${deleteTarget.id}`, { method: "DELETE" })
     if (res.ok) showToast("success", `"${deleteTarget.name}" fue eliminado correctamente.`)
     else showToast("error", "No se pudo eliminar el tratamiento. Intenta de nuevo.")
     setDeleteTarget(null)

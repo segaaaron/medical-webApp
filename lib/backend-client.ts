@@ -14,8 +14,18 @@ import {
   BACKEND_REFRESH_COOKIE,
   ACCESS_COOKIE_OPTIONS,
   REFRESH_COOKIE_OPTIONS,
+  CLEAR_COOKIE_OPTIONS,
   refreshBackendAccessToken,
 } from "@/lib/auth/backend-tokens"
+import { COOKIE_NAME } from "@/lib/auth/session"
+
+const SESSION_CLEAR = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: 0,
+}
 
 const BACKEND_URL = process.env.BACKEND_URL ?? ""
 const SERVICE_TOKEN = process.env.BACKEND_SERVICE_TOKEN ?? ""
@@ -129,24 +139,63 @@ export async function backendFetch<T>(
     })
 
     if (!res.ok) {
-      // If 401 and we used a cached token, invalidate and retry once
-      if (res.status === 401 && cachedToken && auth) {
+      if (res.status === 401 && auth) {
+        // Invalidate autoLogin cache
         cachedToken = null
         cachedTokenExp = 0
-        const freshToken = await resolveToken()
-        if (freshToken) {
-          headers["Authorization"] = `Bearer ${freshToken}`
-          const retry = await fetch(`${BACKEND_URL}/api${path}`, {
-            method,
-            headers,
-            body: fetchBody,
-            cache: "no-store",
-          })
-          if (retry.ok) {
-            if (retry.status === 204) return { data: null, error: null, status: 204 }
-            const retryData: T = await retry.json()
-            return { data: retryData, error: null, status: retry.status }
+
+        try {
+          const cookieStore = await cookies()
+          const storedRefresh = cookieStore.get(BACKEND_REFRESH_COOKIE)?.value
+
+          if (storedRefresh) {
+            const tokens = await refreshBackendAccessToken(storedRefresh)
+
+            if (tokens) {
+              // Refresh succeeded — update cookies and retry original request
+              cookieStore.set(BACKEND_ACCESS_COOKIE, tokens.accessToken, ACCESS_COOKIE_OPTIONS)
+              cookieStore.set(BACKEND_REFRESH_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS)
+              headers["Authorization"] = `Bearer ${tokens.accessToken}`
+              const retry = await fetch(`${BACKEND_URL}/api${path}`, {
+                method,
+                headers,
+                body: fetchBody,
+                cache: "no-store",
+              })
+              if (retry.ok) {
+                if (retry.status === 204) return { data: null, error: null, status: 204 }
+                const retryData: T = await retry.json()
+                return { data: retryData, error: null, status: retry.status }
+              }
+              const retryErr = await retry.json().catch(() => ({ error: retry.statusText }))
+              return { data: null, error: retryErr.error ?? "Backend error", status: retry.status }
+            }
+
+            // Refresh token expired — wipe all auth cookies to force logout
+            cookieStore.set(BACKEND_ACCESS_COOKIE, "", CLEAR_COOKIE_OPTIONS)
+            cookieStore.set(BACKEND_REFRESH_COOKIE, "", CLEAR_COOKIE_OPTIONS)
+            cookieStore.set(COOKIE_NAME, "", SESSION_CLEAR)
+            return { data: null, error: "SESSION_EXPIRED", status: 401 }
           }
+
+          // No refresh token — try autoLogin fallback
+          const freshToken = await autoLogin()
+          if (freshToken) {
+            headers["Authorization"] = `Bearer ${freshToken}`
+            const retry = await fetch(`${BACKEND_URL}/api${path}`, {
+              method,
+              headers,
+              body: fetchBody,
+              cache: "no-store",
+            })
+            if (retry.ok) {
+              if (retry.status === 204) return { data: null, error: null, status: 204 }
+              const retryData: T = await retry.json()
+              return { data: retryData, error: null, status: retry.status }
+            }
+          }
+        } catch {
+          // cookies() may throw outside request context (e.g. generateMetadata)
         }
       }
 

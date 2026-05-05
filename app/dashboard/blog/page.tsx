@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
@@ -32,7 +33,7 @@ export default function BlogDashboardPage() {
     setLoading(true)
     setError("")
     try {
-      const res = await fetch("/api/blog")
+      const res = await guardedFetch("/api/blog")
       if (res.ok) {
         const data = await res.json()
         setPosts(data)
@@ -50,7 +51,7 @@ export default function BlogDashboardPage() {
   async function confirmDelete() {
     if (!deleteTarget) return
     try {
-      const res = await fetch(`/api/blog/${deleteTarget.id}`, { method: "DELETE" })
+      const res = await guardedFetch(`/api/blog/${deleteTarget.id}`, { method: "DELETE" })
       if (!res.ok) setError("Error al eliminar el articulo.")
     } catch {
       setError("No se pudo conectar al servidor.")

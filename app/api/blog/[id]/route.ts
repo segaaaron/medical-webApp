@@ -15,8 +15,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params
   if (!isValidId(id)) return invalidIdResponse()
 
+  const session = await getSession()
+  const useAuth = !!session
   // Try fetching by id directly
-  const { data, error } = await backendFetch<Record<string, unknown>>(`/blog/${id}`)
+  const { data, error } = await backendFetch<Record<string, unknown>>(`/blog/${id}`, { auth: useAuth })
 
   let post: Record<string, unknown> | null = null
 
@@ -24,7 +26,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     post = data as Record<string, unknown>
   } else {
     // Fallback: fetch the list and find by id
-    const { data: listData } = await backendFetch<unknown>("/blog")
+    const { data: listData } = await backendFetch<unknown>("/blog", { auth: useAuth })
     const list: unknown[] = Array.isArray(listData)
       ? listData
       : Array.isArray((listData as Record<string, unknown>)?.data)

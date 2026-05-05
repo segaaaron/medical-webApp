@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import { useFormik, FieldArray, FormikProvider } from "formik"
@@ -159,7 +160,7 @@ export default function FooterDashboardPage() {
     validationSchema: footerSchema,
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        const res = await fetch("/api/footer", {
+        const res = await guardedFetch("/api/footer", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),

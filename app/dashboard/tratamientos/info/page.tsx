@@ -1,4 +1,5 @@
 "use client"
+import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
 import { useFormik } from "formik"
@@ -94,7 +95,7 @@ export default function TratamientosInfoPage() {
         responseData.append("buttonText", values.buttonText)
         responseData.append("disclaimer", values.disclaimer)
 
-        const res = await fetch("/api/treatments/info", {
+        const res = await guardedFetch("/api/treatments/info", {
           method: "PUT",
           body: responseData,
         })
@@ -122,7 +123,7 @@ export default function TratamientosInfoPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/treatments/info")
+        const res = await guardedFetch("/api/treatments/info")
         if (res.ok) {
           const data = await res.json()
           const merged: InfoValues = { ...DEFAULT, ...data }
