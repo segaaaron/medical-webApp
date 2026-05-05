@@ -105,6 +105,8 @@ export default function BlogDashboardPage() {
                   <img
                     src={resolveImageUrl(p.imageUrl)}
                     alt={p.title}
+                    width={96}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
                 ) : (

@@ -75,7 +75,11 @@ export default function CitasDashboardPage() {
 
   async function handleDelete(id: string) {
     if (!confirm("¿Eliminar esta cita?")) return
-    await fetch(`/api/appointments/${id}`, { method: "DELETE" })
+    const res = await fetch(`/api/appointments/${id}`, { method: "DELETE" })
+    if (!res.ok) {
+      setError("No se pudo eliminar la cita. Intenta de nuevo.")
+      return
+    }
     await load()
   }
 
@@ -101,9 +105,9 @@ export default function CitasDashboardPage() {
             onClick={() => handleFilter(f.value)}
             className="px-4 py-1.5 rounded-full text-xs font-semibold border transition-colors"
             style={{
-              backgroundColor: filter === f.value ? "#673de6" : "white",
+              backgroundColor: filter === f.value ? "#b5496a" : "white",
               color: filter === f.value ? "white" : "#6b7280",
-              borderColor: filter === f.value ? "#673de6" : "#e5e7eb",
+              borderColor: filter === f.value ? "#b5496a" : "#e5e7eb",
             }}
           >
             {f.label}

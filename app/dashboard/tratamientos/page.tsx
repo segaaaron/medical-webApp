@@ -81,6 +81,8 @@ export default function TratamientosDashboardPage() {
                   <img
                     src={t.imageUrl}
                     alt={t.name}
+                    width={112}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
                 ) : (

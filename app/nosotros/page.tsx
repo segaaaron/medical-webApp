@@ -39,7 +39,7 @@ export interface BioSection {
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  title: "Sobre la Dra. Yasmin Medrano Avila - Especialista en Medicina Estetica",
+  title: "Dra. Yasmin Medrano Avila | Especialista Medicina Estética",
   description:
     "Conoce a la Dra. Yasmin Medrano Avila, medica especialista en medicina estetica con mas de 10 anos de experiencia, mas de 5000 pacientes atendidos. Experta en botox, rellenos y rejuvenecimiento facial.",
   keywords: [
