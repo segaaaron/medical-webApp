@@ -33,6 +33,10 @@ export default function EditarBlogPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState("")
   const [imageRemoved, setImageRemoved] = useState(false)
+
+  useEffect(() => {
+    return () => { if (imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview) }
+  }, [imagePreview])
   const [formInitialValues, setFormInitialValues] = useState<BlogValues>({
     title: "", excerpt: "", content: "", published: false,
   })

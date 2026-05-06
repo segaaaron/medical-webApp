@@ -14,7 +14,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 export const metadata: Metadata = {
   title: "Tratamientos Estéticos | Dra. Yasmin Medrano Avila",
   description:
-    "Tratamientos de medicina estetica: botox, acido hialuronico, armonizacion facial, depilacion laser, mesoterapia y mas. Consulta de valoracion gratuita con la Dra. Yasmin Medrano Avila.",
+    "Botox, acido hialuronico, armonizacion facial, depilacion laser y mesoterapia. Consulta de valoracion gratuita con la Dra. Yasmin Medrano Avila.",
   keywords: [
     "tratamientos medicina estetica",
     "botox",

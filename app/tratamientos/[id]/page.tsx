@@ -1,3 +1,4 @@
+import DOMPurify from "isomorphic-dompurify"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -48,6 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${treatment.name} | Dra. Yasmin Medrano Avila`,
     description,
+    keywords: [treatment.name, "medicina estética", "tratamiento estético", "Dra. Yasmin Medrano Avila"],
     alternates: { canonical: `${BASE_URL}/tratamientos/${id}` },
     openGraph: {
       title: treatment.name,
@@ -55,7 +57,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       url: `${BASE_URL}/tratamientos/${id}`,
       type: "website",
       images: treatment.imageUrl ? [{ url: treatment.imageUrl, width: 1200, height: 630, alt: treatment.name }] : [],
-      locale: "es_BO",
+      locale: "es_MX",
     },
   }
 }
@@ -138,7 +140,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
             {treatment.description && (
               <div
                 className="blog-content"
-                dangerouslySetInnerHTML={{ __html: treatment.description }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(treatment.description) }}
               />
             )}
 

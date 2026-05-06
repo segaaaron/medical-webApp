@@ -19,8 +19,7 @@ export async function GET(req: NextRequest) {
   }
   const query = filtered.toString()
   const path = query ? `/treatments?${query}` : "/treatments"
-  const session = await getSession()
-  const { data, error, status } = await backendFetch<unknown>(path, { auth: !!session })
+  const { data, error, status } = await backendFetch<unknown>(path)
   if (error) return proxyError(error, status)
 
   const rawList: unknown[] = Array.isArray(data)

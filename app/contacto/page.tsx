@@ -231,7 +231,7 @@ export default async function ContactoPage() {
                       src="https://www.google.com/maps?q=-17.386471,-66.152366&z=16&output=embed"
                       width="100%"
                       height="220"
-                      style={{ border: 0 }}
+                      style={{ border: 0, aspectRatio: "16/9", width: "100%", height: "auto" }}
                       allowFullScreen
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"

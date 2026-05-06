@@ -12,6 +12,23 @@ async function getSession() {
   return verifyToken(token)
 }
 
+async function hasValidImageMagicBytes(file: File): Promise<boolean> {
+  const buffer = await file.slice(0, 12).arrayBuffer()
+  const b = new Uint8Array(buffer)
+  // JPEG: FF D8 FF
+  if (b[0] === 0xFF && b[1] === 0xD8 && b[2] === 0xFF) return true
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) return true
+  // GIF: GIF8
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x38) return true
+  // WebP: RIFF....WEBP
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+      b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return true
+  // AVIF/HEIC: ftyp box at offset 4
+  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return true
+  return false
+}
+
 // POST /api/upload — proxies to POST /site-content/upload-image
 // Field name expected by backend: "image"
 export async function POST(req: NextRequest) {
@@ -40,6 +57,10 @@ export async function POST(req: NextRequest) {
     if (file.size > MAX_SIZE_BYTES) {
       logger.warn("upload.rejected", { detail: `file too large: ${file.size}` })
       return NextResponse.json({ error: "El archivo excede el tamaño máximo de 10 MB." }, { status: 413 })
+    }
+    if (!(await hasValidImageMagicBytes(file))) {
+      logger.warn("upload.rejected", { detail: "magic bytes mismatch" })
+      return NextResponse.json({ error: "El archivo no es una imagen válida." }, { status: 415 })
     }
   }
 

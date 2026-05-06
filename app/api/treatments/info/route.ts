@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -12,10 +13,8 @@ async function getSession() {
 
 // GET /api/treatments/info — public
 export async function GET() {
-  const session = await getSession()
   const { data, error, status } = await backendFetch<{ key: string; value: Record<string, unknown> }>(
-    "/site-content/treatmentsPage",
-    { auth: !!session }
+    "/site-content/treatmentsPage"
   )
   if (error) return NextResponse.json({ error }, { status: status >= 400 && status < 500 ? status : 502 })
 
@@ -27,6 +26,11 @@ export async function GET() {
 
 // PUT /api/treatments/info — protected (multipart: fields + optional image)
 export async function PUT(req: NextRequest) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 

@@ -20,7 +20,7 @@ export async function PUT(req: NextRequest) {
 
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
-  if (!token || !verifyToken(token)) {
+  if (!token || !(await verifyToken(token))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

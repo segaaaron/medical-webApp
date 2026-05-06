@@ -15,7 +15,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 export const metadata: Metadata = {
   title: "Blog de Medicina Estetica - Consejos, Tratamientos y Novedades",
   description:
-    "Articulos, consejos y novedades sobre medicina estetica, cuidado de la piel, botox, acido hialuronico y bienestar. Informacion confiable de la Dra. Yasmin Medrano Avila.",
+    "Articulos sobre medicina estetica, botox, acido hialuronico y cuidado de la piel. Informacion confiable de la Dra. Yasmin Medrano Avila.",
   keywords: [
     "blog medicina estetica",
     "consejos cuidado piel",

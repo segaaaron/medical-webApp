@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import Link from "next/link"
@@ -92,6 +92,10 @@ export function TreatmentForm({
       }
     },
   })
+
+  useEffect(() => {
+    return () => { if (imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview) }
+  }, [imagePreview])
 
   function handleImageSelect(file: File) {
     setImageFile(file)

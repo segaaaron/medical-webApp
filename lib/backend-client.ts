@@ -5,7 +5,6 @@
  * Auth strategy (in order):
  * 1. BACKEND_SERVICE_TOKEN env var (long-lived service JWT)
  * 2. User's accessToken from cookie (jn_access) with auto-refresh
- * 3. Auto-login using DASHBOARD_USER / DASHBOARD_PASSWORD (cached in memory)
  */
 
 import { cookies } from "next/headers"
@@ -30,35 +29,6 @@ const SESSION_CLEAR = {
 const BACKEND_URL = process.env.BACKEND_URL ?? ""
 const SERVICE_TOKEN = process.env.BACKEND_SERVICE_TOKEN ?? ""
 
-// ── In-memory token cache for auto-login ────────────────────────────────────
-let cachedToken: string | null = null
-let cachedTokenExp = 0 // timestamp in ms
-
-async function autoLogin(): Promise<string | null> {
-  const email = process.env.DASHBOARD_USER
-  const password = process.env.DASHBOARD_PASSWORD
-  if (!email || !password) return null
-
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      cache: "no-store",
-    })
-    if (!res.ok) return null
-    const { accessToken } = await res.json()
-    if (!accessToken) return null
-
-    // Cache for 12 minutes (access tokens typically last 15 min)
-    cachedToken = accessToken
-    cachedTokenExp = Date.now() + 12 * 60 * 1000
-    return accessToken
-  } catch {
-    return null
-  }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 type FetchOptions = {
@@ -78,7 +48,7 @@ async function resolveToken(): Promise<string | null> {
   // 2. User's cookie-based token
   try {
     const cookieStore = await cookies()
-    let accessToken = cookieStore.get(BACKEND_ACCESS_COOKIE)?.value
+    const accessToken = cookieStore.get(BACKEND_ACCESS_COOKIE)?.value
     if (accessToken) return accessToken
 
     const refreshToken = cookieStore.get(BACKEND_REFRESH_COOKIE)?.value
@@ -94,9 +64,7 @@ async function resolveToken(): Promise<string | null> {
     // cookies() may throw in certain server contexts (e.g. generateMetadata)
   }
 
-  // 3. Auto-login fallback (for public Server Components without user session)
-  if (cachedToken && Date.now() < cachedTokenExp) return cachedToken
-  return autoLogin()
+  return null
 }
 
 // Validate backend path to prevent SSRF — must start with / and contain no traversal
@@ -136,14 +104,11 @@ export async function backendFetch<T>(
       headers,
       body: fetchBody,
       cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
     })
 
     if (!res.ok) {
       if (res.status === 401 && auth) {
-        // Invalidate autoLogin cache
-        cachedToken = null
-        cachedTokenExp = 0
-
         try {
           const cookieStore = await cookies()
           const storedRefresh = cookieStore.get(BACKEND_REFRESH_COOKIE)?.value
@@ -161,6 +126,7 @@ export async function backendFetch<T>(
                 headers,
                 body: fetchBody,
                 cache: "no-store",
+                signal: AbortSignal.timeout(10_000),
               })
               if (retry.ok) {
                 if (retry.status === 204) return { data: null, error: null, status: 204 }
@@ -176,23 +142,6 @@ export async function backendFetch<T>(
             cookieStore.set(BACKEND_REFRESH_COOKIE, "", CLEAR_COOKIE_OPTIONS)
             cookieStore.set(COOKIE_NAME, "", SESSION_CLEAR)
             return { data: null, error: "SESSION_EXPIRED", status: 401 }
-          }
-
-          // No refresh token — try autoLogin fallback
-          const freshToken = await autoLogin()
-          if (freshToken) {
-            headers["Authorization"] = `Bearer ${freshToken}`
-            const retry = await fetch(`${BACKEND_URL}/api${path}`, {
-              method,
-              headers,
-              body: fetchBody,
-              cache: "no-store",
-            })
-            if (retry.ok) {
-              if (retry.status === 204) return { data: null, error: null, status: 204 }
-              const retryData: T = await retry.json()
-              return { data: retryData, error: null, status: retry.status }
-            }
           }
         } catch {
           // cookies() may throw outside request context (e.g. generateMetadata)

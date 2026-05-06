@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next"
 import { staticBlogPosts } from "@/lib/data/blog-posts"
 import { backendFetch, extractList } from "@/lib/backend-client"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 86400
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 

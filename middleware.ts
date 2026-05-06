@@ -1,47 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-
-const COOKIE_NAME = "jn_session"
-
-async function hmac(data: string, secret: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  )
-  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(data))
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-}
-
-async function verifyToken(token: string): Promise<boolean> {
-  try {
-    const secret = process.env.DASHBOARD_SECRET
-    if (!secret || secret.length < 32) return false
-
-    const dotIndex = token.indexOf(".")
-    if (dotIndex === -1) return false
-
-    const payloadB64 = token.slice(0, dotIndex)
-    const signature = token.slice(dotIndex + 1)
-
-    const payload = atob(payloadB64)
-    const expectedSig = await hmac(payload, secret)
-
-    if (expectedSig !== signature) return false
-
-    const [user, expStr] = payload.split(":")
-    const exp = Number(expStr)
-    if (!user || isNaN(exp) || Date.now() > exp) return false
-
-    return true
-  } catch {
-    return false
-  }
-}
+import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 
 function applySecurityHeaders(response: NextResponse, requestId?: string): NextResponse {
   if (requestId) response.headers.set("X-Request-Id", requestId)
@@ -50,6 +8,21 @@ function applySecurityHeaders(response: NextResponse, requestId?: string): NextR
   response.headers.set("X-XSS-Protection", "1; mode=block")
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+  response.headers.set(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      "frame-src 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join("; ")
+  )
   if (process.env.NODE_ENV === "production") {
     response.headers.set(
       "Strict-Transport-Security",
@@ -77,7 +50,12 @@ export async function middleware(request: NextRequest) {
     return applySecurityHeaders(NextResponse.redirect(loginUrl), requestId)
   }
 
-  const valid = await verifyToken(token)
+  let valid = false
+  try {
+    valid = (await verifyToken(token)) !== null
+  } catch {
+    valid = false
+  }
   if (!valid) {
     const loginUrl = new URL("/dashboard/login", request.url)
     loginUrl.searchParams.set("from", pathname)

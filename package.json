@@ -32,6 +32,7 @@
     "clsx": "^2.1.1",
     "formik": "^2.4.9",
     "framer-motion": "^12.35.2",
+    "isomorphic-dompurify": "^3.12.0",
     "lucide-react": "^0.577.0",
     "next": "^16.2.4",
     "pg": "^8.20.0",

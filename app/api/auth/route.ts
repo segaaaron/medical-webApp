@@ -25,6 +25,14 @@ interface RateLimitEntry {
 
 const rateLimitMap = new Map<string, RateLimitEntry>()
 
+// Evict expired entries every 5 minutes to prevent unbounded memory growth
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, entry] of rateLimitMap.entries()) {
+    if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) rateLimitMap.delete(ip)
+  }
+}, 5 * 60 * 1000)
+
 function isRateLimited(ip: string): boolean {
   const now = Date.now()
   const entry = rateLimitMap.get(ip)
@@ -80,6 +88,7 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
+      signal: AbortSignal.timeout(10_000),
     })
 
     if (!backendRes.ok) {

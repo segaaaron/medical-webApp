@@ -1,4 +1,5 @@
 "use client"
+import DOMPurify from "isomorphic-dompurify"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronDown } from "lucide-react"
@@ -63,7 +64,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
                     <p
                       className="px-6 pb-6 text-sm leading-relaxed"
                       style={{ color: "#36344d" }}
-                      dangerouslySetInnerHTML={{ __html: faq.answer }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(faq.answer) }}
                     />
                   </motion.div>
                 )}

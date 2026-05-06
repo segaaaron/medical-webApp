@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
-import { proxyError } from "@/lib/api-helpers"
+import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 // GET /api/promo-banner — public
 export async function GET() {
@@ -13,9 +13,14 @@ export async function GET() {
 
 // PUT /api/promo-banner — protected, multipart/form-data
 export async function PUT(req: NextRequest) {
+  const csrfErr = checkCsrfOrigin(req)
+  if (csrfErr) return csrfErr
+  const rateErr = checkWriteRateLimit(req)
+  if (rateErr) return rateErr
+
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
-  if (!token || !verifyToken(token)) {
+  if (!token || !(await verifyToken(token))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

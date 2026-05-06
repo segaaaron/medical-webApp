@@ -1,6 +1,6 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Trash2, ChevronDown, X } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 
@@ -45,14 +45,24 @@ export default function CitasDashboardPage() {
   const [error, setError] = useState("")
   const [filter, setFilter] = useState("")
   const [updating, setUpdating] = useState<string | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   async function load(status = filter) {
+    abortRef.current?.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
     setLoading(true)
     const url = status ? `/api/appointments?status=${status}` : "/api/appointments"
-    const res = await guardedFetch(url)
-    if (res.ok) setAppointments(await res.json())
-    else setError("No se pudo cargar las citas.")
-    setLoading(false)
+    try {
+      const res = await guardedFetch(url, { signal: controller.signal })
+      if (res.ok) setAppointments(await res.json())
+      else setError("No se pudo cargar las citas.")
+    } catch (e) {
+      if (e instanceof Error && e.name === "AbortError") return
+      setError("No se pudo cargar las citas.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { load() }, []) // eslint-disable-line react-hooks/exhaustive-deps

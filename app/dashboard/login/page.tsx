@@ -16,7 +16,8 @@ type LoginValues = Yup.InferType<typeof loginSchema>
 function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
-  const from = params.get("from") ?? "/dashboard"
+  const rawFrom = params.get("from") ?? "/dashboard"
+  const from = rawFrom.startsWith("/") && !rawFrom.startsWith("//") ? rawFrom : "/dashboard"
 
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)

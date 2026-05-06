@@ -1,3 +1,4 @@
+import DOMPurify from "isomorphic-dompurify"
 import { DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
@@ -86,7 +87,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.publishedAt,
       authors: [post.author],
       images: post.imageUrl ? [{ url: post.imageUrl, width: 1200, height: 630, alt: post.title }] : [],
-      locale: "es_BO",
+      locale: "es_MX",
     },
     twitter: {
       card: "summary_large_image",
@@ -210,7 +211,7 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Content */}
             <div
               className="blog-content"
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
             />
           </div>
         </article>

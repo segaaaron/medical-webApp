@@ -1,3 +1,4 @@
+import DOMPurify from "isomorphic-dompurify"
 import { clsx } from "clsx"
 import type { SectionHeaderProps } from "@/types"
 
@@ -27,7 +28,7 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
             "text-lg max-w-2xl mx-auto leading-relaxed",
             light ? "text-[#d5dfff]" : "text-[#36344d]"
           )}
-          dangerouslySetInnerHTML={{ __html: subtitle }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(subtitle) }}
         />
       )}
     </div>

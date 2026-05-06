@@ -27,8 +27,7 @@ export async function GET(req: NextRequest) {
   }
   const query = filtered.toString()
   const path = query ? `/blog?${query}` : "/blog"
-  const session = await getSession()
-  const { data, error } = await backendFetch<unknown>(path, { auth: !!session })
+  const { data, error } = await backendFetch<unknown>(path)
 
   if (error) {
     logger.warn("backend.unavailable", { endpoint: "/api/blog", detail: error })

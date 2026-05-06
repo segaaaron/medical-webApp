@@ -59,7 +59,12 @@ export function checkCsrfOrigin(req: NextRequest): NextResponse | null {
   }
 
   // If no allowed origins are configured, skip the check (avoid hard lockout)
-  if (allowedOrigins.length === 0) return null
+  if (allowedOrigins.length === 0) {
+    if (process.env.NODE_ENV === "production") {
+      console.warn("[SECURITY] CSRF check disabled — NEXT_PUBLIC_SITE_URL not set in production")
+    }
+    return null
+  }
 
   const source = origin ?? (referer ? new URL(referer).origin : null)
   if (!source || !allowedOrigins.includes(source)) {
@@ -80,6 +85,14 @@ interface RateLimitEntry {
 }
 
 const writeRateLimitMap = new Map<string, RateLimitEntry>()
+
+// Evict expired entries every 5 minutes to prevent unbounded memory growth
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, entry] of writeRateLimitMap.entries()) {
+    if (now - entry.windowStart > WRITE_RATE_LIMIT_WINDOW_MS) writeRateLimitMap.delete(ip)
+  }
+}, 5 * 60 * 1000)
 
 /**
  * Rate limits write operations (POST/PUT/DELETE) by IP.

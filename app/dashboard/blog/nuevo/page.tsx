@@ -1,7 +1,7 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useFormik } from "formik"
 import * as Yup from "yup"
@@ -30,6 +30,10 @@ export default function NuevoBlogPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState("")
 
+  useEffect(() => {
+    return () => { if (imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview) }
+  }, [imagePreview])
+
   const formik = useFormik<BlogValues>({
     initialValues: { title: "", excerpt: "", content: "", published: false },
     validationSchema: blogSchema,
@@ -40,7 +44,7 @@ export default function NuevoBlogPage() {
         fd.append("excerpt", values.excerpt)
         fd.append("content", values.content)
         fd.append("published", String(values.published))
-        fd.append("image", imageFile ?? "")
+        if (imageFile) fd.append("image", imageFile)
 
         const res = await guardedFetch("/api/blog", {
           method: "POST",
