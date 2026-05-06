@@ -19,8 +19,14 @@ export interface HeroLayoutProps {
 
 export function HeroLayout({ tagline, doctorName, specialty, description, ctas, stats }: HeroLayoutProps) {
   const prefersReduced = useReducedMotion()
-  const nameWords = doctorName.split(" ")
-  const titleDuration = prefersReduced ? 0 : 0.7 + nameWords.length * 0.1
+  const nameChars = doctorName.split("")
+  const charCount = nameChars.length
+  const center = (charCount - 1) / 2
+  // Last char animates at: delay 0.15 + (charCount-1)*0.028 + duration 0.55
+  const titleDuration = prefersReduced ? 0 : 0.15 + (charCount - 1) * 0.028 + 0.55
+  const specialtyWords = specialty.split(" ")
+  // Subtitle ends at: titleDuration + (words-1)*0.07 + duration 0.6
+  const subtitleDuration = prefersReduced ? 0 : titleDuration + (specialtyWords.length - 1) * 0.07 + 0.6
 
   const { scrollY } = useScroll()
   const videoY = useTransform(scrollY, [0, 600], ["0%", "30%"])
@@ -65,38 +71,66 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           {tagline}
         </motion.p>
 
-        {/* Doctor name — word slide-up */}
-        <h1 className="font-bold text-4xl md:text-6xl lg:text-7xl mb-4 leading-tight">
-          {nameWords.map((word, i) => (
-            <span key={word + i} style={{ overflow: "hidden", display: "inline-block", marginRight: "0.25em" }}>
+        {/* Doctor name — letter assembly from sides */}
+        <h1
+          className="font-bold text-4xl md:text-6xl lg:text-7xl mb-4 leading-tight"
+          aria-label={doctorName}
+          style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "baseline" }}
+        >
+          {nameChars.map((char, i) => {
+            if (char === " ") {
+              return <span key={i} aria-hidden="true" style={{ display: "inline-block", width: "0.3em" }} />
+            }
+            const dist = i - center
+            // letters far from center travel further; max ~600px
+            const xStart = dist < 0
+              ? Math.max(-600, dist * 48)
+              : Math.min(600, dist * 48)
+            return (
               <motion.span
+                key={i}
+                aria-hidden="true"
                 style={{ display: "inline-block" }}
-                initial={prefersReduced ? false : { y: "100%" }}
-                animate={{ y: 0 }}
-                transition={{ duration: 0.7, delay: 0.2 + i * 0.1, ease: EASE_OUT_EXPO }}
+                initial={prefersReduced ? false : { x: xStart, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{
+                  duration: 0.55,
+                  delay: 0.15 + i * 0.028,
+                  ease: EASE_OUT_EXPO,
+                }}
+              >
+                {char}
+              </motion.span>
+            )
+          })}
+        </h1>
+
+        {/* Specialty subtitle — word-by-word slide up, after title */}
+        <p
+          className="italic font-light text-3xl md:text-4xl lg:text-5xl mb-6"
+          style={{ color: "#fce4ec", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 0.25em" }}
+          aria-label={specialty}
+        >
+          {specialty.split(" ").map((word, i) => (
+            <span key={i} style={{ overflow: "hidden", display: "inline-block" }}>
+              <motion.span
+                aria-hidden="true"
+                style={{ display: "inline-block" }}
+                initial={prefersReduced ? false : { y: "110%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, delay: titleDuration + i * 0.07, ease: EASE_OUT_EXPO }}
               >
                 {word}
               </motion.span>
             </span>
           ))}
-        </h1>
-
-        {/* Specialty subtitle */}
-        <motion.p
-          initial={prefersReduced ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: titleDuration, ease: EASE_OUT_EXPO }}
-          className="italic font-light text-3xl md:text-4xl lg:text-5xl mb-6"
-          style={{ color: "#fce4ec" }}
-        >
-          {specialty}
-        </motion.p>
+        </p>
 
         {/* Gold divider */}
         <motion.div
           initial={prefersReduced ? false : { opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.6, delay: titleDuration + 0.1, ease: EASE_OUT_EXPO }}
+          transition={{ duration: 0.6, delay: subtitleDuration + 0.05, ease: EASE_OUT_EXPO }}
           className="w-24 h-0.5 mx-auto mb-8 origin-center"
           style={{ backgroundColor: VINTAGE_GOLD }}
         />
@@ -105,7 +139,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         <motion.p
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: titleDuration + 0.2 }}
+          transition={{ duration: 0.8, delay: subtitleDuration + 0.2 }}
           className="text-lg md:text-2xl mb-10 max-w-3xl mx-auto font-light leading-relaxed"
           style={{ color: "#fce4ec" }}
         >
@@ -116,7 +150,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         <motion.div
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: titleDuration + 0.4 }}
+          transition={{ duration: 0.8, delay: subtitleDuration + 0.45 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
           {ctas.map((cta) => (
@@ -130,7 +164,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         <motion.div
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: titleDuration + 0.7 }}
+          transition={{ duration: 1, delay: subtitleDuration + 0.75 }}
           className="mt-16 flex flex-col md:flex-row gap-8 justify-center items-center"
         >
           {stats.map((stat, i) => (
@@ -138,7 +172,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
               key={stat.label}
               initial={prefersReduced ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: titleDuration + 0.7 + i * 0.1, ease: EASE_OUT_EXPO }}
+              transition={{ duration: 0.6, delay: subtitleDuration + 0.75 + i * 0.1, ease: EASE_OUT_EXPO }}
             >
               <StatCard value={stat.value} label={stat.label} light />
             </motion.div>

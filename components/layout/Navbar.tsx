@@ -3,6 +3,7 @@ import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { Menu, X, Phone } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
 import type { NavLink } from "@/types"
 import { WHATSAPP_URL } from "@/lib/constants"
 
@@ -24,13 +25,14 @@ export function Navbar({ links }: NavbarProps) {
       <div className="container-xl flex items-center justify-between h-16 md:h-20">
         {/* Logo */}
         <a href="/" className="flex items-center shrink-0">
-          <span className="text-white font-bold text-lg md:text-xl tracking-tight leading-tight">
-            Dra. Yasmin Medrano Avila
-            <br />
-            <span className="text-xs md:text-sm font-normal italic" style={{ color: "#e8a0b4" }}>
-              Medicina Estética Avanzada
-            </span>
-          </span>
+          <Image
+            src="/images/logo_ym_transparent.png"
+            alt="Dra. Yasmin Medrano Avila — Medicina Estética"
+            width={130}
+            height={80}
+            className="object-contain"
+            priority
+          />
         </a>
 
         {/* Desktop nav */}
