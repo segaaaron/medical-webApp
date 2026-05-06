@@ -10,7 +10,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 
 // ─── Sections ─────────────────────────────────────────────────────────────────
-import { HeroSectionBackUp } from "@/components/sections/HeroSection"
+import { HeroSectionFallback } from "@/components/sections/HeroSection"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
 import { ServiceSection, TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import { PresetsSection } from "@/components/sections/PresetsSection"
@@ -128,8 +128,8 @@ export default async function HomePage() {
       <PromoBanner data={promoData} />
       <Navbar links={homeData.navLinks} />
       <main>
-        { homeServiceData.id === null ? 
-        <HeroSectionBackUp
+        { homeServiceData.id === null ?
+        <HeroSectionFallback
           stats={homeData.heroStats}
           ctas={homeData.heroCTAs}
           tagline={homeData.branding.heroTagline}

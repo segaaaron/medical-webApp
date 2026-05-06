@@ -1,9 +1,10 @@
 "use client"
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { Badge } from "../ui/Badge"
+import { TiltCard } from "@/components/ui/TiltCard"
 import { WHATSAPP_TREATMENT_URL, WHATSAPP_URL } from "@/lib/constants"
 
 export interface Treatment {
@@ -43,6 +44,7 @@ function resolveTagColor(tag: string): string {
 
 
 export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
+  const prefersReduced = useReducedMotion()
   if (treatments.length === 0) return null
 
   // Group by category
@@ -59,7 +61,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
     <section className="py-20 px-6" style={{ backgroundColor: "#1a0510" }}>
       <div className="container-xl">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={prefersReduced ? false : { opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
@@ -76,7 +78,7 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
           <div key={category} className="mb-14">
               { !isHome ? (
             <motion.h3
-              initial={{ opacity: 0, x: -20 }}
+              initial={prefersReduced ? false : { opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
@@ -89,14 +91,19 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {currentTreatmentData.map((treatment, i) => (
-                <motion.div
+                <TiltCard
                   key={treatment.id}
+                  glowColor="#8f3452"
+                  intensity={5}
+                  className="rounded-2xl"
+                >
+                <motion.div
                   id={`treatment-${treatment.id}`}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={prefersReduced ? false : { opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.07 }}
-                  className={`rounded-2xl overflow-hidden flex flex-row hover:scale-[1.02] transition-transform${isHome ? " cursor-pointer" : ""}`}
+                  className={`rounded-2xl overflow-hidden flex flex-row${isHome ? " cursor-pointer" : ""}`}
                   style={{ backgroundColor: "#3a0f20" }}
                   {...(isHome && {
                     onClick: () => { window.location.href = `/tratamientos#treatment-${treatment.id}` }
@@ -167,13 +174,14 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
                     </div>
                   </div>
                 </motion.div>
+                </TiltCard>
               ))}
             </div>
           </div>
         ))}
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReduced ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}

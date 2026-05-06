@@ -20,9 +20,17 @@ body {
   --meteorite: #e8a0b4;
   --meteorite-light: #fce4ec;
 
+  /* Vintage palette */
+  --vintage-cream: #F5F0E8;
+  --vintage-cream-dark: #EDE8DC;
+  --vintage-gold: #B8973B;
+  --vintage-gold-light: #D4B483;
+  --vintage-gold-dark: #9A7C2E;
+  --vintage-parchment: #FAF6EE;
+
   --success: #4a9e82;
-  --warning: #c9a96e;
-  --warning-dark: #a8894e;
+  --warning: #B8973B;
+  --warning-dark: #9A7C2E;
   --danger: #e05a7a;
   --danger-dark: #b03558;
 
@@ -31,6 +39,16 @@ body {
   --gray-border: #e0d5d8;
   --gray-light: #faf5f7;
   --dark: #1d1e20;
+
+  /* Animation tokens */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+  --duration-enter: 700ms;
+  --duration-exit: 400ms;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -69,7 +87,7 @@ body {
   --color-foreground: var(--foreground);
   --font-sans: var(--font-roboto), Roboto, sans-serif;
   --font-mono: ui-monospace, monospace;
-  --font-heading: var(--font-roboto), Roboto, sans-serif;
+  --font-heading: var(--font-playfair), "Playfair Display", Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -118,7 +136,7 @@ body {
 }
 
 html {
-  scroll-behavior: smooth;
+  /* scroll-behavior handled by Lenis — native smooth scroll removed to avoid conflict */
 }
 
 .bg-primary { background-color: var(--primary); }
@@ -177,6 +195,92 @@ html {
 
 .gradient-hero {
   background: linear-gradient(135deg, var(--primary-darkest) 0%, var(--primary-darker) 50%, #7a2a4a 100%);
+}
+
+/* Vintage utilities */
+.bg-vintage-cream { background-color: var(--vintage-cream); }
+.bg-vintage-parchment { background-color: var(--vintage-parchment); }
+.bg-vintage-cream-dark { background-color: var(--vintage-cream-dark); }
+.text-vintage-gold { color: var(--vintage-gold); }
+.text-vintage-gold-light { color: var(--vintage-gold-light); }
+.border-vintage-gold { border-color: var(--vintage-gold); }
+
+/* Heading font utility */
+.font-heading { font-family: var(--font-heading); }
+
+/* Premium section backgrounds */
+.section-vintage { background-color: var(--vintage-parchment); color: var(--primary-darkest); }
+.section-cream { background-color: var(--vintage-cream); }
+
+/* Gradient vintage */
+.gradient-vintage {
+  background: linear-gradient(135deg, var(--primary-darkest) 0%, var(--primary-darker) 40%, #7a2a4a 70%, #4a2010 100%);
+}
+
+/* Gold accent line */
+.accent-line {
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: var(--vintage-gold);
+}
+.accent-line-center { margin: 0 auto; }
+
+/* Smooth cursor pointer on all interactive elements */
+button, a, [role="button"] { cursor: pointer; }
+
+/* Restore system cursor on form elements when CustomCursor is active */
+@media (hover: hover) and (pointer: fine) {
+  input, textarea, select { cursor: auto; }
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="search"],
+  input[type="url"],
+  input[type="password"],
+  textarea { cursor: text; }
+}
+
+/* On touch devices, always show pointer cursor (CustomCursor only activates on desktop) */
+@media (hover: none) {
+  button, a, [role="button"] { cursor: pointer; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* cursor handled by CustomCursor component — native cursor hidden via JS */
+}
+
+/* Global heading styles with Playfair */
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
+}
+
+/* Treatment description cards use compact sans headings (dark bg, small size) */
+.treatment-desc-full h1,
+.treatment-desc-full h2,
+.treatment-desc-full h3 {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Lenis smooth scroll */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
 .dark {
