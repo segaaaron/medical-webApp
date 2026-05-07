@@ -18,10 +18,12 @@ export function Navbar({ links }: NavbarProps) {
   const isHome = pathname === "/"
 
   useEffect(() => {
+    // Reset scroll state on page change
+    setScrolled(window.scrollY > 56)
     const onScroll = () => setScrolled(window.scrollY > 56)
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
-  }, [])
+  }, [pathname])
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/"
@@ -30,7 +32,7 @@ export function Navbar({ links }: NavbarProps) {
 
   return (
     <>
-    <div style={{ height: "70px" }} aria-hidden="true" />
+    <div style={{ height: "70px", backgroundColor: isHome ? "transparent" : "rgba(58,15,32,1)" }} aria-hidden="true" />
     <nav
       className="w-full fixed top-0 left-0 right-0 z-50"
       style={{
@@ -38,7 +40,8 @@ export function Navbar({ links }: NavbarProps) {
         backdropFilter: scrolled || !isHome ? "blur(14px)" : "none",
         WebkitBackdropFilter: scrolled || !isHome ? "blur(14px)" : "none",
         boxShadow: "none",
-        transition: "background-color 0.45s, box-shadow 0.45s, backdrop-filter 0.45s",
+        paddingBottom: scrolled ? "4px" : "0",
+        transition: "padding 0.45s",
       }}
     >
       <div className="container-xl flex items-center justify-between" style={{ height: "70px" }}>

@@ -22,10 +22,22 @@ interface TreatmentsGridProps {
   isHome: boolean
 }
 
-const FALLBACK_IMAGE = "/images/treatment-placeholder.svg"
+const CARD_GRADIENTS = [
+  "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)",
+  "linear-gradient(155deg, oklch(30% 0.06 55) 0%, oklch(16% 0.04 48) 100%)",
+  "linear-gradient(155deg, oklch(23% 0.04 46) 0%, oklch(13% 0.02 42) 100%)",
+  "linear-gradient(155deg, oklch(28% 0.05 52) 0%, oklch(15% 0.03 46) 100%)",
+  "linear-gradient(155deg, oklch(32% 0.06 58) 0%, oklch(18% 0.04 50) 100%)",
+  "linear-gradient(155deg, oklch(25% 0.04 48) 0%, oklch(13% 0.02 43) 100%)",
+]
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+}
+
+function toSentenceCase(str: string): string {
+  const lower = str.toLowerCase()
+  return lower.charAt(0).toUpperCase() + lower.slice(1)
 }
 
 function VerticalTreatmentCard({
@@ -40,7 +52,9 @@ function VerticalTreatmentCard({
   prefersReduced: boolean | null
 }) {
   const [hovered, setHovered] = useState(false)
-  const hasImage = !!treatment.imageUrl
+  const [imgFailed, setImgFailed] = useState(false)
+  const hasImage = !!treatment.imageUrl && !imgFailed
+  const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length]
   const plainDesc = treatment.description ? stripHtml(treatment.description) : ""
 
   return (
@@ -56,9 +70,6 @@ function VerticalTreatmentCard({
           aspectRatio: "3/4",
           overflow: "hidden",
           cursor: isHome ? "pointer" : "default",
-          background: hasImage
-            ? undefined
-            : "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)",
         }}
         onClick={() => {
           if (isHome) window.location.href = `/tratamientos#treatment-${treatment.id}`
@@ -66,22 +77,27 @@ function VerticalTreatmentCard({
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {/* Background image */}
-        {hasImage && (
-          <img
-            src={treatment.imageUrl!}
-            alt={`${treatment.name} - Dra. Yasmin Medrano Avila`}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            loading="lazy"
-            decoding="async"
-            onError={(e) => {
-              const img = e.currentTarget
-              if (img.src !== window.location.origin + FALLBACK_IMAGE) {
-                img.src = FALLBACK_IMAGE
-              }
-            }}
-          />
-        )}
+        {/* Background layer — scales on hover */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: hasImage ? undefined : gradient,
+            transform: hovered ? "scale(1.07)" : "scale(1)",
+            transition: "transform 0.75s cubic-bezier(0.25,0.46,0.45,0.94)",
+          }}
+        >
+          {hasImage && (
+            <img
+              src={treatment.imageUrl!}
+              alt={`${treatment.name} - Dra. Yasmin Medrano Avila`}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              loading="lazy"
+              decoding="async"
+              onError={() => setImgFailed(true)}
+            />
+          )}
+        </div>
 
         {/* Gradient overlay */}
         <div
@@ -120,12 +136,13 @@ function VerticalTreatmentCard({
             style={{
               fontFamily: "var(--font-heading)",
               fontSize: "clamp(17px, 1.5vw, 22px)",
+              fontWeight: 500,
               color: "white",
               marginBottom: "10px",
-              lineHeight: 1.25,
+              lineHeight: 1.22,
             }}
           >
-            {treatment.name}
+            {toSentenceCase(treatment.name)}
           </h4>
 
           {/* Description — revealed on hover */}

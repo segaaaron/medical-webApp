@@ -146,6 +146,7 @@ body {
 body {
   margin: 0;
   padding: 0;
+  background-color: #3a0f20;
 }
 
 body::after {
@@ -251,23 +252,15 @@ html {
 .accent-line-center { margin: 0 auto; }
 
 /* Smooth cursor pointer on all interactive elements */
-button, a, [role="button"] { cursor: pointer; }
-
-/* Restore system cursor on form elements when CustomCursor is active */
+/* Desktop: CustomCursor handles all cursor visuals — hide native cursor */
 @media (hover: hover) and (pointer: fine) {
-  input, textarea, select { cursor: auto; }
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  input[type="search"],
-  input[type="url"],
-  input[type="password"],
-  textarea { cursor: text; }
+  html.custom-cursor-active *, html.custom-cursor-active *::before, html.custom-cursor-active *::after { cursor: none !important; }
 }
 
-/* On touch devices, always show pointer cursor (CustomCursor only activates on desktop) */
+/* Touch devices: restore normal cursors (CustomCursor not active) */
 @media (hover: none) {
   button, a, [role="button"] { cursor: pointer; }
+  input, textarea, select { cursor: auto; }
 }
 
 @media (hover: hover) and (pointer: fine) {

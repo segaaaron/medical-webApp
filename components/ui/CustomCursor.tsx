@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import { motion, useSpring, useReducedMotion } from "framer-motion"
 
 const VINTAGE_GOLD = "#B8973B"
@@ -59,6 +60,8 @@ function SyringeSVG({ color, scale }: { color: string; scale: number }) {
 
 export function CustomCursor() {
   const prefersReduced = useReducedMotion()
+  const pathname = usePathname()
+  const isDashboard = pathname?.startsWith("/dashboard")
   const [visible, setVisible] = useState(false)
   const [clicked, setClicked] = useState(false)
   const [hovering, setHovering] = useState(false)
@@ -71,8 +74,11 @@ export function CustomCursor() {
   const ringY = useSpring(0, { stiffness: 150, damping: 20 })
 
   useEffect(() => {
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return
-    if (prefersReduced) return
+    if (isDashboard || prefersReduced || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      document.documentElement.classList.remove("custom-cursor-active")
+      return
+    }
+    document.documentElement.classList.add("custom-cursor-active")
 
     const onMove = (e: MouseEvent) => {
       syringeX.set(e.clientX)
@@ -103,8 +109,6 @@ export function CustomCursor() {
     document.addEventListener("mouseover",  onHoverIn)
     document.addEventListener("mouseout",   onHoverOut)
 
-    document.documentElement.style.cursor = "none"
-
     return () => {
       document.removeEventListener("mousemove",  onMove)
       document.removeEventListener("mouseleave", onLeave)
@@ -113,11 +117,11 @@ export function CustomCursor() {
       document.removeEventListener("mouseup",    onUp)
       document.removeEventListener("mouseover",  onHoverIn)
       document.removeEventListener("mouseout",   onHoverOut)
-      document.documentElement.style.cursor = ""
+      document.documentElement.classList.remove("custom-cursor-active")
     }
-  }, [syringeX, syringeY, ringX, ringY, prefersReduced])
+  }, [syringeX, syringeY, ringX, ringY, prefersReduced, isDashboard])
 
-  if (prefersReduced) return null
+  if (prefersReduced || isDashboard) return null
 
   const color = hovering ? ROSE : VINTAGE_GOLD
   // Needle tip is at pixel (4,4) inside the 52×52 SVG
