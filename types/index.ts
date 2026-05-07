@@ -45,7 +45,7 @@ export interface HeroStat {
 export interface HeroCTA {
   label: string
   href: string
-  variant: "primary" | "warning"
+  variant: "primary" | "warning" | "ghost" | "secondary" | "outline"
 }
 
 // ─── Value Proposition ────────────────────────────────────────────────────────

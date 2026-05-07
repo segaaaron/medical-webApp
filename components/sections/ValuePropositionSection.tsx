@@ -13,7 +13,7 @@ interface ValuePropositionSectionProps {
 export function ValuePropositionSection({ features }: ValuePropositionSectionProps) {
   const prefersReduced = useReducedMotion()
   return (
-    <section className="py-20 px-6" style={{ backgroundColor: "#faf5f7" }}>
+    <section className="py-20 px-6" style={{ backgroundColor: "var(--prem-bg)" }}>
       <div className="container-xl">
         <motion.div
           initial={prefersReduced ? false : { opacity: 0, y: 30 }}
@@ -37,18 +37,19 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 1 * 0.1 }}
-                    className="bg-white rounded-xl p-8 shadow-sm text-center"
+                    className="rounded-xl p-8 shadow-sm text-center"
+                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "#fde8ef" }}
+                      style={{ backgroundColor: "var(--prem-bg)" }}
                     >
-                      <Eye size={26} style={{ color: "#b5496a" }} />
+                      <Eye size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
-                    <h3 className="font-bold text-lg mb-3" style={{ color: "#3a0f20" }}>
+                    <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
                       {features?.card1Title ?? ""}
                     </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "#7a6570" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card1Description ?? ""}
                     </p>
                   </motion.div>
@@ -63,18 +64,19 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 2 * 0.1 }}
-                    className="bg-white rounded-xl p-8 shadow-sm text-center"
+                    className="rounded-xl p-8 shadow-sm text-center"
+                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "#fde8ef" }}
+                      style={{ backgroundColor: "var(--prem-bg)" }}
                     >
-                      <Zap size={26} style={{ color: "#b5496a" }} />
+                      <Zap size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
-                    <h3 className="font-bold text-lg mb-3" style={{ color: "#3a0f20" }}>
+                    <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
                       {features?.card2Title ?? ""}
                     </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "#7a6570" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card2Description ?? ""}
                     </p>
                   </motion.div>
@@ -89,18 +91,19 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 3 * 0.1 }}
-                    className="bg-white rounded-xl p-8 shadow-sm text-center"
+                    className="rounded-xl p-8 shadow-sm text-center"
+                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "#fde8ef" }}
+                      style={{ backgroundColor: "var(--prem-bg)" }}
                     >
-                      <Award size={26} style={{ color: "#b5496a" }} />
+                      <Award size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
-                    <h3 className="font-bold text-lg mb-3" style={{ color: "#3a0f20" }}>
+                    <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
                       {features?.card3Title ?? ""}
                     </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "#7a6570" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card3Description ?? ""}
                     </p>
                   </motion.div>
@@ -115,18 +118,19 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 4 * 0.1 }}
-                    className="bg-white rounded-xl p-8 shadow-sm text-center"
+                    className="rounded-xl p-8 shadow-sm text-center"
+                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "#fde8ef" }}
+                      style={{ backgroundColor: "var(--prem-bg)" }}
                     >
-                      <TrendingUp size={26} style={{ color: "#b5496a" }} />
+                      <TrendingUp size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
-                    <h3 className="font-bold text-lg mb-3" style={{ color: "#3a0f20" }}>
+                    <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
                       {features?.card4Title ?? ""}
                     </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "#7a6570" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card4Description ?? ""}
                     </p>
                   </motion.div>

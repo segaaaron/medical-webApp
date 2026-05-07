@@ -52,11 +52,11 @@ function AnimatedStat({ value, label, prefersReduced }: AnimatedStatProps) {
     <div ref={ref} className="text-center">
       <p
         className="text-3xl font-bold mb-1"
-        style={{ color: "#B8973B", fontFamily: "var(--font-heading)" }}
+        style={{ color: "var(--prem-accent)", fontFamily: "var(--font-heading)" }}
       >
         {prefersReduced ? value : display}
       </p>
-      <p className="text-sm" style={{ color: "#e8a0b4" }}>{label}</p>
+      <p className="text-sm" style={{ color: "var(--prem-dark-muted)" }}>{label}</p>
     </div>
   )
 }
@@ -65,7 +65,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
   const prefersReduced = useReducedMotion()
 
   return (
-    <section id="about" className="py-20 px-6" style={{ backgroundColor: "#3a0f20" }}>
+    <section id="about" className="py-20 px-6" style={{ backgroundColor: "var(--prem-dark)" }}>
       <div className="container-xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Image */}
@@ -78,7 +78,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
           >
             <div className="relative">
               <div className="w-72 h-96 md:w-80 md:h-[480px] rounded-2xl overflow-hidden"
-                style={{ backgroundColor: "#5c1f35" }}
+                style={{ backgroundColor: "var(--prem-dark-surf)" }}
               >
                 <img
                   src={bio?.doctorImage || "/images/DraMedrano.jpeg"}
@@ -88,11 +88,11 @@ export function AboutSection({ bio }: AboutSectionProps) {
               </div>
               <div
                 className="absolute -bottom-4 -right-4 w-72 h-96 md:w-80 md:h-[480px] rounded-2xl border-2 -z-10"
-                style={{ borderColor: "#b5496a" }}
+                style={{ borderColor: "var(--prem-accent)" }}
               />
               <div
                 className="absolute -top-4 -left-4 rounded-xl px-4 py-3 shadow-lg"
-                style={{ backgroundColor: "#c9a96e" }}
+                style={{ backgroundColor: "var(--prem-accent)" }}
               >
                 <p className="text-xs font-black uppercase tracking-wide text-white">{bio?.badgeDoctor ?? ""}+</p>
                 <p className="text-xs font-medium text-white">{bio?.experienceInfoLabel ?? ""}</p>
@@ -107,21 +107,21 @@ export function AboutSection({ bio }: AboutSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <p className="text-sm uppercase tracking-[0.3em] font-semibold mb-4" style={{ color: "#e8a0b4" }}>
+            <p className="text-sm uppercase tracking-[0.3em] font-semibold mb-4" style={{ color: "var(--prem-dark-muted)" }}>
               {bio?.doctorTitle ?? ""}
             </p>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white leading-tight">
               {bio?.doctorName ?? ""}
             </h2>
-            <div className="w-16 h-1 mb-8" style={{ backgroundColor: "#c9a96e" }} />
+            <div className="w-16 h-1 mb-8" style={{ backgroundColor: "var(--prem-accent)" }} />
 
-            <div className="flex flex-col gap-5 text-base leading-relaxed" style={{ color: "#fce4ec" }}>
+            <div className="flex flex-col gap-5 text-base leading-relaxed" style={{ color: "var(--prem-dark-fg)" }}>
               <p className="whitespace-pre-line leading-loose"> {bio?.doctorDescription ?? ""} </p>
             </div>
 
             <div
               className="grid grid-cols-3 gap-6 mt-10 pt-10 border-t"
-              style={{ borderColor: "#5c1f35" }}
+              style={{ borderColor: "var(--prem-dark-border)" }}
             >
               {[
                 { value: bio?.experienceInfoValue ?? "", label: bio?.experienceInfoLabel ?? "" },

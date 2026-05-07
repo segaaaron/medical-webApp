@@ -32,7 +32,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
   const videoY = useTransform(scrollY, [0, 600], ["0%", "30%"])
 
   return (
-    <section className="gradient-hero relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+    <section className="gradient-hero relative flex flex-col items-center justify-center overflow-hidden" style={{ minHeight: "100svh", marginTop: "-70px", paddingTop: "70px" }}>
       {/* Video background with parallax */}
       <motion.div
         className="absolute inset-0 z-0 overflow-hidden"
@@ -49,17 +49,17 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         </video>
       </motion.div>
 
-      {/* Overlay 1 — dark fade */}
-      <div className="absolute inset-0 z-[1]" style={{ background: "linear-gradient(to top, rgba(26,5,16,0.95) 0%, rgba(58,15,32,0.75) 40%, rgba(58,15,32,0.35) 100%)" }} />
-      {/* Overlay 2 — vignette */}
-      <div className="absolute inset-0 z-[2]" style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(26,5,16,0.6) 100%)" }} />
+      {/* Light leaks */}
+      <div className="hero__leak1 z-[1]" aria-hidden="true" />
+      <div className="hero__leak2 z-[1]" aria-hidden="true" />
 
-      {/* Decorative orbs */}
-      <div className="absolute top-20 right-10 w-72 h-72 rounded-full blur-3xl opacity-20 z-[3]" style={{ background: "#5c1f35" }} />
-      <div className="absolute bottom-20 left-10 w-48 h-48 rounded-full blur-3xl opacity-20 z-[3]" style={{ background: "#3a0f20" }} />
+      {/* Overlay 1 — dark fade */}
+      <div className="absolute inset-0 z-[2]" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.2) 100%)" }} />
+      {/* Overlay 2 — vignette */}
+      <div className="absolute inset-0 z-[3]" style={{ background: "radial-gradient(ellipse 85% 85% at 50% 50%, transparent 25%, rgba(0,0,0,0.72) 100%)" }} />
 
       {/* Content */}
-      <div className="relative z-10 text-center text-white px-6 max-w-5xl mx-auto py-20">
+      <div className="relative z-[10] text-center text-white px-6 max-w-5xl mx-auto py-20">
         {/* Eyebrow tagline */}
         <motion.p
           initial={prefersReduced ? false : { opacity: 0, y: -20 }}
@@ -153,8 +153,13 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           transition={{ duration: 0.8, delay: subtitleDuration + 0.45 }}
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          {ctas.map((cta) => (
-            <LinkButton key={cta.label} href={cta.href} variant={cta.variant} className="px-10 py-4">
+          {ctas.map((cta, idx) => (
+            <LinkButton
+              key={cta.label}
+              href={cta.href}
+              variant={idx === 0 ? "primary" : "warning"}
+              className="px-10 py-4"
+            >
               {cta.label}
             </LinkButton>
           ))}
@@ -182,7 +187,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
 
       {/* Scroll indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[10] flex flex-col items-center gap-2"
         animate={prefersReduced ? {} : { y: [0, 8, 0] }}
         transition={{ duration: 1.5, repeat: Infinity }}
       >

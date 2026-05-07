@@ -14,7 +14,7 @@ export const heroStats: HeroStat[] = [
 
 export const heroCTAs: HeroCTA[] = [
   { label: "VER TRATAMIENTOS", href: "#tratamientos", variant: "primary" },
-  { label: "AGENDA TU CITA", href: "https://wa.me/59178751894", variant: "warning" },
+  { label: "AGENDA TU CITA", href: "https://wa.me/59178751894", variant: "ghost" },
 ]
 
 // iconName is a string — safe to pass across the server→client boundary

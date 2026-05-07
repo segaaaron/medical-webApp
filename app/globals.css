@@ -12,6 +12,19 @@ body {
 
 :root {
 
+  /* Premium design system tokens */
+  --prem-accent:      oklch(58% 0.16 35);
+  --prem-bg:          oklch(97% 0.012 80);
+  --prem-surface:     oklch(99% 0.005 80);
+  --prem-fg:          oklch(20% 0.02 60);
+  --prem-muted:       oklch(48% 0.015 60);
+  --prem-border:      oklch(89% 0.012 80);
+  --prem-dark:        oklch(13% 0.01 55);
+  --prem-dark-surf:   oklch(17% 0.01 55);
+  --prem-dark-fg:     oklch(93% 0.008 75);
+  --prem-dark-muted:  oklch(55% 0.01 65);
+  --prem-dark-border: oklch(24% 0.01 55);
+
   --primary: oklch(0.205 0 0);
   --primary-dark: #8f3452;
   --primary-darker: #5c1f35;
@@ -85,9 +98,9 @@ body {
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-roboto), Roboto, sans-serif;
-  --font-mono: ui-monospace, monospace;
-  --font-heading: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, var(--font-roboto), sans-serif;
+  --font-mono: ui-monospace, 'IBM Plex Mono', Menlo, monospace;
+  --font-heading: 'Iowan Old Style', 'Charter', var(--font-playfair), Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -133,6 +146,17 @@ body {
 body {
   margin: 0;
   padding: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9000;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
 }
 
 html {
@@ -264,12 +288,79 @@ h1, h2, h3, h4 {
   letter-spacing: 0;
 }
 
+/* Hero cinematic keyframes */
+@keyframes bgDrift { 0%{background-position:20% 30%} 25%{background-position:60% 55%} 50%{background-position:80% 25%} 75%{background-position:35% 70%} 100%{background-position:20% 30%} }
+@keyframes lightLeak1 { 0%,100%{opacity:0;transform:translate(-120%,-20%) rotate(-22deg) scaleX(.6)} 20%{opacity:0} 35%{opacity:.09;transform:translate(30%,10%) rotate(-22deg) scaleX(1)} 55%{opacity:.13;transform:translate(80%,30%) rotate(-22deg) scaleX(1.2)} 75%{opacity:.04;transform:translate(140%,50%) rotate(-22deg) scaleX(.8)} 85%{opacity:0} }
+@keyframes lightLeak2 { 0%,40%,100%{opacity:0} 55%{opacity:.07;transform:translate(60%,30%) rotate(18deg) scaleX(1)} 70%{opacity:.11;transform:translate(-10%,10%) rotate(18deg) scaleX(1.3)} 85%{opacity:.03;transform:translate(-80%,-20%) rotate(18deg) scaleX(.7)} 92%{opacity:0} }
+@keyframes vignettePulse { 0%,100%{opacity:.55} 50%{opacity:.42} }
+@keyframes pulse-line { 0%,100%{transform:scaleY(1);opacity:.45} 50%{transform:scaleY(1.3);opacity:1} }
+
+/* Hero light leak utility classes */
+.hero__leak1 {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent 0%, oklch(72% 0.14 50 / 0) 30%, oklch(72% 0.14 50) 50%, oklch(72% 0.14 50 / 0) 70%, transparent 100%);
+  width: 30%;
+  height: 200%;
+  top: -50%;
+  filter: blur(40px);
+  animation: lightLeak1 18s ease-in-out 2s infinite;
+}
+.hero__leak2 {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent 0%, oklch(68% 0.12 36 / 0) 30%, oklch(68% 0.12 36) 50%, oklch(68% 0.12 36 / 0) 70%, transparent 100%);
+  width: 25%;
+  height: 200%;
+  top: -50%;
+  filter: blur(52px);
+  animation: lightLeak2 24s ease-in-out 8s infinite;
+}
+
+/* Premium eyebrow label */
+.prem-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--prem-accent);
+  margin-bottom: 16px;
+}
+
+/* Premium section ornament divider */
+.prem-divider {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin: clamp(40px, 6vw, 64px) 0;
+}
+.prem-divider::before,
+.prem-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--prem-border);
+}
+.prem-divider--dark::before,
+.prem-divider--dark::after {
+  background: var(--prem-dark-border);
+}
+.prem-divider span {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  color: var(--prem-accent);
+  letter-spacing: 6px;
+}
+
 /* Reduce motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  .hero__leak1, .hero__leak2 { animation: none; opacity: 0; }
 }
 
 /* Lenis smooth scroll */

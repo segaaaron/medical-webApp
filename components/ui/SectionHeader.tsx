@@ -14,7 +14,7 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
   const EyebrowLine = shouldReduceMotion ? (
     <div
       className="w-10 h-px mx-auto mb-3 origin-center"
-      style={{ backgroundColor: "#B8973B" }}
+      style={{ backgroundColor: "var(--prem-accent)" }}
     />
   ) : (
     <motion.div
@@ -23,7 +23,7 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
       viewport={{ once: true }}
       transition={revealTransition}
       className="w-10 h-px mx-auto mb-3 origin-center"
-      style={{ backgroundColor: "#B8973B" }}
+      style={{ backgroundColor: "var(--prem-accent)" }}
     />
   )
 
@@ -36,7 +36,7 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
       viewport={{ once: true }}
       transition={revealTransition}
       className="w-20 h-1 mx-auto my-8 origin-center"
-      style={{ backgroundColor: "#B8973B" }}
+      style={{ backgroundColor: "var(--prem-accent)" }}
     />
   )
 
@@ -45,9 +45,16 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
       {EyebrowLine}
       <p
         className={clsx(
-          "text-sm uppercase tracking-[0.3em] font-semibold mb-4",
-          light ? "text-[#e8a0b4]" : "text-[#8f3452]"
+          "mb-4",
+          light ? "" : ""
         )}
+        style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "10.5px",
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: light ? "var(--prem-dark-muted)" : "var(--prem-accent)",
+        }}
       >
         {eyebrow}
       </p>
