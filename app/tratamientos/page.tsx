@@ -92,7 +92,7 @@ export default async function TratamientosPage() {
   const [c, footerData, backendResult, infoResult] = await Promise.all([
     readContent(),
     getFooterData(),
-    backendFetch<BackendTreatment[]>("/treatments?active=true"),
+    backendFetch<BackendTreatment[]>("/treatments"),
     backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage"),
   ])
 
