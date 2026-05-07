@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { motion, useInView, useReducedMotion } from "framer-motion"
+import { motion, useInView, useReducedMotion, useMotionValue, useSpring, animate } from "framer-motion"
 import { BioDoc } from "@/app/nosotros/page"
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 
 interface AboutSectionProps {
   bio: BioDoc | null
@@ -46,6 +47,8 @@ interface CredProps {
 
 function Cred({ value, label, prefersReduced }: CredProps) {
   const { ref, display } = useCountUp(value, 2000, prefersReduced ?? false)
+  const inView = useInView(ref as React.RefObject<Element>, { once: true, margin: "-60px" })
+
   return (
     <div
       ref={ref}
@@ -58,11 +61,27 @@ function Cred({ value, label, prefersReduced }: CredProps) {
           fontWeight: 500,
           color: "oklch(58% 0.16 35)",
           lineHeight: 1,
-          marginBottom: "6px",
+          marginBottom: "4px",
         }}
       >
         {prefersReduced ? value : display}
       </p>
+      {/* Animated underline that grows after counter finishes */}
+      {!prefersReduced && (
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={inView ? { scaleX: 1 } : { scaleX: 0 }}
+          transition={{ duration: 0.4, delay: 2.1, ease: [0.16, 1, 0.3, 1] }}
+          style={{
+            height: "1.5px",
+            backgroundColor: "#B8973B",
+            transformOrigin: "left",
+            marginBottom: "6px",
+            width: "32px",
+            opacity: 0.7,
+          }}
+        />
+      )}
       <p style={{ fontSize: "13px", color: "oklch(48% 0.015 60)", lineHeight: 1.45 }}>
         {label}
       </p>
@@ -84,7 +103,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
       id="about"
       style={{
         padding: "clamp(64px, 10vw, 120px) 0",
-        background: "oklch(97% 0.012 80)",
+        background: "#F8F0E3",
       }}
     >
       <div className="container-xl" style={{ paddingLeft: "clamp(20px, 5vw, 64px)", paddingRight: "clamp(20px, 5vw, 64px)", maxWidth: "1200px", margin: "0 auto" }}>
@@ -108,7 +127,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
             <p
               style={{
                 fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace",
-                fontSize: "10.5px",
+                fontSize: "12px",
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
                 color: "oklch(58% 0.16 35)",
@@ -159,6 +178,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
 
             {/* Credentials grid */}
             <div
+              className="about-credentials-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -210,16 +230,18 @@ export function AboutSection({ bio }: AboutSectionProps) {
               />
 
               {/* Image */}
-              <img
+              <ImageWithFallback
                 src={bio?.doctorImage || "/images/DraMedrano.jpeg"}
                 alt="Dra. Yasmin Medrano Avila — Médica especialista en medicina estética"
+                variant="light"
                 style={{
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  objectPosition: "top",
                   display: "block",
                 }}
+                objectPosition="top"
+                loading="eager"
               />
 
               {/* Corner accent — bottom right */}
@@ -236,13 +258,27 @@ export function AboutSection({ bio }: AboutSectionProps) {
                   pointerEvents: "none",
                 }}
               />
+              {/* Corner accent — top left */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-1px",
+                  left: "-1px",
+                  width: "48px",
+                  height: "48px",
+                  borderTop: "2px solid rgba(184,151,59,0.5)",
+                  borderLeft: "2px solid rgba(184,151,59,0.5)",
+                  zIndex: 2,
+                  pointerEvents: "none",
+                }}
+              />
             </div>
 
             {/* Caption */}
             <p
               style={{
                 fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace",
-                fontSize: "10.5px",
+                fontSize: "12px",
                 letterSpacing: "0.13em",
                 color: "oklch(48% 0.015 60)",
                 textAlign: "right",
@@ -264,6 +300,9 @@ export function AboutSection({ bio }: AboutSectionProps) {
             order: -1;
             max-width: 340px;
             margin: 0 auto;
+          }
+          .about-credentials-grid {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>

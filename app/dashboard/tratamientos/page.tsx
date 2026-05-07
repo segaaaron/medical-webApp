@@ -55,7 +55,7 @@ export default function TratamientosDashboardPage() {
         <Link
           href="/dashboard/tratamientos/nuevo"
           className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: "#b5496a" }}
+          style={{ backgroundColor: "#B8973B" }}
         >
           <Plus size={15} />
           Nuevo tratamiento
@@ -115,7 +115,7 @@ export default function TratamientosDashboardPage() {
                 <div className="flex gap-2 shrink-0">
                   <Link
                     href={`/dashboard/tratamientos/${t.id}/editar`}
-                    className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#b5496a] hover:text-[#b5496a] transition-colors"
+                    className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#B8973B] hover:text-[#B8973B] transition-colors"
                     aria-label="Editar"
                   >
                     <Pencil size={14} />

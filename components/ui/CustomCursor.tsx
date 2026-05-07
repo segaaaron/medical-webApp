@@ -65,6 +65,11 @@ export function CustomCursor() {
   const [visible, setVisible] = useState(false)
   const [clicked, setClicked] = useState(false)
   const [hovering, setHovering] = useState(false)
+  const [isPointerDevice, setIsPointerDevice] = useState(false)
+
+  useEffect(() => {
+    setIsPointerDevice(window.matchMedia("(hover: hover) and (pointer: fine)").matches)
+  }, [])
 
   // Syringe snaps sharply to cursor (tip precision)
   const syringeX = useSpring(0, { stiffness: 800, damping: 50 })
@@ -121,7 +126,7 @@ export function CustomCursor() {
     }
   }, [syringeX, syringeY, ringX, ringY, prefersReduced, isDashboard])
 
-  if (prefersReduced || isDashboard) return null
+  if (prefersReduced || isDashboard || !isPointerDevice) return null
 
   const color = hovering ? ROSE : VINTAGE_GOLD
   // Needle tip is at pixel (4,4) inside the 52×52 SVG

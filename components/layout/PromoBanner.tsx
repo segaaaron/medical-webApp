@@ -49,15 +49,15 @@ export function PromoBanner({ data }: PromoBannerProps) {
         aria-labelledby={TITLE_ID}
         tabIndex={-1}
         className="relative w-full max-w-lg mx-4 rounded-2xl text-center py-10 px-8 shadow-2xl outline-none"
-        style={{ backgroundColor: "#fde8ef", color: "#3a0f20" }}
+        style={{ backgroundColor: "#FDF8F2", color: "#3a0f20", border: "1px solid rgba(184,151,59,0.2)" }}
       >
         <div className="text-4xl mb-3" aria-hidden="true">💉</div>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#b5496a" }}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#B8973B" }}>
           {data.label}
         </p>
         <p id={TITLE_ID} className="text-lg md:text-xl font-bold leading-snug mb-1" style={{ color: "#3a0f20" }}>
           {data.title}{data.highlightedText && (
-            <> <span style={{ color: "#b5496a" }}>{data.highlightedText}</span></>
+            <> <span style={{ color: "#B8973B" }}>{data.highlightedText}</span></>
           )}
         </p>
         <p className="text-sm leading-relaxed mb-6" style={{ color: "#5c1f35" }}>
@@ -79,7 +79,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
           <button
             onClick={dismiss}
             className="px-6 py-3 rounded-full font-bold text-sm uppercase tracking-wide border-2 transition-opacity hover:opacity-60"
-            style={{ borderColor: "#b5496a", color: "#b5496a" }}
+            style={{ borderColor: "#B8973B", color: "#B8973B" }}
           >
             {data.dismissLabel}
           </button>
@@ -88,7 +88,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
           onClick={dismiss}
           className="absolute top-4 right-4 hover:opacity-60 transition-opacity"
           aria-label="Cerrar"
-          style={{ color: "#b5496a" }}
+          style={{ color: "#B8973B" }}
         >
           <X size={24} />
         </button>

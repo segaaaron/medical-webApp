@@ -51,8 +51,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           aria-current={active ? "page" : undefined}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
           style={{
-            backgroundColor: active ? "#2f1c6a" : "transparent",
-            color: active ? "white" : "#8c85ff",
+            backgroundColor: active ? "rgba(184,151,59,0.12)" : "transparent",
+            color: active ? "#B8973B" : "rgba(255,255,255,0.55)",
+            borderLeft: active ? "2px solid #B8973B" : "2px solid transparent",
           }}
         >
           <Icon size={16} aria-hidden="true" />
@@ -63,20 +64,20 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   }
 
   return (
-    <aside className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: "#1F1346" }} aria-label="Panel de administración">
+    <aside className="h-screen flex flex-col overflow-hidden" style={{ backgroundColor: "#1a0510" }} aria-label="Panel de administración">
       {/* Brand */}
-      <div className="px-6 py-5 border-b" style={{ borderColor: "#2f1c6a" }}>
+      <div className="px-6 py-5 border-b" style={{ borderColor: "rgba(184,151,59,0.15)" }}>
         <div className="flex items-center gap-2 mb-1">
-          <LayoutDashboard size={18} style={{ color: "#8c85ff" }} aria-hidden="true" />
-          <span className="text-white font-bold text-sm">Dashboard</span>
+          <LayoutDashboard size={18} style={{ color: "#B8973B" }} aria-hidden="true" />
+          <span className="font-bold text-sm" style={{ color: "#B8973B" }}>Dashboard</span>
         </div>
-        <p className="text-xs" style={{ color: "#727586" }}>Dra. Yasmin Medrano Avila</p>
+        <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Dra. Yasmin Medrano Avila</p>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto flex flex-col gap-5" aria-label="Navegación del dashboard">
         <div role="group" aria-labelledby="nav-content-label">
-          <p id="nav-content-label" className="text-xs uppercase tracking-widest px-3 mb-3" style={{ color: "#727586" }}>
+          <p id="nav-content-label" className="text-xs uppercase tracking-widest px-3 mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>
             Contenido Web
           </p>
           <ul className="flex flex-col gap-1" role="list">
@@ -85,7 +86,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         </div>
 
         <div role="group" aria-labelledby="nav-services-label">
-          <p id="nav-services-label" className="text-xs uppercase tracking-widest px-3 mb-3" style={{ color: "#727586" }}>
+          <p id="nav-services-label" className="text-xs uppercase tracking-widest px-3 mb-3" style={{ color: "rgba(255,255,255,0.35)" }}>
             Servicios
           </p>
           <ul className="flex flex-col gap-1" role="list">
@@ -94,8 +95,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               <div
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"
                 style={{
-                  color: pathname.startsWith("/dashboard/tratamientos") ? "white" : "#8c85ff",
-                  backgroundColor: pathname.startsWith("/dashboard/tratamientos") ? "#2f1c6a" : "transparent",
+                  color: pathname.startsWith("/dashboard/tratamientos") ? "#B8973B" : "rgba(255,255,255,0.55)",
+                  backgroundColor: pathname.startsWith("/dashboard/tratamientos") ? "rgba(184,151,59,0.12)" : "transparent",
+                  borderLeft: pathname.startsWith("/dashboard/tratamientos") ? "2px solid #B8973B" : "2px solid transparent",
                 }}
               >
                 <Stethoscope size={16} aria-hidden="true" />
@@ -113,8 +115,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                         aria-current={active ? "page" : undefined}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
                         style={{
-                          backgroundColor: active ? "#3d2480" : "transparent",
-                          color: active ? "white" : "#a09be0",
+                          backgroundColor: active ? "rgba(184,151,59,0.1)" : "transparent",
+                          color: active ? "#B8973B" : "rgba(255,255,255,0.45)",
+                          borderLeft: active ? "2px solid rgba(184,151,59,0.6)" : "2px solid transparent",
                         }}
                       >
                         <Icon size={13} aria-hidden="true" />
@@ -132,14 +135,16 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 pb-4 flex flex-col gap-1 border-t pt-4" style={{ borderColor: "#2f1c6a" }}>
+      <div className="px-3 pb-4 flex flex-col gap-1 border-t pt-4" style={{ borderColor: "rgba(184,151,59,0.15)" }}>
         <a
           href="/"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Ver sitio web público (abre en nueva pestaña)"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-purple-900"
-          style={{ color: "#8c85ff" }}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors"
+          style={{ color: "rgba(255,255,255,0.45)" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#B8973B" }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.45)" }}
         >
           <ExternalLink size={15} aria-hidden="true" />
           Ver Home
@@ -147,7 +152,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         <button
           onClick={handleLogout}
           aria-label="Cerrar sesión"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-purple-900 w-full text-left"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors w-full text-left"
           style={{ color: "#fc5185" }}
         >
           <LogOut size={15} aria-hidden="true" />

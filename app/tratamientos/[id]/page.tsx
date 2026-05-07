@@ -4,11 +4,13 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
 import { DEFAULTS, readContent } from "@/lib/store/content-store"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { WHATSAPP_TREATMENT_URL } from "@/lib/constants"
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
+import { EcgHero } from "@/components/ui/EcgHero"
 
 export const dynamic = "force-dynamic"
 
@@ -87,54 +89,87 @@ export default async function TratamientoDetallePage({ params }: Props) {
   return (
     <>
       <Navbar links={navLinks} />
-      <main style={{ backgroundColor: "#fff", minHeight: "100vh" }}>
+      <main style={{ backgroundColor: "#F8F0E3", minHeight: "100vh" }}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
 
-        {/* Back link */}
-        <div className="max-w-3xl mx-auto px-6 pt-6">
-          <Link
-            href="/tratamientos"
-            className="inline-flex items-center gap-2 text-xs font-medium hover:opacity-80 transition-opacity"
-            style={{ color: "#b5496a" }}
-          >
-            <ArrowLeft size={14} /> Volver a tratamientos
-          </Link>
-        </div>
+        {/* Dark hero band */}
+        <div
+          className="relative overflow-hidden"
+          style={{ backgroundColor: "#3a0f20", paddingTop: "80px", paddingBottom: "64px" }}
+        >
+          {/* Hero image as blurred bg when available */}
+          {treatment.imageUrl && (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: `url("${encodeURI(treatment.imageUrl).replace(/#/g, "%23")}")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center top",
+                filter: "blur(24px) brightness(0.25) saturate(0.6)",
+                transform: "scale(1.1)",
+              }}
+              aria-hidden="true"
+            />
+          )}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(58,15,32,0.7) 0%, rgba(58,15,32,0.95) 100%)" }} aria-hidden="true" />
 
-        <article className="py-8 px-6">
-          <div className="max-w-3xl mx-auto">
+          {/* ECG animated line */}
+          <EcgHero />
+
+          <div className="relative z-10 max-w-3xl mx-auto px-6">
+            {/* Back link */}
+            <Link
+              href="/tratamientos"
+              className="inline-flex items-center gap-2 text-xs font-medium hover:opacity-80 transition-opacity mb-6 py-2 -my-2"
+              style={{ color: "rgba(184,151,59,0.8)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.1em" }}
+            >
+              <ArrowLeft size={14} aria-hidden="true" /> VOLVER A TRATAMIENTOS
+            </Link>
 
             {/* Tag */}
             {treatment.tag && (
               <span
                 className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-4 tracking-wide"
-                style={{ backgroundColor: "#fce4ec", color: "#b5496a" }}
+                style={{ backgroundColor: "rgba(184,151,59,0.15)", color: "#B8973B", border: "1px solid rgba(184,151,59,0.3)" }}
               >
                 {treatment.tag}
               </span>
             )}
 
             {/* Title */}
-            <h1 className="text-2xl md:text-4xl font-bold leading-tight mb-4" style={{ color: "#3a0f20" }}>
+            <h1
+              className="text-3xl md:text-5xl font-light leading-tight text-white"
+              style={{ fontFamily: "var(--font-display, Georgia, serif)", letterSpacing: "-0.02em" }}
+            >
               {treatment.name}
             </h1>
 
-            <div className="pb-6 mb-6 border-b" style={{ borderColor: "#f0e0e6" }} />
+            {/* Gold divider */}
+            <div className="mt-6 w-16 h-px" style={{ backgroundColor: "#B8973B" }} />
+          </div>
+        </div>
+
+        {/* Article content */}
+        <article className="py-12 px-6">
+          <div className="max-w-3xl mx-auto">
 
             {/* Cover image */}
-            {treatment.imageUrl && (
-              <div className="w-full rounded-2xl overflow-hidden mb-8" style={{ backgroundColor: "#f5edf0" }}>
-                <img
-                  src={treatment.imageUrl}
-                  alt={treatment.name}
-                  className="w-full h-auto block"
-                  loading="eager"
-                />
-              </div>
-            )}
+            <div
+              className="w-full rounded-2xl overflow-hidden mb-10 shadow-lg"
+              style={{ minHeight: "240px", backgroundColor: "#F8F0E3" }}
+            >
+              <ImageWithFallback
+                src={treatment.imageUrl ?? ""}
+                alt={treatment.name}
+                variant="light"
+                className="w-full h-auto block"
+                style={{ width: "100%", display: "block", minHeight: "240px", objectFit: "cover" }}
+                loading="eager"
+              />
+            </div>
 
             {/* Description */}
             {treatment.description && (
@@ -146,14 +181,20 @@ export default async function TratamientoDetallePage({ params }: Props) {
 
             {/* CTA bottom */}
             <div
-              className="mt-10 p-6 rounded-2xl text-center"
-              style={{ backgroundColor: "#fdf0f4", border: "1px solid #f0dde4" }}
+              className="mt-12 p-8 rounded-2xl text-center"
+              style={{ backgroundColor: "#3a0f20", border: "1px solid rgba(184,151,59,0.25)" }}
             >
-              <p className="text-sm font-medium mb-2" style={{ color: "#3a0f20" }}>
+              <p
+                className="text-xs uppercase tracking-[0.2em] mb-3"
+                style={{ color: "#B8973B", fontFamily: "var(--font-mono, ui-monospace, monospace)" }}
+              >
+                Consulta de Valoración
+              </p>
+              <p className="text-base font-medium mb-4 text-white">
                 ¿Te interesa este tratamiento? Agenda una consulta gratuita con la Dra. Yasmin Medrano Avila.
               </p>
               {treatment.price > 0 && (
-                <p className="text-2xl font-bold mb-4" style={{ color: "#b5496a" }}>
+                <p className="text-3xl font-bold mb-6" style={{ color: "#B8973B" }}>
                   Bs. {treatment.price.toLocaleString("es-BO")}
                 </p>
               )}
@@ -161,11 +202,15 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 href={WHATSAPP_TREATMENT_URL(treatment.name)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-white transition-all hover:brightness-110"
-                style={{ background: "linear-gradient(135deg, #b5496a, #8f3452)" }}
+                className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-sm font-bold text-white transition-all hover:brightness-110"
+                style={{ backgroundColor: "#B8973B" }}
               >
-                {treatment.price > 0 ? "Agendar consulta gratuita" : "Consultar precio por WhatsApp"}
+                <MessageCircle size={16} aria-hidden="true" />
+                {treatment.price > 0 ? "Agendar consulta gratuita" : "Consultar por WhatsApp"}
               </a>
+              <p className="text-xs mt-4" style={{ color: "rgba(255,255,255,0.35)" }}>
+                Sin compromiso · Atención personalizada garantizada
+              </p>
             </div>
           </div>
         </article>

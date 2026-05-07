@@ -13,7 +13,7 @@ interface ValuePropositionSectionProps {
 export function ValuePropositionSection({ features }: ValuePropositionSectionProps) {
   const prefersReduced = useReducedMotion()
   return (
-    <section className="py-20 px-6" style={{ backgroundColor: "var(--prem-bg)" }}>
+    <section className="py-20 px-6" style={{ backgroundColor: "#F8F0E3" }}>
       <div className="container-xl">
           <SectionHeader
             eyebrow={features?.chooseUs ?? ""}
@@ -31,11 +31,13 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 1 * 0.1 }}
                     className="rounded-xl p-8 shadow-sm text-center"
-                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
+                    style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.18)"; el.style.boxShadow = "none" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "var(--prem-bg)" }}
+                      style={{ backgroundColor: "#F8F0E3" }}
                     >
                       <Eye size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
@@ -58,11 +60,13 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 2 * 0.1 }}
                     className="rounded-xl p-8 shadow-sm text-center"
-                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
+                    style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.18)"; el.style.boxShadow = "none" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "var(--prem-bg)" }}
+                      style={{ backgroundColor: "#F8F0E3" }}
                     >
                       <Zap size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
@@ -85,11 +89,13 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 3 * 0.1 }}
                     className="rounded-xl p-8 shadow-sm text-center"
-                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
+                    style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.18)"; el.style.boxShadow = "none" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "var(--prem-bg)" }}
+                      style={{ backgroundColor: "#F8F0E3" }}
                     >
                       <Award size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
@@ -112,11 +118,13 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 4 * 0.1 }}
                     className="rounded-xl p-8 shadow-sm text-center"
-                    style={{ backgroundColor: "var(--prem-surface)", border: "1px solid var(--prem-border)" }}
+                    style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
+              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
+              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.18)"; el.style.boxShadow = "none" }}
                   >
                     <div
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "var(--prem-bg)" }}
+                      style={{ backgroundColor: "#F8F0E3" }}
                     >
                       <TrendingUp size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>

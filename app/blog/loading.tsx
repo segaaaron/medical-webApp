@@ -11,7 +11,7 @@ export default function BlogLoading() {
       </section>
 
       {/* Card grid skeleton */}
-      <section className="py-16 px-6" style={{ backgroundColor: "#faf5f7" }}>
+      <section className="py-16 px-6" style={{ backgroundColor: "#F8F0E3" }}>
         <div className="max-w-5xl mx-auto">
           <div className="h-6 w-48 rounded bg-gray-200 animate-pulse mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

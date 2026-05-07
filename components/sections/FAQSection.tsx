@@ -142,7 +142,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
       id="faq"
       style={{
         padding: "clamp(64px, 10vw, 100px) 24px",
-        background: "oklch(97% 0.012 80)",
+        background: "#F8F0E3",
       }}
     >
       <div style={{ maxWidth: "720px", margin: "0 auto" }}>

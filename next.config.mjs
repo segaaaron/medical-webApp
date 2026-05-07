@@ -18,6 +18,10 @@ const nextConfig = {
         port: "3000",
         pathname: "/api/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
 };

@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { WHATSAPP_TREATMENT_URL, WHATSAPP_URL } from "@/lib/constants"
 
 export interface Treatment {
@@ -21,7 +22,6 @@ interface TreatmentsGridProps {
   isHome: boolean
 }
 
-const FALLBACK_IMAGE = "/images/treatment-placeholder.svg"
 const GOLD = "#B8973B"
 
 const TAG_LABELS: Record<string, string> = {
@@ -34,14 +34,14 @@ const TAG_LABELS: Record<string, string> = {
 }
 
 const TAG_COLORS: Record<string, string> = {
-  POPULAR:       "oklch(58% 0.16 35)",   // terracota — reconocible, protagonismo
-  INNOVADOR:     "#0891B2",              // teal — moderno, fresco
-  RECOMENDADO:   "#16A34A",             // verde — confianza, positivo
-  DEFINITIVO:    "#B8973B",             // vintage gold — premium, autoridad
-  ESENCIAL:      "#D97706",             // ámbar — cálido, energía
-  ESPECIALIZADO: "#7C3AED",             // violeta — expertise, distinción
+  POPULAR:       "oklch(46% 0.17 35)",   // terracota oscuro — WCAG 4.5:1 vs blanco
+  INNOVADOR:     "#0771A0",              // teal oscuro — WCAG compliant
+  RECOMENDADO:   "#15803D",             // verde oscuro — WCAG compliant
+  DEFINITIVO:    "#8A6E27",             // gold oscuro — WCAG compliant
+  ESENCIAL:      "#B45309",             // ámbar oscuro — WCAG compliant
+  ESPECIALIZADO: "#6D28D9",             // violeta oscuro — WCAG compliant
 }
-const DEFAULT_TAG_COLOR = "oklch(58% 0.16 35)"
+const DEFAULT_TAG_COLOR = "oklch(46% 0.17 35)"
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
@@ -57,8 +57,7 @@ function PosterCard({
   isHome: boolean
 }) {
   const [hovered, setHovered] = useState(false)
-  const [imgFailed, setImgFailed] = useState(false)
-  const hasImage = !!treatment.imageUrl && !imgFailed
+  const hasImage = !!treatment.imageUrl
   const num = String(index + 1).padStart(2, "0")
   const plainDesc = treatment.description ? stripHtml(treatment.description) : ""
 
@@ -70,6 +69,7 @@ function PosterCard({
     cursor: "pointer",
     display: "block",
     textDecoration: "none",
+    touchAction: "manipulation",
     boxShadow: hovered
       ? `0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(184,151,59,0.4)`
       : "0 8px 32px rgba(0,0,0,0.35)",
@@ -85,18 +85,20 @@ function PosterCard({
           inset: 0,
           transform: hovered ? "scale(1.07)" : "scale(1)",
           transition: "transform 0.75s cubic-bezier(0.25,0.46,0.45,0.94)",
-          background: hasImage ? undefined : "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)",
         }}
       >
-        {hasImage && (
-          <img
+        {hasImage ? (
+          <ImageWithFallback
             src={treatment.imageUrl!}
             alt={`${treatment.name} — Dra. Yasmin Medrano Avila`}
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
+            variant="dark"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            objectPosition="center top"
             loading="lazy"
             decoding="async"
-            onError={() => setImgFailed(true)}
           />
+        ) : (
+          <div style={{ width: "100%", height: "100%", background: "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)" }} />
         )}
       </div>
 
@@ -109,9 +111,10 @@ function PosterCard({
         }}
       />
 
-      {/* Hover overlay "Ver más" — solo para tratamientos page */}
+      {/* Hover overlay "Ver más" — solo para tratamientos page, oculto en touch */}
       {!isHome && (
         <div
+          className="hover-overlay"
           style={{
             position: "absolute",
             inset: 0,
@@ -223,7 +226,7 @@ function PosterCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#000", background: GOLD, padding: "6px 12px", borderRadius: "2px", textDecoration: "none" }}
+                style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#000", background: GOLD, padding: "10px 16px", borderRadius: "2px", textDecoration: "none", display: "inline-flex", alignItems: "center", minHeight: "44px" }}
               >
                 Consultar
               </a>
@@ -283,16 +286,6 @@ export function TreatmentsGrid({ treatments, isHome }: TreatmentsGridProps) {
           light
         />
 
-        {!isHome && (
-          <motion.h3
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-xl font-bold mb-6 pb-2 border-b"
-            style={{ color: GOLD, borderColor: "#5c1f35" }}
-          />
-        )}
 
         <div
           style={{

@@ -1,8 +1,9 @@
 "use client"
 import { motion } from "framer-motion"
-import { CheckCircle, Play, FileText, Download } from "lucide-react"
+import { CheckCircle, Play, FileText, Download, Sparkles } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { WHATSAPP_URL } from "@/lib/constants"
 import type { CourseIncluded, CourseModule, CoursePricing, CourseItemIcon } from "@/types"
 
@@ -40,9 +41,9 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
   const eyebrow = info?.label || "Nuestros Servicios"
   const title = info?.title || "Tratamientos de Medicina Estética"
   const subtitle = info?.subtitle ||
-    "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:#c9a96e;font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
+    "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:#B8973B;font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
   const consultationTitle = info?.consultationTitle || "Lo Que Incluye Cada Consulta"
-  const sidebarBadge = info?.sidebarBadge || "✨ Consulta de Valoración GRATIS"
+  const sidebarBadge = info?.sidebarBadge || "Consulta de Valoración GRATIS"
   const doctorImage = info?.doctorImage || "/images/draMedrano2.jpeg"
   const ctaTitle = info?.ctaTitle || "Agenda tu Cita"
   const ctaSubtitle = info?.ctaSubtitle || "Consulta personalizada con la Dra. Yasmin"
@@ -84,7 +85,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
               {hasInfoItems
                 ? info!.consultationItems!.map((text) => (
                     <div key={text} className="flex items-center gap-3">
-                      <CheckCircle size={20} style={{ color: "#4a9e82" }} className="shrink-0" />
+                      <CheckCircle size={20} style={{ color: "oklch(52% 0.16 35)" }} className="shrink-0" />
                       <span className="text-sm" style={{ color: "#fce4ec" }}>{text}</span>
                     </div>
                   ))
@@ -92,7 +93,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                     const Icon = ICON_MAP[item.iconName]
                     return (
                       <div key={item.text} className="flex items-center gap-3">
-                        <Icon size={20} style={{ color: "#4a9e82" }} className="shrink-0" />
+                        <Icon size={20} style={{ color: "oklch(52% 0.16 35)" }} className="shrink-0" />
                         <span className="text-sm" style={{ color: "#fce4ec" }}>
                           {item.text}
                         </span>
@@ -102,14 +103,14 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
               }
             </div>
 
-            <div className="p-6 rounded-xl" style={{ backgroundColor: "#5c1f35" }}>
+            <div className="p-6 rounded-xl" style={{ backgroundColor: "#5c1f35", border: "1px solid rgba(184,151,59,0.25)" }}>
               <p className="text-sm uppercase tracking-widest mb-3" style={{ color: "#e8a0b4" }}>
                 Tratamientos Disponibles
               </p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {modules.map((mod) => (
                   <li key={mod.title} className="flex items-start gap-2 text-sm" style={{ color: "#fce4ec" }}>
-                    <span style={{ color: "#c9a96e" }}>›</span>
+                    <span style={{ color: "#B8973B" }}>›</span>
                     {mod.title}
                   </li>
                 ))}
@@ -130,21 +131,23 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
               style={{ backgroundColor: "#5c1f35" }}
             >
               <div
-                className="text-center py-3 text-sm font-bold uppercase tracking-wider"
-                style={{ backgroundColor: "#c9a96e", color: "white" }}
+                className="text-center py-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2"
+                style={{ backgroundColor: "#B8973B", color: "white" }}
               >
+                <Sparkles size={14} aria-hidden="true" />
                 {sidebarBadge}
               </div>
               <div className="p-8 text-center">
                 <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "#3a0f20" }}>
-                  <img
+                  <ImageWithFallback
                     src={doctorImage}
                     alt="Dra. Yasmin Medrano Avila - Agenda tu consulta de valoracion gratuita de medicina estetica"
-                    className="w-full h-full object-cover object-top"
+                    variant="dark"
+                    className="w-full h-full object-cover"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    objectPosition="top"
                     loading="lazy"
                     decoding="async"
-                    width={96}
-                    height={96}
                   />
                 </div>
                 <h4 className="text-2xl font-bold text-white mb-2">{ctaTitle}</h4>
@@ -152,7 +155,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                   {ctaSubtitle}
                 </p>
                 <div className="mb-2">
-                  <span className="text-3xl font-bold" style={{ color: "#c9a96e" }}>
+                  <span className="text-3xl font-bold" style={{ color: "#B8973B" }}>
                     {priceLabel}
                   </span>
                 </div>

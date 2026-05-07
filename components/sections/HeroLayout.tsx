@@ -75,32 +75,35 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         <h1
           className="font-bold text-4xl md:text-6xl lg:text-7xl mb-4 leading-tight"
           aria-label={doctorName}
-          style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "baseline" }}
+          style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "baseline", fontFamily: "var(--font-display)", fontWeight: 300, letterSpacing: "-0.02em", gap: "0 0.3em" }}
         >
-          {nameChars.map((char, i) => {
-            if (char === " ") {
-              return <span key={i} aria-hidden="true" style={{ display: "inline-block", width: "0.3em" }} />
-            }
-            const dist = i - center
-            // letters far from center travel further; max ~600px
-            const xStart = dist < 0
-              ? Math.max(-600, dist * 48)
-              : Math.min(600, dist * 48)
+          {doctorName.split(" ").map((word, wordIdx, words) => {
+            const charOffset = words.slice(0, wordIdx).reduce((acc, w) => acc + w.length + 1, 0)
             return (
-              <motion.span
-                key={i}
-                aria-hidden="true"
-                style={{ display: "inline-block" }}
-                initial={prefersReduced ? false : { x: xStart, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{
-                  duration: 0.55,
-                  delay: 0.15 + i * 0.028,
-                  ease: EASE_OUT_EXPO,
-                }}
-              >
-                {char}
-              </motion.span>
+              <span key={wordIdx} aria-hidden="true" style={{ display: "inline-flex", whiteSpace: "nowrap" }}>
+                {word.split("").map((char, charIdx) => {
+                  const i = charOffset + charIdx
+                  const dist = i - center
+                  const xStart = dist < 0
+                    ? Math.max(-600, dist * 48)
+                    : Math.min(600, dist * 48)
+                  return (
+                    <motion.span
+                      key={charIdx}
+                      style={{ display: "inline-block" }}
+                      initial={prefersReduced ? false : { x: xStart, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{
+                        duration: 0.55,
+                        delay: 0.15 + i * 0.028,
+                        ease: EASE_OUT_EXPO,
+                      }}
+                    >
+                      {char}
+                    </motion.span>
+                  )
+                })}
+              </span>
             )
           })}
         </h1>
@@ -189,7 +192,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
       <motion.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[10] flex flex-col items-center gap-2"
         animate={prefersReduced ? {} : { y: [0, 8, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
+        transition={{ duration: 1.5, repeat: 4, repeatType: "reverse" }}
       >
         <span className="text-xs uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Descubre más</span>
         <div className="w-px h-8" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)" }} />

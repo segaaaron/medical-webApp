@@ -36,12 +36,13 @@ export function Navbar({ links }: NavbarProps) {
     <nav
       className="w-full fixed top-0 left-0 right-0 z-50"
       style={{
-        backgroundColor: scrolled || !isHome ? "rgba(58,15,32,0.95)" : "transparent",
-        backdropFilter: scrolled || !isHome ? "blur(14px)" : "none",
-        WebkitBackdropFilter: scrolled || !isHome ? "blur(14px)" : "none",
-        boxShadow: "none",
+        backgroundColor: scrolled || !isHome ? "rgba(26,5,16,0.88)" : "transparent",
+        backdropFilter: scrolled || !isHome ? "blur(20px) saturate(160%)" : "none",
+        WebkitBackdropFilter: scrolled || !isHome ? "blur(20px) saturate(160%)" : "none",
+        borderBottom: scrolled ? "1px solid rgba(184,151,59,0.18)" : "1px solid transparent",
+        boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.25)" : "none",
         paddingBottom: scrolled ? "4px" : "0",
-        transition: "padding 0.45s",
+        transition: "background-color 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, padding 0.45s",
       }}
     >
       <div className="container-xl flex items-center justify-between" style={{ height: "70px" }}>

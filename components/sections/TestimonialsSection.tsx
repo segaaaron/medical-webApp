@@ -65,7 +65,7 @@ export function TestimonialsSection() {
           <SectionHeader
             eyebrow="Lo que dicen nuestras pacientes"
             title="Resultados que Hablan por Sí Solos"
-            subtitle={`Más de <span style="color:#c9a96e;font-weight:700;">5,000 pacientes satisfechas</span> avalan nuestro trabajo. La confianza de cada una es nuestra mayor motivación.`}
+            subtitle={`Más de <span style="color:#B8973B;font-weight:700;">5,000 pacientes satisfechas</span> avalan nuestro trabajo. La confianza de cada una es nuestra mayor motivación.`}
             light
           />
         </motion.div>

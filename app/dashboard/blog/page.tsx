@@ -84,7 +84,7 @@ export default function BlogDashboardPage() {
             href="/dashboard/blog/nuevo"
             aria-label="Crear nuevo articulo"
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "#b5496a" }}
+            style={{ backgroundColor: "#B8973B" }}
           >
             <Plus size={15} aria-hidden="true" />
             Nuevo articulo
@@ -134,7 +134,7 @@ export default function BlogDashboardPage() {
                 <Link
                   href={`/dashboard/blog/${p.id}/editar`}
                   aria-label={`Editar "${p.title}"`}
-                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#b5496a]/50 hover:text-[#b5496a] transition-colors"
+                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#B8973B]/50 hover:text-[#B8973B] transition-colors"
                 >
                   <Pencil size={14} aria-hidden="true" />
                 </Link>
