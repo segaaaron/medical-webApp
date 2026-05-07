@@ -144,11 +144,11 @@ export default async function HomePage() {
           stats={homeServiceData.heroStats} />
 
         }
-        <ValuePropositionSection features={aboutData.features} />
+        <AboutSection bio={aboutData.bio} />
         <ServiceSection included={homeData.courseIncluded} modules={liveModules} info={pageInfo} />
+        <ValuePropositionSection features={aboutData.features} />
         <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
-        <AboutSection bio={aboutData.bio} />
         {/* <TestimonialsSection /> */}
         <FAQSection faqs={homeData.faqs} />
       </main>

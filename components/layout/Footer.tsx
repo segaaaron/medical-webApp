@@ -30,7 +30,7 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
         style={{
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.24em",
-          color: "var(--prem-accent)",
+          color: "#B8973B",
           fontWeight: 600,
         }}
       >
@@ -42,9 +42,9 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
             <a
               href={link.href}
               className="text-sm transition-colors"
-              style={{ color: "oklch(42% 0.01 58)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(72% 0.01 68)" }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "oklch(42% 0.01 58)" }}
+              style={{ color: "rgba(255,255,255,0.65)" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff" }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.65)" }}
             >
               {link.label}
             </a>
@@ -66,12 +66,12 @@ export function Footer({ data }: { data: FooterData }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <h3 className="font-bold text-xl mb-1" style={{ color: "oklch(88% 0.01 72)" }}>{nameParts}</h3>
-            {nameRest && <h3 className="font-bold text-xl mb-2" style={{ color: "oklch(88% 0.01 72)" }}>{nameRest}</h3>}
+            <h3 className="font-bold text-xl mb-1" style={{ color: "#B8973B" }}>{nameParts}</h3>
+            {nameRest && <h3 className="font-bold text-xl mb-2" style={{ color: "#B8973B" }}>{nameRest}</h3>}
             <p className="text-sm italic mb-4" style={{ color: "var(--prem-dark-muted)" }}>
               {data.specialty}
             </p>
-            <p className="text-sm leading-relaxed mb-5" style={{ color: "oklch(42% 0.01 58)" }}>
+            <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
               {data.description}
             </p>
 
@@ -127,10 +127,10 @@ export function Footer({ data }: { data: FooterData }) {
       {/* Bottom bar */}
       <div className="border-t px-6 py-8" style={{ borderColor: "oklch(16% 0.01 52)" }}>
         <div className="container-xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "oklch(32% 0.01 55)" }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
             {data.copyrightText}
           </p>
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "oklch(32% 0.01 55)" }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
             {data.designedByText}
           </p>
         </div>

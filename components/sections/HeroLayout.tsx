@@ -191,8 +191,8 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         animate={prefersReduced ? {} : { y: [0, 8, 0] }}
         transition={{ duration: 1.5, repeat: Infinity }}
       >
-        <span className="text-xs uppercase tracking-widest" style={{ color: VINTAGE_GOLD }}>Descubre más</span>
-        <div className="w-px h-8" style={{ background: `linear-gradient(to bottom, ${VINTAGE_GOLD}, transparent)` }} />
+        <span className="text-xs uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Descubre más</span>
+        <div className="w-px h-8" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)" }} />
       </motion.div>
     </section>
   )

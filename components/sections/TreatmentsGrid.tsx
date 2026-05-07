@@ -1,10 +1,9 @@
 "use client"
-import { useState } from "react"
-import { motion, useReducedMotion } from "framer-motion"
+import { motion } from "framer-motion"
 import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
-import { TiltCard } from "@/components/ui/TiltCard"
+import { Badge } from "../ui/Badge"
 import { WHATSAPP_TREATMENT_URL, WHATSAPP_URL } from "@/lib/constants"
 
 export interface Treatment {
@@ -22,204 +21,28 @@ interface TreatmentsGridProps {
   isHome: boolean
 }
 
-const CARD_GRADIENTS = [
-  "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)",
-  "linear-gradient(155deg, oklch(30% 0.06 55) 0%, oklch(16% 0.04 48) 100%)",
-  "linear-gradient(155deg, oklch(23% 0.04 46) 0%, oklch(13% 0.02 42) 100%)",
-  "linear-gradient(155deg, oklch(28% 0.05 52) 0%, oklch(15% 0.03 46) 100%)",
-  "linear-gradient(155deg, oklch(32% 0.06 58) 0%, oklch(18% 0.04 50) 100%)",
-  "linear-gradient(155deg, oklch(25% 0.04 48) 0%, oklch(13% 0.02 43) 100%)",
-]
+const FALLBACK_IMAGE = "/images/treatment-placeholder.svg"
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
 }
 
-function toSentenceCase(str: string): string {
-  const lower = str.toLowerCase()
-  return lower.charAt(0).toUpperCase() + lower.slice(1)
+const TAG_COLORS: Record<string, string> = {
+  POPULAR:       "#b5496a",
+  INNOVADOR:     "#8f3452",
+  RECOMENDADO:   "#4a9e82",
+  DEFINITIVO:    "#5c1f35",
+  ESENCIAL:      "#c9a96e",
+  ESPECIALIZADO: "#7a2a4a",
 }
+const DEFAULT_TAG_COLOR = "#a0336e"
 
-function VerticalTreatmentCard({
-  treatment,
-  index,
-  isHome,
-  prefersReduced,
-}: {
-  treatment: Treatment
-  index: number
-  isHome: boolean
-  prefersReduced: boolean | null
-}) {
-  const [hovered, setHovered] = useState(false)
-  const [imgFailed, setImgFailed] = useState(false)
-  const hasImage = !!treatment.imageUrl && !imgFailed
-  const gradient = CARD_GRADIENTS[index % CARD_GRADIENTS.length]
-  const plainDesc = treatment.description ? stripHtml(treatment.description) : ""
-
-  return (
-    <TiltCard glowColor="oklch(58% 0.16 35)" intensity={4} className="">
-      <motion.div
-        id={`treatment-${treatment.id}`}
-        initial={prefersReduced ? false : { opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: index * 0.07 }}
-        style={{
-          position: "relative",
-          aspectRatio: "3/4",
-          overflow: "hidden",
-          cursor: isHome ? "pointer" : "default",
-        }}
-        onClick={() => {
-          if (isHome) window.location.href = `/tratamientos#treatment-${treatment.id}`
-        }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {/* Background layer — scales on hover */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: hasImage ? undefined : gradient,
-            transform: hovered ? "scale(1.07)" : "scale(1)",
-            transition: "transform 0.75s cubic-bezier(0.25,0.46,0.45,0.94)",
-          }}
-        >
-          {hasImage && (
-            <img
-              src={treatment.imageUrl!}
-              alt={`${treatment.name} - Dra. Yasmin Medrano Avila`}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              loading="lazy"
-              decoding="async"
-              onError={() => setImgFailed(true)}
-            />
-          )}
-        </div>
-
-        {/* Gradient overlay */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.18) 52%, transparent 100%)",
-          }}
-        />
-
-        {/* Card body at bottom */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: "26px 22px",
-          }}
-        >
-          {/* Number */}
-          <p
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "10px",
-              letterSpacing: "0.22em",
-              color: "var(--prem-accent)",
-              marginBottom: "8px",
-            }}
-          >
-            {String(index + 1).padStart(2, "0")}
-          </p>
-
-          {/* Title */}
-          <h4
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: "clamp(17px, 1.5vw, 22px)",
-              fontWeight: 500,
-              color: "white",
-              marginBottom: "10px",
-              lineHeight: 1.22,
-            }}
-          >
-            {toSentenceCase(treatment.name)}
-          </h4>
-
-          {/* Description — revealed on hover */}
-          <div
-            style={{
-              maxHeight: hovered ? "120px" : "0px",
-              overflow: "hidden",
-              transition: "max-height 0.35s ease",
-            }}
-          >
-            {plainDesc && (
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "rgba(255,255,255,0.65)",
-                  lineHeight: 1.55,
-                  marginBottom: "12px",
-                }}
-              >
-                {plainDesc.slice(0, 160)}{plainDesc.length > 160 ? "…" : ""}
-              </p>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              opacity: hovered ? 1 : 0,
-              transform: hovered ? "translateY(0)" : "translateY(6px)",
-              transition: "opacity 0.3s ease, transform 0.3s ease",
-            }}
-          >
-            <a
-              href={WHATSAPP_TREATMENT_URL(treatment.name)}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "10px",
-                letterSpacing: "0.18em",
-                color: "var(--prem-accent)",
-                textDecoration: "none",
-                textTransform: "uppercase",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              Consultar
-            </a>
-            {!isHome && (
-              <Link
-                href={`/tratamientos/${treatment.id}`}
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  letterSpacing: "0.18em",
-                  color: "rgba(255,255,255,0.55)",
-                  textDecoration: "none",
-                  textTransform: "uppercase",
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                Leer más
-              </Link>
-            )}
-          </div>
-        </div>
-      </motion.div>
-    </TiltCard>
-  )
+function resolveTagColor(tag: string): string {
+  return TAG_COLORS[tag] ?? DEFAULT_TAG_COLOR
 }
 
 
 export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
-  const prefersReduced = useReducedMotion()
   if (treatments.length === 0) return null
 
   // Group by category
@@ -233,10 +56,10 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
   const currentTreatmentData = Object.entries(grouped).flatMap(a => a[1]).filter( x => x.active)
 
   return (
-    <section className="py-20 px-6" style={{ backgroundColor: "var(--prem-dark)" }}>
+    <section className="py-20 px-6" style={{ backgroundColor: "#1a0510" }}>
       <div className="container-xl">
         <motion.div
-          initial={prefersReduced ? false : { opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
@@ -251,35 +74,106 @@ export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
 
         {Object.entries(grouped).map(([category]) => (
           <div key={category} className="mb-14">
-            {!isHome && (
-              <motion.h3
-                initial={prefersReduced ? false : { opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="text-xl font-bold mb-6 pb-2 border-b"
-                style={{ color: "#c9a96e", borderColor: "var(--prem-dark-border)" }}
-              >
-                {category}
-              </motion.h3>
-            )}
+              { !isHome ? (
+            <motion.h3
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-xl font-bold mb-6 pb-2 border-b"
+              style={{ color: "#c9a96e", borderColor: "#5c1f35" }}
+            >
+              {category}
+            </motion.h3>
+              ) : (<></>)}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {currentTreatmentData.map((treatment, i) => (
-                <VerticalTreatmentCard
+                <motion.div
                   key={treatment.id}
-                  treatment={treatment}
-                  index={i}
-                  isHome={isHome}
-                  prefersReduced={prefersReduced}
-                />
+                  id={`treatment-${treatment.id}`}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: i * 0.07 }}
+                  className={`rounded-2xl overflow-hidden flex flex-row hover:scale-[1.02] transition-transform${isHome ? " cursor-pointer" : ""}`}
+                  style={{ backgroundColor: "#3a0f20" }}
+                  {...(isHome && {
+                    onClick: () => { window.location.href = `/tratamientos#treatment-${treatment.id}` }
+                  })}
+                >
+                  {/* Imagen */}
+                  <div className="w-36 shrink-0 self-stretch bg-[#2a0a18] overflow-hidden">
+                    <img
+                      src={treatment.imageUrl || FALLBACK_IMAGE}
+                      alt={`${treatment.name} - Dra. Yasmin Medrano Avila`}
+                      className="w-full h-full object-cover object-center"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => {
+                        const img = e.currentTarget
+                        if (img.src !== window.location.origin + FALLBACK_IMAGE) {
+                          img.src = FALLBACK_IMAGE
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Contenido */}
+                  <div className="p-4 flex flex-col flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h4 className="font-bold text-white text-sm leading-snug">
+                        {treatment.name}
+                      </h4>
+                      {treatment.tag && (
+                        <Badge label={treatment.tag} color={resolveTagColor(treatment.tag)} />
+                      )}
+                    </div>
+
+                    {treatment.description && (
+                      <p className="text-xs leading-relaxed mb-3 flex-1 line-clamp-3" style={{ color: "#e8a0b4" }}>
+                        {stripHtml(treatment.description)}
+                      </p>
+                    )}
+
+                    <div className="flex items-center justify-between mt-auto pt-2 border-t" style={{ borderColor: "#5c1f35" }}>
+                      <span className="text-sm font-bold" style={{ color: "#c9a96e" }}>
+                        {treatment.price > 0
+                          ? `Bs. ${treatment.price.toLocaleString("es-BO")}`
+                          : "Consultar precio"}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {!isHome && (
+                          <Link
+                            href={`/tratamientos/${treatment.id}`}
+                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors"
+                            style={{ borderColor: "#b5496a", color: "#e8a0b4" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Leer más
+                          </Link>
+                        )}
+                        <a
+                          href={WHATSAPP_TREATMENT_URL(treatment.name)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                          style={{ backgroundColor: "#5c1f35", color: "#fce4ec" }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Consultar
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
           </div>
         ))}
 
         <motion.div
-          initial={prefersReduced ? false : { opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}

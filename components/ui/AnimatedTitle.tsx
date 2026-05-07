@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { useRef } from "react"
+import { motion, useInView, useReducedMotion } from "framer-motion"
 
 interface AnimatedTitleProps {
   text: string
@@ -18,17 +19,17 @@ export function AnimatedTitle({
   light = false,
 }: AnimatedTitleProps) {
   const shouldReduceMotion = useReducedMotion()
-  if (!text.trim()) return null
-  const words = text.split(" ")
+  const ref = useRef<HTMLElement>(null)
+  const inView = useInView(ref, { once: true, amount: 0.1 })
 
+  if (!text.trim()) return null
+
+  const words = text.split(" ")
   const color = light ? "#ffffff" : "#3a0f20"
 
   if (shouldReduceMotion) {
     return (
-      <Tag
-        className={className}
-        style={{ fontFamily: "var(--font-heading)", color }}
-      >
+      <Tag ref={ref as React.RefObject<HTMLHeadingElement>} className={className} style={{ fontFamily: "var(--font-heading)", color }}>
         {text}
       </Tag>
     )
@@ -36,6 +37,7 @@ export function AnimatedTitle({
 
   return (
     <Tag
+      ref={ref as React.RefObject<HTMLHeadingElement>}
       className={className}
       style={{ fontFamily: "var(--font-heading)", color }}
     >
@@ -47,8 +49,7 @@ export function AnimatedTitle({
           <motion.span
             style={{ display: "inline-block" }}
             initial={{ y: "110%" }}
-            whileInView={{ y: 0 }}
-            viewport={{ once: true }}
+            animate={inView ? { y: 0 } : { y: "110%" }}
             transition={{
               duration: 0.65,
               delay: delay + index * 0.08,

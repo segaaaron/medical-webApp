@@ -15,18 +15,11 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
   return (
     <section className="py-20 px-6" style={{ backgroundColor: "var(--prem-bg)" }}>
       <div className="container-xl">
-        <motion.div
-          initial={prefersReduced ? false : { opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
           <SectionHeader
             eyebrow={features?.chooseUs ?? ""}
             title={features?.title ?? ""}
             subtitle={features?.description ?? ""}
           />
-        </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div>

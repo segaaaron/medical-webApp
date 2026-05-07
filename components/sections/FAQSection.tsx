@@ -1,77 +1,175 @@
 "use client"
 import DOMPurify from "isomorphic-dompurify"
 import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import type { FAQ } from "@/types"
+
+const GOLD = "#B8973B"
+const TERRACOTTA = "oklch(58% 0.16 35)"
 
 interface FAQSectionProps {
   faqs: FAQ[]
 }
 
-export function FAQSection({ faqs }: FAQSectionProps) {
-  const [openIndex, setOpenIndex] = useState<number | null>(null)
+interface FAQItemProps {
+  faq: FAQ
+  index: number
+  isOpen: boolean
+  onToggle: () => void
+  prefersReduced: boolean | null
+}
+
+function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps) {
+  const [hovered, setHovered] = useState(false)
 
   return (
-    <section id="faq" className="py-20 px-6" style={{ backgroundColor: "#faf5f7" }}>
-      <div className="container-xl max-w-3xl">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <SectionHeader eyebrow="¿Tienes Preguntas?" title="Preguntas Frecuentes" />
-        </motion.div>
+    <motion.div
+      initial={prefersReduced ? false : { opacity: 0, y: 15 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      style={{
+        borderRadius: "10px",
+        overflow: "hidden",
+        border: isOpen
+          ? `1px solid rgba(184,151,59,0.55)`
+          : hovered
+          ? `1px solid rgba(184,151,59,0.35)`
+          : `1px solid rgba(184,151,59,0.15)`,
+        background: isOpen ? "#FEFAF2" : hovered ? "#FDFAF6" : "#FEFCF9",
+        boxShadow: isOpen
+          ? "0 4px 24px rgba(184,151,59,0.12)"
+          : hovered
+          ? "0 2px 12px rgba(184,151,59,0.08)"
+          : "0 1px 4px rgba(58,15,32,0.04)",
+        transition: "border 0.2s, background 0.2s, box-shadow 0.2s",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Left gold accent bar */}
+      <div style={{ display: "flex" }}>
+        <div
+          style={{
+            width: "3px",
+            flexShrink: 0,
+            background: isOpen
+              ? `linear-gradient(to bottom, ${GOLD}, rgba(184,151,59,0.3))`
+              : "transparent",
+            transition: "background 0.25s",
+            borderRadius: "10px 0 0 10px",
+          }}
+        />
 
-        <div className="flex flex-col gap-3">
-          {faqs.map((faq, i) => (
-            <motion.div
-              key={faq.question}
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.05 }}
-              className="bg-white rounded-xl overflow-hidden shadow-sm"
+        <div style={{ flex: 1 }}>
+          <button
+            className="w-full flex items-center justify-between gap-4 text-left"
+            style={{ padding: "20px 24px", cursor: "pointer", background: "none", border: "none" }}
+            onClick={onToggle}
+            aria-expanded={isOpen}
+          >
+            <span
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontSize: "15px",
+                fontWeight: 600,
+                lineHeight: 1.45,
+                color: isOpen ? "#2a0d14" : "#3a0f20",
+                transition: "color 0.2s",
+              }}
             >
-              <button
-                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left hover:bg-gray-50 transition-colors"
-                onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                aria-expanded={openIndex === i}
-              >
-                <span className="font-semibold text-base" style={{ color: "#3a0f20" }}>
-                  {faq.question}
-                </span>
-                <motion.span
-                  animate={{ rotate: openIndex === i ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="shrink-0"
-                >
-                  <ChevronDown size={20} style={{ color: "#b5496a" }} />
-                </motion.span>
-              </button>
+              {faq.question}
+            </span>
+            <motion.span
+              animate={{ rotate: isOpen ? 180 : 0 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              style={{ flexShrink: 0 }}
+            >
+              <ChevronDown
+                size={20}
+                style={{ color: isOpen ? GOLD : TERRACOTTA, transition: "color 0.2s" }}
+              />
+            </motion.span>
+          </button>
 
-              <AnimatePresence>
-                {openIndex === i && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
-                  >
-                    <p
-                      className="px-6 pb-6 text-sm leading-relaxed"
-                      style={{ color: "#36344d" }}
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(faq.answer) }}
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+          <AnimatePresence initial={false}>
+            {isOpen && (
+              <motion.div
+                key="answer"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                style={{ overflow: "hidden" }}
+              >
+                <div
+                  style={{
+                    padding: "0 24px 22px",
+                    borderTop: `1px solid rgba(184,151,59,0.18)`,
+                    marginTop: "0",
+                    paddingTop: "16px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "var(--font-body, system-ui)",
+                      fontSize: "14px",
+                      lineHeight: 1.75,
+                      color: "oklch(35% 0.018 55)",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(faq.answer) }}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+export function FAQSection({ faqs }: FAQSectionProps) {
+  const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const prefersReduced = useReducedMotion()
+
+  return (
+    <section
+      id="faq"
+      style={{
+        padding: "clamp(64px, 10vw, 100px) 24px",
+        background: "oklch(97% 0.012 80)",
+      }}
+    >
+      <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+        <SectionHeader eyebrow="¿Tienes Preguntas?" title="Preguntas Frecuentes" />
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {faqs.map((faq, i) => (
+            <FAQItem
+              key={faq.question}
+              faq={faq}
+              index={i}
+              isOpen={openIndex === i}
+              onToggle={() => setOpenIndex(openIndex === i ? null : i)}
+              prefersReduced={prefersReduced}
+            />
           ))}
         </div>
+
+        {/* Bottom gold divider */}
+        <div
+          style={{
+            marginTop: "56px",
+            height: "1px",
+            background: `linear-gradient(to right, transparent, ${GOLD}, transparent)`,
+            opacity: 0.4,
+          }}
+        />
       </div>
     </section>
   )

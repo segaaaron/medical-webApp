@@ -46,7 +46,7 @@ export function Navbar({ links }: NavbarProps) {
     >
       <div className="container-xl flex items-center justify-between" style={{ height: "70px" }}>
         {/* Logo */}
-        <a href="/" className="flex items-center shrink-0">
+        <a href="/" className="flex items-center shrink-0" onClick={(e) => { if (isHome) e.preventDefault() }}>
           <Image
             src="/images/logo_ym_transparent.png"
             alt="Dra. Yasmin Medrano Avila — Medicina Estética"
@@ -64,6 +64,7 @@ export function Navbar({ links }: NavbarProps) {
               <a
                 href={link.href}
                 className="px-3 py-2 block transition-colors relative uppercase"
+                onClick={(e) => { if (isActive(link.href)) e.preventDefault() }}
                 style={{
                   fontSize: "12.5px",
                   letterSpacing: "0.09em",
@@ -151,7 +152,7 @@ export function Navbar({ links }: NavbarProps) {
                       color: isActive(link.href) ? "var(--prem-accent)" : "rgba(255,255,255,0.72)",
                       borderLeft: isActive(link.href) ? "3px solid var(--prem-accent)" : "3px solid transparent",
                     }}
-                    onClick={() => setMobileOpen(false)}
+                    onClick={(e) => { if (isActive(link.href)) e.preventDefault(); setMobileOpen(false) }}
                   >
                     {link.label}
                   </a>
