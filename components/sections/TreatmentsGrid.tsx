@@ -1,9 +1,10 @@
 "use client"
+import { useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
-import { Badge } from "../ui/Badge"
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { WHATSAPP_TREATMENT_URL, WHATSAPP_URL } from "@/lib/constants"
 
 export interface Treatment {
@@ -21,163 +22,294 @@ interface TreatmentsGridProps {
   isHome: boolean
 }
 
-const FALLBACK_IMAGE = "/images/treatment-placeholder.svg"
+const GOLD = "#B8973B"
+
+const TAG_LABELS: Record<string, string> = {
+  POPULAR:       "Popular",
+  INNOVADOR:     "Innovador",
+  RECOMENDADO:   "Recomendado",
+  DEFINITIVO:    "Definitivo",
+  ESENCIAL:      "Esencial",
+  ESPECIALIZADO: "Especializado",
+}
+
+const TAG_COLORS: Record<string, string> = {
+  POPULAR:       "oklch(46% 0.17 35)",   // terracota oscuro — WCAG 4.5:1 vs blanco
+  INNOVADOR:     "#0771A0",              // teal oscuro — WCAG compliant
+  RECOMENDADO:   "#15803D",             // verde oscuro — WCAG compliant
+  DEFINITIVO:    "#8A6E27",             // gold oscuro — WCAG compliant
+  ESENCIAL:      "#B45309",             // ámbar oscuro — WCAG compliant
+  ESPECIALIZADO: "#6D28D9",             // violeta oscuro — WCAG compliant
+}
+const DEFAULT_TAG_COLOR = "oklch(46% 0.17 35)"
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
 }
 
-const TAG_COLORS: Record<string, string> = {
-  POPULAR:       "#b5496a",
-  INNOVADOR:     "#8f3452",
-  RECOMENDADO:   "#4a9e82",
-  DEFINITIVO:    "#5c1f35",
-  ESENCIAL:      "#c9a96e",
-  ESPECIALIZADO: "#7a2a4a",
-}
-const DEFAULT_TAG_COLOR = "#a0336e"
+function PosterCard({
+  treatment,
+  index,
+  isHome,
+}: {
+  treatment: Treatment
+  index: number
+  isHome: boolean
+}) {
+  const [hovered, setHovered] = useState(false)
+  const hasImage = !!treatment.imageUrl
+  const num = String(index + 1).padStart(2, "0")
+  const plainDesc = treatment.description ? stripHtml(treatment.description) : ""
 
-function resolveTagColor(tag: string): string {
-  return TAG_COLORS[tag] ?? DEFAULT_TAG_COLOR
-}
+  const cardStyle: React.CSSProperties = {
+    position: "relative",
+    aspectRatio: "3/4",
+    borderRadius: "4px",
+    overflow: "hidden",
+    cursor: "pointer",
+    display: "block",
+    textDecoration: "none",
+    touchAction: "manipulation",
+    boxShadow: hovered
+      ? `0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(184,151,59,0.4)`
+      : "0 8px 32px rgba(0,0,0,0.35)",
+    transition: "box-shadow 0.4s ease",
+  }
 
-
-export function TreatmentsGrid({ treatments,  isHome}: TreatmentsGridProps) {
-  if (treatments.length === 0) return null
-
-  // Group by category
-  const grouped = treatments.reduce<Record<string, Treatment[]>>((acc, t) => {
-    const key =  isHome ? "" : "General"
-    if (!acc[key]) acc[key] = []
-    acc[key].push(t)
-    return acc
-  }, {})
-
-  const currentTreatmentData = Object.entries(grouped).flatMap(a => a[1]).filter( x => x.active)
-
-  return (
-    <section className="py-20 px-6" style={{ backgroundColor: "#1a0510" }}>
-      <div className="container-xl">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <SectionHeader
-            eyebrow={isHome ? "Áreas de Especialidad" : "Catálogo de Servicios"}
-            title={isHome ? "Algunas Categorías de Tratamiento" : "Todos Nuestros Tratamientos"}
-            subtitle={isHome ? `Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:#c9a96e;font-weight:700;">resultados visibles y duraderos.</span>` : `Encuentra el tratamiento ideal para ti. <span style="color:#c9a96e;font-weight:700;">Agenda una consulta gratuita</span> y recibe un plan personalizado.`}
-            light
+  const inner = (
+    <>
+      {/* Background image */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          transform: hovered ? "scale(1.07)" : "scale(1)",
+          transition: "transform 0.75s cubic-bezier(0.25,0.46,0.45,0.94)",
+        }}
+      >
+        {hasImage ? (
+          <ImageWithFallback
+            src={treatment.imageUrl!}
+            alt={`${treatment.name} — Dra. Yasmin Medrano Avila`}
+            variant="dark"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            objectPosition="center top"
+            loading="lazy"
+            decoding="async"
           />
-        </motion.div>
+        ) : (
+          <div style={{ width: "100%", height: "100%", background: "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)" }} />
+        )}
+      </div>
 
-        {Object.entries(grouped).map(([category]) => (
-          <div key={category} className="mb-14">
-              { !isHome ? (
-            <motion.h3
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-xl font-bold mb-6 pb-2 border-b"
-              style={{ color: "#c9a96e", borderColor: "#5c1f35" }}
-            >
-              {category}
-            </motion.h3>
-              ) : (<></>)}
+      {/* Base gradient */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "linear-gradient(to top, rgba(10,2,6,0.96) 0%, rgba(10,2,6,0.55) 45%, rgba(10,2,6,0.12) 100%)",
+        }}
+      />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {currentTreatmentData.map((treatment, i) => (
-                <motion.div
-                  key={treatment.id}
-                  id={`treatment-${treatment.id}`}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.07 }}
-                  className={`rounded-2xl overflow-hidden flex flex-row hover:scale-[1.02] transition-transform${isHome ? " cursor-pointer" : ""}`}
-                  style={{ backgroundColor: "#3a0f20" }}
-                  {...(isHome && {
-                    onClick: () => { window.location.href = `/tratamientos#treatment-${treatment.id}` }
-                  })}
-                >
-                  {/* Imagen */}
-                  <div className="w-36 shrink-0 self-stretch bg-[#2a0a18] overflow-hidden">
-                    <img
-                      src={treatment.imageUrl || FALLBACK_IMAGE}
-                      alt={`${treatment.name} - Dra. Yasmin Medrano Avila`}
-                      className="w-full h-full object-cover object-center"
-                      loading="lazy"
-                      decoding="async"
-                      onError={(e) => {
-                        const img = e.currentTarget
-                        if (img.src !== window.location.origin + FALLBACK_IMAGE) {
-                          img.src = FALLBACK_IMAGE
-                        }
-                      }}
-                    />
-                  </div>
+      {/* Hover overlay "Ver más" — solo para tratamientos page, oculto en touch */}
+      {!isHome && (
+        <div
+          className="hover-overlay"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(10,2,6,0.55)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+            opacity: hovered ? 1 : 0,
+            transition: "opacity 0.3s ease",
+            zIndex: 8,
+          }}
+        >
+          <div
+            style={{
+              width: "48px",
+              height: "48px",
+              borderRadius: "50%",
+              border: `1.5px solid ${GOLD}`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transform: hovered ? "scale(1)" : "scale(0.8)",
+              transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1)",
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={GOLD} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+          <span
+            style={{
+              fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace",
+              fontSize: "9px",
+              letterSpacing: "0.26em",
+              textTransform: "uppercase",
+              color: GOLD,
+              transform: hovered ? "translateY(0)" : "translateY(6px)",
+              transition: "transform 0.35s cubic-bezier(0.16,1,0.3,1) 0.05s",
+            }}
+          >
+            Ver más
+          </span>
+        </div>
+      )}
 
-                  {/* Contenido */}
-                  <div className="p-4 flex flex-col flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h4 className="font-bold text-white text-sm leading-snug">
-                        {treatment.name}
-                      </h4>
-                      {treatment.tag && (
-                        <Badge label={treatment.tag} color={resolveTagColor(treatment.tag)} />
-                      )}
-                    </div>
+      {/* Tag — top left */}
+      {treatment.tag && (
+        <div
+          style={{
+            position: "absolute",
+            top: "14px",
+            left: "14px",
+            zIndex: 10,
+            background: TAG_COLORS[treatment.tag] ?? DEFAULT_TAG_COLOR,
+            padding: "4px 10px",
+            borderRadius: "2px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace",
+              fontSize: "9px",
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "#fff",
+              fontWeight: 600,
+            }}
+          >
+            {TAG_LABELS[treatment.tag] ?? treatment.tag}
+          </span>
+        </div>
+      )}
 
-                    {treatment.description && (
-                      <p className="text-xs leading-relaxed mb-3 flex-1 line-clamp-3" style={{ color: "#e8a0b4" }}>
-                        {stripHtml(treatment.description)}
-                      </p>
-                    )}
+      {/* Gold corner accents */}
+      <div style={{ position: "absolute", top: 0, right: 0, width: "52px", height: "52px", borderTop: `2px solid ${GOLD}`, borderRight: `2px solid ${GOLD}`, opacity: hovered ? 1 : 0, transition: "opacity 0.35s", zIndex: 9 }} />
+      <div style={{ position: "absolute", bottom: 0, left: 0, width: "52px", height: "52px", borderBottom: `2px solid ${GOLD}`, borderLeft: `2px solid ${GOLD}`, opacity: hovered ? 1 : 0, transition: "opacity 0.35s", zIndex: 9 }} />
 
-                    <div className="flex items-center justify-between mt-auto pt-2 border-t" style={{ borderColor: "#5c1f35" }}>
-                      <span className="text-sm font-bold" style={{ color: "#c9a96e" }}>
-                        {treatment.price > 0
-                          ? `Bs. ${treatment.price.toLocaleString("es-BO")}`
-                          : "Consultar precio"}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {!isHome && (
-                          <Link
-                            href={`/tratamientos/${treatment.id}`}
-                            className="text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors"
-                            style={{ borderColor: "#b5496a", color: "#e8a0b4" }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Leer más
-                          </Link>
-                        )}
-                        <a
-                          href={WHATSAPP_TREATMENT_URL(treatment.name)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                          style={{ backgroundColor: "#5c1f35", color: "#fce4ec" }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Consultar
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+      {/* Content */}
+      <div style={{ position: "absolute", inset: 0, padding: "22px 20px", display: "flex", flexDirection: "column", justifyContent: "flex-end", zIndex: 5 }}>
+        {/* Number */}
+        <div style={{ marginBottom: "10px" }}>
+          <span style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "10px", letterSpacing: "0.22em", color: GOLD }}>{num}</span>
+        </div>
+
+        {/* Title */}
+        <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(15px, 1.6vw, 20px)", fontWeight: 500, color: "#ffffff", lineHeight: 1.25, marginBottom: "10px", letterSpacing: "-0.01em", textTransform: "capitalize" }}>
+          {treatment.name.toLowerCase()}
+        </h4>
+
+        {/* Description reveal — solo home */}
+        {isHome && (
+          <div style={{ maxHeight: hovered ? "80px" : "0", overflow: "hidden", opacity: hovered ? 1 : 0, transition: "max-height 0.4s ease, opacity 0.35s ease", marginBottom: hovered ? "12px" : "0" }}>
+            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.65)", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{plainDesc}</p>
+          </div>
+        )}
+
+        {/* Footer — solo home */}
+        {isHome && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: "1px solid rgba(184,151,59,0.25)", paddingTop: "12px" }}>
+            <span style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "11px", color: GOLD, letterSpacing: "0.05em" }}>
+              {treatment.price > 0 ? `Bs. ${treatment.price.toLocaleString("es-BO")}` : "Consultar precio"}
+            </span>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <a
+                href={WHATSAPP_TREATMENT_URL(treatment.name)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#000", background: GOLD, padding: "10px 16px", borderRadius: "2px", textDecoration: "none", display: "inline-flex", alignItems: "center", minHeight: "44px" }}
+              >
+                Consultar
+              </a>
             </div>
           </div>
-        ))}
+        )}
+      </div>
+    </>
+  )
+
+  if (!isHome) {
+    return (
+      <motion.div id={`treatment-${treatment.id}`} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: index * 0.08 }}>
+        <Link href={`/tratamientos/${treatment.id}`} style={cardStyle} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+          {inner}
+        </Link>
+      </motion.div>
+    )
+  }
+
+  return (
+    <motion.div
+      id={`treatment-${treatment.id}`}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.55, delay: index * 0.08 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={() => { window.location.href = `/tratamientos#treatment-${treatment.id}` }}
+      style={cardStyle}
+    >
+      {inner}
+    </motion.div>
+  )
+}
+
+export function TreatmentsGrid({ treatments, isHome }: TreatmentsGridProps) {
+  if (treatments.length === 0) return null
+
+  const activeTreatments = treatments.filter((x) => x.active)
+
+  return (
+    <section
+      className="py-20 px-6"
+      style={{ backgroundColor: "#1a0510" }}
+    >
+      <div className="container-xl">
+        <SectionHeader
+          eyebrow={isHome ? "Áreas de Especialidad" : "Catálogo de Servicios"}
+          title={isHome ? "Algunas Categorías de Tratamiento" : "Todos Nuestros Tratamientos"}
+          subtitle={
+            isHome
+              ? `Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:${GOLD};font-weight:700;">resultados visibles y duraderos.</span>`
+              : `Encuentra el tratamiento ideal para ti. <span style="color:${GOLD};font-weight:700;">Agenda una consulta gratuita</span> y recibe un plan personalizado.`
+          }
+          light
+        />
+
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: "16px",
+          }}
+        >
+          {activeTreatments.map((treatment, i) => (
+            <PosterCard
+              key={treatment.id}
+              treatment={treatment}
+              index={i}
+              isHome={isHome}
+            />
+          ))}
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mt-8"
+          className="text-center mt-12"
         >
           <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12">
             AGENDA TU CONSULTA GRATUITA

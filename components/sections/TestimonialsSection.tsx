@@ -46,7 +46,7 @@ function StarRating({ count }: { count: number }) {
   return (
     <div className="flex gap-0.5 mb-3">
       {Array.from({ length: count }).map((_, i) => (
-        <Star key={i} size={14} fill="#c9a96e" style={{ color: "#c9a96e" }} />
+        <Star key={i} size={14} fill="var(--prem-accent)" style={{ color: "var(--prem-accent)" }} />
       ))}
     </div>
   )
@@ -54,7 +54,7 @@ function StarRating({ count }: { count: number }) {
 
 export function TestimonialsSection() {
   return (
-    <section className="py-20 px-6" style={{ backgroundColor: "#1a0510" }}>
+    <section className="py-20 px-6" style={{ backgroundColor: "var(--prem-dark)" }}>
       <div className="container-xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -65,7 +65,7 @@ export function TestimonialsSection() {
           <SectionHeader
             eyebrow="Lo que dicen nuestras pacientes"
             title="Resultados que Hablan por Sí Solos"
-            subtitle={`Más de <span style="color:#c9a96e;font-weight:700;">5,000 pacientes satisfechas</span> avalan nuestro trabajo. La confianza de cada una es nuestra mayor motivación.`}
+            subtitle={`Más de <span style="color:#B8973B;font-weight:700;">5,000 pacientes satisfechas</span> avalan nuestro trabajo. La confianza de cada una es nuestra mayor motivación.`}
             light
           />
         </motion.div>
@@ -78,30 +78,73 @@ export function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="rounded-2xl p-6 flex flex-col"
-              style={{ backgroundColor: "#3a0f20" }}
+              className="p-6 flex flex-col"
+              style={{
+                backgroundColor: "var(--prem-dark-surf)",
+                border: "1px solid var(--prem-dark-border)",
+                borderRadius: "2px",
+              }}
             >
+              {/* Serif quote mark */}
+              <div
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  fontSize: "80px",
+                  lineHeight: 1,
+                  color: "var(--prem-dark-border)",
+                  marginBottom: "-28px",
+                  userSelect: "none",
+                }}
+                aria-hidden="true"
+              >
+                &#8220;
+              </div>
+
               <StarRating count={t.stars} />
-              <p className="text-sm leading-relaxed flex-1 mb-5 italic" style={{ color: "#fce4ec" }}>
-                &ldquo;{t.text}&rdquo;
+              <p
+                className="text-sm leading-relaxed flex-1 mb-5"
+                style={{
+                  fontFamily: "var(--font-heading)",
+                  color: "var(--prem-dark-fg)",
+                  fontSize: "15px",
+                  lineHeight: 1.78,
+                  fontStyle: "italic",
+                }}
+              >
+                {t.text}
               </p>
-              <div className="border-t pt-4 flex items-center gap-3" style={{ borderColor: "#5c1f35" }}>
+              <div className="border-t pt-4 flex items-center gap-3" style={{ borderColor: "var(--prem-dark-border)" }}>
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-                  style={{ backgroundColor: "#b5496a", color: "white" }}
+                  style={{ backgroundColor: "var(--prem-accent)", color: "white" }}
                 >
                   {t.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">{t.name}</p>
-                  <p className="text-xs" style={{ color: "#e8a0b4" }}>{t.treatment}</p>
+                  <p
+                    className="text-sm font-semibold"
+                    style={{ color: "var(--prem-dark-fg)", fontFamily: "var(--font-heading)" }}
+                  >
+                    {t.name}
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "10px",
+                      fontFamily: "var(--font-mono)",
+                      letterSpacing: "0.12em",
+                      textTransform: "uppercase",
+                      color: "var(--prem-dark-muted)",
+                    }}
+                  >
+                    {t.treatment}
+                  </p>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
 
-        {/* Google rating badge */}
+        {/* Rating badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -110,17 +153,31 @@ export function TestimonialsSection() {
           className="flex justify-center mt-12"
         >
           <div
-            className="flex items-center gap-4 px-8 py-4 rounded-2xl"
-            style={{ backgroundColor: "#3a0f20" }}
+            className="flex items-center gap-4 px-8 py-4"
+            style={{
+              backgroundColor: "var(--prem-dark-surf)",
+              border: "1px solid var(--prem-dark-border)",
+              borderRadius: "2px",
+            }}
           >
             <div className="flex gap-0.5">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} size={20} fill="#c9a96e" style={{ color: "#c9a96e" }} />
+                <Star key={i} size={20} fill="var(--prem-accent)" style={{ color: "var(--prem-accent)" }} />
               ))}
             </div>
             <div>
-              <p className="text-white font-bold text-lg">5.0</p>
-              <p className="text-xs" style={{ color: "#e8a0b4" }}>Calificación de nuestras pacientes</p>
+              <p className="font-bold text-lg" style={{ color: "var(--prem-dark-fg)", fontFamily: "var(--font-heading)" }}>5.0</p>
+              <p
+                style={{
+                  fontSize: "10px",
+                  fontFamily: "var(--font-mono)",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "var(--prem-dark-muted)",
+                }}
+              >
+                Calificación de nuestras pacientes
+              </p>
             </div>
           </div>
         </motion.div>

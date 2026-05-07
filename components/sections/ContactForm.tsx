@@ -1,7 +1,8 @@
 "use client"
+
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Send, CheckCircle } from "lucide-react"
+import { Send } from "lucide-react"
 import { WHATSAPP_NUMBER } from "@/lib/constants"
 
 const TREATMENTS = [
@@ -17,13 +18,17 @@ const TREATMENTS = [
   "Otro / Consulta general",
 ]
 
+const GOLD = "#B8973B"
+
+function focusRing(e: React.FocusEvent<HTMLElement>) {
+  (e.target as HTMLElement).style.boxShadow = "0 0 0 2px rgba(184,151,59,0.45)"
+}
+function blurRing(e: React.FocusEvent<HTMLElement>) {
+  (e.target as HTMLElement).style.boxShadow = "none"
+}
+
 export function ContactForm() {
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    treatment: "",
-    message: "",
-  })
+  const [form, setForm] = useState({ name: "", phone: "", treatment: "", message: "" })
   const [sent, setSent] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
@@ -41,10 +46,7 @@ export function ContactForm() {
       .filter(Boolean)
       .join(" ")
 
-    window.open(
-      `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`,
-      "_blank"
-    )
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, "_blank")
     setForm({ name: "", phone: "", treatment: "", message: "" })
     setSent(true)
   }
@@ -52,19 +54,45 @@ export function ContactForm() {
   if (sent) {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center gap-4 py-10 text-center"
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center justify-center gap-5 py-10 text-center"
       >
-        <CheckCircle size={48} style={{ color: "#4a9e82" }} />
-        <p className="text-white font-bold text-lg">¡Mensaje enviado!</p>
-        <p className="text-sm" style={{ color: "#e8a0b4" }}>
-          Te redirigimos a WhatsApp para continuar la conversación.
-        </p>
+        {/* Drawn-circle check animation */}
+        <div className="relative w-16 h-16" aria-hidden="true">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <motion.circle
+              cx="32" cy="32" r="22"
+              stroke={GOLD} strokeWidth="2"
+              fill="rgba(184,151,59,0.08)"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              style={{ transformOrigin: "32px 32px", rotate: "-90deg" } as React.CSSProperties}
+            />
+            <motion.path
+              d="M21 32 L28 39 L43 25"
+              stroke={GOLD} strokeWidth="2.5"
+              strokeLinecap="round" strokeLinejoin="round"
+              fill="none"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.4, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </svg>
+        </div>
+        <div>
+          <p className="text-white font-bold text-lg mb-1">¡Mensaje enviado!</p>
+          <p className="text-sm" style={{ color: "#e8a0b4" }}>
+            Te redirigimos a WhatsApp para continuar la conversación.
+          </p>
+        </div>
         <button
           onClick={() => setSent(false)}
-          className="text-xs underline mt-2"
-          style={{ color: "#c9a96e" }}
+          className="text-xs underline mt-1 hover:opacity-70 transition-opacity"
+          style={{ color: GOLD }}
         >
           Enviar otro mensaje
         </button>
@@ -85,14 +113,12 @@ export function ContactForm() {
           Nombre *
         </label>
         <input
-          type="text"
-          name="name"
-          required
-          value={form.name}
-          onChange={handleChange}
+          type="text" name="name" required
+          value={form.name} onChange={handleChange}
           placeholder="Tu nombre completo"
-          className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-[#7a6570] outline-none focus:ring-2 focus:ring-[#b5496a] transition"
+          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[#7a6570] outline-none transition"
           style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35" }}
+          onFocus={focusRing} onBlur={blurRing}
         />
       </div>
 
@@ -101,13 +127,12 @@ export function ContactForm() {
           Teléfono / WhatsApp
         </label>
         <input
-          type="tel"
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
+          type="tel" name="phone"
+          value={form.phone} onChange={handleChange}
           placeholder="Ej: 70000000"
-          className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-[#7a6570] outline-none focus:ring-2 focus:ring-[#b5496a] transition"
+          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[#7a6570] outline-none transition"
           style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35" }}
+          onFocus={focusRing} onBlur={blurRing}
         />
       </div>
 
@@ -117,10 +142,10 @@ export function ContactForm() {
         </label>
         <select
           name="treatment"
-          value={form.treatment}
-          onChange={handleChange}
-          className="w-full px-4 py-3 rounded-xl text-sm text-white outline-none focus:ring-2 focus:ring-[#b5496a] transition"
+          value={form.treatment} onChange={handleChange}
+          className="w-full px-4 py-3 rounded-xl text-base outline-none transition"
           style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35", color: form.treatment ? "white" : "#7a6570" }}
+          onFocus={focusRing} onBlur={blurRing}
         >
           <option value="" style={{ color: "#7a6570" }}>Selecciona un tratamiento</option>
           {TREATMENTS.map((t) => (
@@ -135,19 +160,18 @@ export function ContactForm() {
         </label>
         <textarea
           name="message"
-          value={form.message}
-          onChange={handleChange}
-          rows={3}
-          placeholder="Cuéntanos en qué podemos ayudarte..."
-          className="w-full px-4 py-3 rounded-xl text-sm text-white placeholder-[#7a6570] outline-none focus:ring-2 focus:ring-[#b5496a] transition resize-none"
+          value={form.message} onChange={handleChange}
+          rows={3} placeholder="Cuéntanos en qué podemos ayudarte..."
+          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[#7a6570] outline-none transition resize-none"
           style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35" }}
+          onFocus={focusRing} onBlur={blurRing}
         />
       </div>
 
       <button
         type="submit"
-        className="flex items-center justify-center gap-2 w-full py-4 rounded-full text-sm font-bold uppercase tracking-wide hover:opacity-90 transition-opacity mt-1"
-        style={{ backgroundColor: "#b5496a", color: "white" }}
+        className="flex items-center justify-center gap-2 w-full py-4 rounded-full text-sm font-bold uppercase tracking-wide hover:brightness-110 transition-all mt-1"
+        style={{ backgroundColor: GOLD, color: "white" }}
       >
         <Send size={16} />
         Enviar por WhatsApp

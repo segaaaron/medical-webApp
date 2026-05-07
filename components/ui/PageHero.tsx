@@ -41,7 +41,7 @@ export function PageHero({ eyebrow, title, subtitle }: PageHeroProps) {
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.6, delay: 0.35 }}
         className="w-16 h-0.5 mx-auto mt-6"
-        style={{ backgroundColor: "#c9a96e" }}
+        style={{ backgroundColor: "#B8973B" }}
       />
     </div>
   )

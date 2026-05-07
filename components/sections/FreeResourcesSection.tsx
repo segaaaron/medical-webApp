@@ -15,7 +15,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
   const { email, setEmail, submitted, handleSubmit } = useEmailForm()
 
   return (
-    <section id="recursos" className="py-20 px-6" style={{ backgroundColor: "#faf5f7" }}>
+    <section id="recursos" className="py-20 px-6" style={{ backgroundColor: "#F8F0E3" }}>
       <div className="container-xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -26,7 +26,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
           <SectionHeader
             eyebrow="Recursos Gratuitos"
             title="Guías de Medicina Estética"
-            subtitle={`Descarga nuestras guías gratuitas y prepárate para tu consulta.<br/><span style="color:#b5496a;font-weight:700;">Información confiable de tu especialista de confianza.</span>`}
+            subtitle={`Descarga nuestras guías gratuitas y prepárate para tu consulta.<br/><span style="color:#B8973B;font-weight:700;">Información confiable de tu especialista de confianza.</span>`}
           />
         </motion.div>
 
@@ -43,7 +43,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
               <div key={pdf.title} className="flex gap-4 bg-white rounded-xl p-6 shadow-sm">
                 <div
                   className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                  style={{ backgroundColor: "#fde8ef" }}
+                  style={{ backgroundColor: "rgba(184,151,59,0.1)" }}
                 >
                   {pdf.icon}
                 </div>
@@ -70,7 +70,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
               {!submitted ? (
                 <>
                   <div className="flex items-center gap-3 mb-6">
-                    <Phone size={28} style={{ color: "#c9a96e" }} />
+                    <Phone size={28} style={{ color: "#B8973B" }} />
                     <h3 className="text-2xl font-bold">Agenda tu Consulta</h3>
                   </div>
                   <p className="text-sm mb-8 leading-relaxed" style={{ color: "#e8a0b4" }}>
@@ -85,7 +85,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
                       required
                       leftIcon={<Mail size={18} />}
                     />
-                    <Button type="submit" variant="default" className="w-full py-4 bg-[#c9a96e] text-white hover:bg-[#b8954f]">
+                    <Button type="submit" variant="default" className="w-full py-4 bg-[#B8973B] text-white hover:brightness-110">
                       ENVIARME LAS GUÍAS GRATIS
                     </Button>
                   </form>

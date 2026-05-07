@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -62,21 +63,46 @@ interface LinkButtonProps
   variant?: string
 }
 
-function LinkButton({ className, variant, ...props }: LinkButtonProps) {
-  const variantClasses: Record<string, string> = {
-    primary:
-      "bg-[#c9a96e] text-white hover:bg-[#b8954f] transition-colors",
-    warning:
-      "bg-[#c9a96e] text-white hover:bg-[#b8954f] transition-colors",
+function LinkButton({ className, variant, style, ...props }: LinkButtonProps) {
+  const variantStyles: Record<string, React.CSSProperties> = {
+    primary: {
+      backgroundColor: "var(--prem-accent)",
+      color: "white",
+      borderRadius: "2px",
+      fontFamily: "var(--font-mono)",
+      letterSpacing: "0.14em",
+      fontSize: "11px",
+      padding: "15px 34px",
+    },
+    warning: {
+      backgroundColor: "transparent",
+      color: "white",
+      border: "1px solid rgba(255,255,255,0.7)",
+      borderRadius: "2px",
+      fontFamily: "var(--font-mono)",
+      letterSpacing: "0.14em",
+      fontSize: "11px",
+      padding: "15px 34px",
+    },
+    ghost: {
+      border: "1px solid rgba(255,255,255,0.38)",
+      color: "rgba(255,255,255,0.85)",
+      borderRadius: "2px",
+      fontFamily: "var(--font-mono)",
+      fontSize: "11px",
+      letterSpacing: "0.14em",
+      backgroundColor: "transparent",
+    },
   }
 
   return (
     <a
       className={cn(
-        "inline-flex items-center rounded-lg px-6 py-3 text-sm font-bold uppercase tracking-wider",
-        variant && variantClasses[variant],
+        "inline-flex items-center uppercase transition-all",
+        !variant && "rounded-lg px-6 py-3 text-sm font-bold tracking-wider",
         className
       )}
+      style={{ ...(variant ? (variantStyles[variant] ?? variantStyles.ghost) : {}), ...style }}
       {...props}
     />
   )

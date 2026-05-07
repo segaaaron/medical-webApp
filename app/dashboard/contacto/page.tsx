@@ -10,7 +10,7 @@ import { useToast } from "@/components/dashboard/Toast"
 import type { ContactData } from "@/types/content"
 
 const INPUT_CLS =
-  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#b5496a] focus:ring-1 focus:ring-[#b5496a] transition-colors"
+  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#B8973B] focus:ring-1 focus:ring-[#B8973B] transition-colors"
 
 const DEFAULTS: ContactData = {
   whatsappNumber: "+591 78751894",
@@ -276,7 +276,7 @@ export default function ContactoDashboardPage() {
             onClick={handleSave}
             disabled={saving}
             className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
-            style={{ backgroundColor: "#b5496a" }}
+            style={{ backgroundColor: "#B8973B" }}
           >
             <Check size={15} />
             {saving ? "Guardando..." : "Guardar cambios"}

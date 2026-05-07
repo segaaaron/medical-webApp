@@ -1,3 +1,4 @@
+"use client"
 import { MessageCircle, Facebook, Instagram } from "lucide-react"
 
 export interface FooterData {
@@ -24,14 +25,26 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
   if (!links.length) return null
   return (
     <div>
-      <h4 className="text-white font-bold text-sm uppercase tracking-widest mb-5">{title}</h4>
+      <h4
+        className="text-sm uppercase mb-5"
+        style={{
+          fontFamily: "var(--font-mono)",
+          letterSpacing: "0.24em",
+          color: "#B8973B",
+          fontWeight: 600,
+        }}
+      >
+        {title}
+      </h4>
       <ul className="flex flex-col gap-3">
         {links.map((link) => (
           <li key={link.label}>
             <a
               href={link.href}
-              className="text-sm transition-colors hover:text-white"
-              style={{ color: "#7a6570" }}
+              className="text-sm transition-colors"
+              style={{ color: "rgba(255,255,255,0.65)" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff" }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.65)" }}
             >
               {link.label}
             </a>
@@ -48,17 +61,17 @@ export function Footer({ data }: { data: FooterData }) {
   const nameRest = doctorName.split(" ").slice(2).join(" ")
 
   return (
-    <footer id="contacto" style={{ backgroundColor: "#1a0510", paddingTop: "10px" }}>
+    <footer id="contacto" style={{ backgroundColor: "oklch(9% 0.01 52)", paddingTop: "10px" }}>
       <div className="container-xl py-24 px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <h3 className="text-white font-bold text-xl mb-1">{nameParts}</h3>
-            {nameRest && <h3 className="text-white font-bold text-xl mb-2">{nameRest}</h3>}
-            <p className="text-sm italic mb-4" style={{ color: "#e8a0b4" }}>
+            <h3 className="font-bold text-xl mb-1" style={{ color: "#B8973B" }}>{nameParts}</h3>
+            {nameRest && <h3 className="font-bold text-xl mb-2" style={{ color: "#B8973B" }}>{nameRest}</h3>}
+            <p className="text-sm italic mb-4" style={{ color: "var(--prem-dark-muted)" }}>
               {data.specialty}
             </p>
-            <p className="text-sm leading-relaxed mb-5" style={{ color: "#7a6570" }}>
+            <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
               {data.description}
             </p>
 
@@ -71,9 +84,9 @@ export function Footer({ data }: { data: FooterData }) {
                   rel="noopener noreferrer"
                   aria-label="WhatsApp"
                   className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                  style={{ backgroundColor: "#5c1f35" }}
+                  style={{ backgroundColor: "var(--prem-dark-border)" }}
                 >
-                  <MessageCircle size={18} color="#e8a0b4" />
+                  <MessageCircle size={18} color="var(--prem-dark-muted)" />
                 </a>
               )}
               {data.facebookUrl && (
@@ -83,9 +96,9 @@ export function Footer({ data }: { data: FooterData }) {
                   rel="noopener noreferrer"
                   aria-label="Facebook"
                   className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                  style={{ backgroundColor: "#5c1f35" }}
+                  style={{ backgroundColor: "var(--prem-dark-border)" }}
                 >
-                  <Facebook size={18} color="#e8a0b4" />
+                  <Facebook size={18} color="var(--prem-dark-muted)" />
                 </a>
               )}
               {data.instagramUrl && (
@@ -95,9 +108,9 @@ export function Footer({ data }: { data: FooterData }) {
                   rel="noopener noreferrer"
                   aria-label="Instagram"
                   className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
-                  style={{ backgroundColor: "#5c1f35" }}
+                  style={{ backgroundColor: "var(--prem-dark-border)" }}
                 >
-                  <Instagram size={18} color="#e8a0b4" />
+                  <Instagram size={18} color="var(--prem-dark-muted)" />
                 </a>
               )}
             </div>
@@ -112,12 +125,12 @@ export function Footer({ data }: { data: FooterData }) {
       </div>
 
       {/* Bottom bar */}
-      <div className="border-t px-6 py-8" style={{ borderColor: "#3a0f20" }}>
+      <div className="border-t px-6 py-8" style={{ borderColor: "oklch(16% 0.01 52)" }}>
         <div className="container-xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs" style={{ color: "#7a6570" }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
             {data.copyrightText}
           </p>
-          <p className="text-xs" style={{ color: "#7a6570" }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
             {data.designedByText}
           </p>
         </div>

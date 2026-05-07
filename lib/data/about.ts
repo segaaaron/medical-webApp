@@ -57,17 +57,17 @@ function mapAbout(raw: any): AboutData {
   }
 
   const features: BioSection = {
-    chooseUs: raw.whyChooseUsLabel || FEATURES_FALLBACK.chooseUs,
-    title: raw.whyChooseUsTitle || FEATURES_FALLBACK.title,
-    description: raw.whyChooseUsDescription || FEATURES_FALLBACK.description,
-    card1Title: raw.feature1Title || FEATURES_FALLBACK.card1Title,
-    card1Description: raw.feature1Description || FEATURES_FALLBACK.card1Description,
-    card2Title: raw.feature2Title || FEATURES_FALLBACK.card2Title,
-    card2Description: raw.feature2Description || FEATURES_FALLBACK.card2Description,
-    card3Title: raw.feature3Title || FEATURES_FALLBACK.card3Title,
-    card3Description: raw.feature3Description || FEATURES_FALLBACK.card3Description,
-    card4Title: raw.feature4Title || FEATURES_FALLBACK.card4Title,
-    card4Description: raw.feature4Description || FEATURES_FALLBACK.card4Description,
+    chooseUs: raw.whyChooseUsLabel?.trim() || FEATURES_FALLBACK.chooseUs,
+    title: raw.whyChooseUsTitle?.trim() || FEATURES_FALLBACK.title,
+    description: raw.whyChooseUsDescription?.trim() || FEATURES_FALLBACK.description,
+    card1Title: raw.feature1Title?.trim() || FEATURES_FALLBACK.card1Title,
+    card1Description: raw.feature1Description?.trim() || FEATURES_FALLBACK.card1Description,
+    card2Title: raw.feature2Title?.trim() || FEATURES_FALLBACK.card2Title,
+    card2Description: raw.feature2Description?.trim() || FEATURES_FALLBACK.card2Description,
+    card3Title: raw.feature3Title?.trim() || FEATURES_FALLBACK.card3Title,
+    card3Description: raw.feature3Description?.trim() || FEATURES_FALLBACK.card3Description,
+    card4Title: raw.feature4Title?.trim() || FEATURES_FALLBACK.card4Title,
+    card4Description: raw.feature4Description?.trim() || FEATURES_FALLBACK.card4Description,
   }
 
   return { bio, features }

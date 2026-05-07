@@ -24,7 +24,7 @@ export function StickyBackButton() {
       href="/blog"
       className="fixed top-20 left-4 z-40 inline-flex items-center gap-2 py-2 px-4 rounded-full text-sm font-medium backdrop-blur-sm bg-white/80 shadow-md border border-gray-100 transition-all duration-300"
       style={{
-        color: "#b5496a",
+        color: "#B8973B",
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? "auto" : "none",
         transform: visible ? "translateX(0)" : "translateX(-1rem)",

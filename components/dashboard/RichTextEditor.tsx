@@ -34,7 +34,7 @@ interface RichTextEditorProps {
 }
 
 const BTN = "p-1.5 rounded hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-const BTN_ACTIVE = "bg-[#b5496a]/10 text-[#b5496a]"
+const BTN_ACTIVE = "bg-[#B8973B]/10 text-[#B8973B]"
 const SEP = <div className="w-px h-5 bg-gray-200 mx-0.5 shrink-0" />
 
 const TEXT_COLORS = [
@@ -131,7 +131,7 @@ export default function RichTextEditor({
       }),
       LinkExt.configure({
         openOnClick: false,
-        HTMLAttributes: { class: "text-[#b5496a] underline" },
+        HTMLAttributes: { class: "text-[#8A6E27] underline" },
       }),
       Placeholder.configure({ placeholder }),
       TextStyle,

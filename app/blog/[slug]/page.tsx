@@ -5,6 +5,9 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
 import { staticBlogPosts, type StaticBlogPost } from "@/lib/data/blog-posts"
+import { BlogCard } from "@/components/blog/BlogCard"
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
+import { ReadingProgressBar } from "@/components/ui/ReadingProgressBar"
 import { Calendar, Clock, ArrowLeft } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -143,6 +146,7 @@ export default async function BlogPostPage({ params }: Props) {
   return (
     <>
       <Navbar links={c.navLinks} />
+      <ReadingProgressBar />
       <main>
         <script
           type="application/ld+json"
@@ -153,36 +157,39 @@ export default async function BlogPostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
         />
 
-        {/* Back link */}
-        <div className="max-w-3xl mx-auto px-6 pt-6">
-          <Link
-            href="/blog"
-            aria-label="Volver al listado del blog"
-            className="inline-flex items-center gap-2 text-xs font-medium hover:opacity-80 transition-opacity"
-            style={{ color: "#b5496a" }}
-          >
-            <ArrowLeft size={14} aria-hidden="true" /> Volver al blog
-          </Link>
-        </div>
-
         {/* Article content */}
-        <article className="py-8 px-6" style={{ backgroundColor: "#fff" }}>
+        <article className="py-8 px-6" style={{ backgroundColor: "#F8F0E3" }}>
           <div className="max-w-3xl mx-auto">
 
+            {/* Back link */}
+            <div className="mb-6">
+              <Link
+                href="/blog"
+                aria-label="Volver al listado del blog"
+                className="inline-flex items-center gap-2 text-xs font-medium hover:opacity-80 transition-opacity py-2 -my-2"
+                style={{ color: "#B8973B", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.08em" }}
+              >
+                <ArrowLeft size={14} aria-hidden="true" /> VOLVER AL BLOG
+              </Link>
+            </div>
+
             {/* Title */}
-            <h1 className="text-2xl md:text-4xl font-bold leading-tight mb-4" style={{ color: "#3a0f20" }}>
+            <h1
+              className="text-3xl md:text-5xl font-light leading-tight mb-4"
+              style={{ color: "#3a0f20", fontFamily: "var(--font-display, Georgia, serif)", letterSpacing: "-0.02em" }}
+            >
               {post.title}
             </h1>
 
             {/* Meta info */}
             <div
               className="flex flex-wrap items-center gap-4 pb-6 mb-6 border-b"
-              style={{ borderColor: "#f0e0e6" }}
+              style={{ borderColor: "rgba(184,151,59,0.2)" }}
             >
               <span className="text-sm font-medium" style={{ color: "#3a0f20" }}>
                 {post.author}
               </span>
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: "#b5496a" }}>
+              <span className="flex items-center gap-1.5 text-sm" style={{ color: "#B8973B" }}>
                 <Calendar size={14} />
                 {new Date(post.publishedAt).toLocaleDateString("es-BO", {
                   day: "2-digit",
@@ -190,23 +197,23 @@ export default async function BlogPostPage({ params }: Props) {
                   year: "numeric",
                 })}
               </span>
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: "#b5496a" }}>
+              <span className="flex items-center gap-1.5 text-sm" style={{ color: "#B8973B" }}>
                 <Clock size={14} />
                 {post.readTime} de lectura
               </span>
             </div>
 
             {/* Cover image */}
-            {post.imageUrl && (
-              <div className="w-full rounded-2xl overflow-hidden mb-8" style={{ backgroundColor: "#f5edf0" }}>
-                <img
-                  src={post.imageUrl}
-                  alt={post.title}
-                  className="w-full h-auto block"
-                  loading="eager"
-                />
-              </div>
-            )}
+            <div className="w-full rounded-2xl overflow-hidden mb-8" style={{ minHeight: "240px", backgroundColor: "#F8F0E3" }}>
+              <ImageWithFallback
+                src={post.imageUrl ?? ""}
+                alt={post.title}
+                variant="light"
+                className="w-full h-auto block"
+                style={{ width: "100%", display: "block", minHeight: "240px", objectFit: "cover" }}
+                loading="eager"
+              />
+            </div>
 
             {/* Content */}
             <div
@@ -218,41 +225,25 @@ export default async function BlogPostPage({ params }: Props) {
 
         {/* Related posts */}
         {related.length > 0 && (
-          <section className="py-16 px-6" style={{ backgroundColor: "#faf5f7" }} aria-label="Artículos relacionados">
+          <section className="py-16 px-6" style={{ backgroundColor: "#F8F0E3" }} aria-label="Artículos relacionados">
             <div className="max-w-3xl mx-auto">
               <h2 className="text-xl font-bold mb-8" style={{ color: "#3a0f20" }}>
                 Articulos relacionados
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {related.map((r) => (
-                  <Link
+                  <BlogCard
                     key={r.id}
-                    href={`/blog/${r.slug}`}
-                    className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    {r.imageUrl && (
-                      <div className="w-full h-40 overflow-hidden">
-                        <img
-                          src={r.imageUrl}
-                          alt={`${r.title} - Blog`}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </div>
-                    )}
-                    <div className="p-5">
-                      <h3
-                        className="font-bold text-base mb-2 leading-tight"
-                        style={{ color: "#3a0f20" }}
-                      >
-                        {r.title}
-                      </h3>
-                      <p className="text-sm line-clamp-2" style={{ color: "#7a6570" }}>
-                        {r.excerpt}
-                      </p>
-                    </div>
-                  </Link>
+                    id={r.id}
+                    title={r.title}
+                    slug={r.slug}
+                    excerpt={r.excerpt}
+                    imageUrl={r.imageUrl}
+                    publishedAt={r.publishedAt}
+                    readTime={r.readTime}
+                    tags={r.tags}
+                    variant="grid"
+                  />
                 ))}
               </div>
             </div>

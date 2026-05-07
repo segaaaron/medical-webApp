@@ -9,7 +9,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastProvider>
-    <div className="bg-gray-50 min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: "#F8F4EF" }}>
       {/* Sidebar — always fixed */}
       {sidebarOpen && (
         <div
@@ -31,15 +31,16 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       {/* Main content — offset by sidebar width on desktop */}
       <div className="lg:ml-56 flex flex-col min-h-screen">
         {/* Mobile top bar */}
-        <header className="flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 lg:hidden sticky top-0 z-10">
+        <header className="flex items-center gap-3 px-4 py-3 lg:hidden sticky top-0 z-10" style={{ backgroundColor: "#1a0510", borderBottom: "1px solid rgba(184,151,59,0.2)" }}>
           <button
             onClick={() => setSidebarOpen(true)}
             aria-label="Abrir menú"
-            className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: "#B8973B" }}
           >
             <Menu size={20} />
           </button>
-          <span className="text-sm font-semibold text-gray-800">Dashboard</span>
+          <span className="text-sm font-semibold" style={{ color: "#B8973B" }}>Dashboard</span>
         </header>
 
         <main className="flex-1">
