@@ -41,7 +41,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         <video
           className="w-full h-full object-cover"
           style={{ height: "130%" }}
-          autoPlay muted loop playsInline preload="metadata"
+          autoPlay muted loop playsInline preload="auto"
           aria-hidden="true"
           poster="/images/hero-poster.jpg"
         >

@@ -210,6 +210,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        {/* Preload hero video — starts fetching before component hydrates */}
+        <link rel="preload" as="video" href="/videos/hero.mp4" type="video/mp4" />
+
         {/* Preconnect to external origins for performance */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />

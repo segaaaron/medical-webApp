@@ -289,7 +289,7 @@ export default function PromocionesPage() {
             {imagePreview && (
               <div className="w-40 h-40 rounded-lg overflow-hidden border border-gray-200">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imagePreview} alt="Vista previa" className="w-full h-full object-cover" />
+                <img src={imagePreview} alt="Vista previa" className="w-full h-full object-cover" width={160} height={160} />
               </div>
             )}
             <div className="flex flex-col gap-2">

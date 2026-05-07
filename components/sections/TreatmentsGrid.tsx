@@ -92,10 +92,10 @@ function PosterCard({
             src={treatment.imageUrl!}
             alt={`${treatment.name} — Dra. Yasmin Medrano Avila`}
             variant="dark"
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             objectPosition="center top"
             loading="lazy"
-            decoding="async"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
           <div style={{ width: "100%", height: "100%", background: "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)" }} />

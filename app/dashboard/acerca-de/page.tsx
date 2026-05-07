@@ -243,6 +243,8 @@ export default function AcercaDeDashboardPage() {
                   src={imagePreview}
                   alt="Vista previa"
                   className="w-full h-full object-cover"
+                  width={128}
+                  height={128}
                 />
               </div>
             )}

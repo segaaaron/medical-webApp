@@ -42,14 +42,15 @@ export function BlogCard({
         style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.12)" }}
       >
         <div className="grid md:grid-cols-2">
-          <div className="h-64 md:h-full overflow-hidden" style={{ minHeight: "256px" }}>
+          <div className="relative h-64 md:h-full overflow-hidden" style={{ minHeight: "256px" }}>
             <ImageWithFallback
               src={imageUrl ?? ""}
               alt={`${title} - Blog de medicina estetica`}
               variant="light"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
               loading="eager"
+              fill
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
           <div className="p-8 md:p-10 flex flex-col justify-center">
@@ -104,15 +105,15 @@ export function BlogCard({
       className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col"
       style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.12)" }}
     >
-      <div className="w-full h-48 overflow-hidden flex-shrink-0">
+      <div className="relative w-full h-48 overflow-hidden flex-shrink-0">
         <ImageWithFallback
           src={imageUrl ?? ""}
           alt={`${title} - Blog de medicina estetica`}
           variant="light"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
-          decoding="async"
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
       </div>
       <div className="p-6 flex flex-col flex-1">

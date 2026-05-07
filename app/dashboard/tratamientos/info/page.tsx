@@ -259,6 +259,8 @@ export default function TratamientosInfoPage() {
                     src={imagePreview}
                     alt="Vista previa"
                     className="h-32 rounded-lg object-cover border border-gray-200"
+                    width={200}
+                    height={128}
                     onError={() => setImagePreview("")}
                   />
                   <button

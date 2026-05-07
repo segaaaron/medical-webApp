@@ -138,16 +138,16 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                 {sidebarBadge}
               </div>
               <div className="p-8 text-center">
-                <div className="w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "#3a0f20" }}>
+                <div className="relative w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "#3a0f20" }}>
                   <ImageWithFallback
                     src={doctorImage}
                     alt="Dra. Yasmin Medrano Avila - Agenda tu consulta de valoracion gratuita de medicina estetica"
                     variant="dark"
-                    className="w-full h-full object-cover"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    className="object-cover"
                     objectPosition="top"
                     loading="lazy"
-                    decoding="async"
+                    fill
+                    sizes="96px"
                   />
                 </div>
                 <h4 className="text-2xl font-bold text-white mb-2">{ctaTitle}</h4>

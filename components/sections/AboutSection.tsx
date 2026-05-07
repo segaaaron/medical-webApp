@@ -234,14 +234,10 @@ export function AboutSection({ bio }: AboutSectionProps) {
                 src={bio?.doctorImage || "/images/DraMedrano.jpeg"}
                 alt="Dra. Yasmin Medrano Avila — Médica especialista en medicina estética"
                 variant="light"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                }}
                 objectPosition="top"
                 loading="eager"
+                fill
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
 
               {/* Corner accent — bottom right */}

@@ -1,4 +1,5 @@
 "use client"
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { Badge } from "@/components/ui/Badge"
@@ -8,12 +9,12 @@ import type { PresetCategory } from "@/types"
 
 // Images for each treatment category
 const TREATMENT_IMAGES = [
-  "/images/draMedrano4.jpeg",                                                  // Tratamientos faciales — inyección facial
-  "/images/draMedrano3.jpeg",                                                  // Medicina regenerativa — tratamiento en paciente
-  "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=400&q=80", // Corporales
-  "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=400&q=80", // Depilación láser
-  "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=400&q=80", // Hidratación
-  "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=400&q=80", // Estrías
+  "/images/draMedrano4.jpeg",                                                        // Tratamientos faciales
+  "/images/draMedrano3.jpeg",                                                        // Medicina regenerativa
+  "https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=800&q=85",       // Corporales
+  "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=800&q=85",       // Depilación láser
+  "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=85",       // Hidratación
+  "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=85",       // Estrías
 ]
 
 interface PresetsSectionProps {
@@ -50,15 +51,14 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
               className="rounded-xl overflow-hidden hover:scale-105 transition-transform cursor-pointer"
               style={{ backgroundColor: "#3a0f20" }}
             >
-              <div className="w-full h-44 overflow-hidden">
-                <img
+              <div className="relative w-full h-44 overflow-hidden">
+                <Image
                   src={TREATMENT_IMAGES[i % TREATMENT_IMAGES.length]}
                   alt={`${preset.name} - Tratamiento de medicina estetica con la Dra. Yasmin Medrano Avila`}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover"
                   loading="lazy"
-                  decoding="async"
-                  width={400}
-                  height={176}
                 />
               </div>
               <div className="p-5">

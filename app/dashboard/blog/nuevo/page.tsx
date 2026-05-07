@@ -113,6 +113,8 @@ export default function NuevoBlogPage() {
                       src={imagePreview}
                       alt="Vista previa"
                       className="w-full h-48 object-cover"
+                      width={800}
+                      height={192}
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                       <label
