@@ -23,9 +23,6 @@ const nextConfig = {
       },
     ];
   },
-  ...(process.env.NODE_ENV === "production" && {
-    outputFileTracingRoot: "/app",
-  }),
   images: {
     remotePatterns: [
       {
