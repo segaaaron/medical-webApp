@@ -45,39 +45,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter((t) => t.active)
     .map((t) => ({
       url: `${BASE_URL}/tratamientos/${t.id}`,
-      lastModified: new Date(),
+      lastModified: new Date("2026-01-01"),
       changeFrequency: "monthly" as const,
       priority: 0.8,
     }))
 
+  const SITE_LAUNCH = new Date("2024-01-01")
+
   return [
     {
       url: BASE_URL,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "monthly",
       priority: 1,
     },
     {
       url: `${BASE_URL}/tratamientos`,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
       url: `${BASE_URL}/nosotros`,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "yearly",
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/blog`,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/contacto`,
-      lastModified: new Date(),
+      lastModified: SITE_LAUNCH,
       changeFrequency: "yearly",
       priority: 0.8,
     },

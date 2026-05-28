@@ -1,6 +1,7 @@
 "use client"
 
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion"
+import { m, useReducedMotion, useScroll, useTransform } from "framer-motion"
+import { useState, useEffect } from "react"
 import { LinkButton } from "@/components/ui/Button"
 import { StatCard } from "@/components/ui/StatCard"
 import type { HeroStat, HeroCTA } from "@/types"
@@ -30,13 +31,21 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
 
   const { scrollY } = useScroll()
   const videoY = useTransform(scrollY, [0, 600], ["0%", "30%"])
+  const [isDesktop, setIsDesktop] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)")
+    setIsDesktop(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener("change", handler)
+    return () => mq.removeEventListener("change", handler)
+  }, [])
 
   return (
     <section className="gradient-hero relative flex flex-col items-center justify-center overflow-hidden" style={{ minHeight: "100svh", marginTop: "-70px", paddingTop: "70px" }}>
-      {/* Video background with parallax */}
-      <motion.div
+      {/* Video background with parallax (desktop only — avoids reflow on mobile) */}
+      <m.div
         className="absolute inset-0 z-0 overflow-hidden"
-        style={{ y: prefersReduced ? 0 : videoY }}
+        style={{ y: (prefersReduced || !isDesktop) ? 0 : videoY, willChange: "transform" }}
       >
         <video
           className="w-full h-full object-cover"
@@ -45,9 +54,10 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           aria-hidden="true"
           poster="/images/hero-poster.jpg"
         >
+          <source src="/videos/hero.webm" type="video/webm" />
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
-      </motion.div>
+      </m.div>
 
       {/* Light leaks */}
       <div className="hero__leak1 z-[1]" aria-hidden="true" />
@@ -61,7 +71,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
       {/* Content */}
       <div className="relative z-[10] text-center text-white px-6 max-w-5xl mx-auto py-20">
         {/* Eyebrow tagline */}
-        <motion.p
+        <m.p
           initial={prefersReduced ? false : { opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
@@ -69,7 +79,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           style={{ color: "#e8a0b4" }}
         >
           {tagline}
-        </motion.p>
+        </m.p>
 
         {/* Doctor name — letter assembly from sides */}
         <h1
@@ -88,7 +98,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
                     ? Math.max(-600, dist * 48)
                     : Math.min(600, dist * 48)
                   return (
-                    <motion.span
+                    <m.span
                       key={charIdx}
                       style={{ display: "inline-block" }}
                       initial={prefersReduced ? false : { x: xStart, opacity: 0 }}
@@ -100,7 +110,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
                       }}
                     >
                       {char}
-                    </motion.span>
+                    </m.span>
                   )
                 })}
               </span>
@@ -116,7 +126,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         >
           {specialty.split(" ").map((word, i) => (
             <span key={i} style={{ overflow: "hidden", display: "inline-block" }}>
-              <motion.span
+              <m.span
                 aria-hidden="true"
                 style={{ display: "inline-block" }}
                 initial={prefersReduced ? false : { y: "110%", opacity: 0 }}
@@ -124,13 +134,13 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
                 transition={{ duration: 0.6, delay: titleDuration + i * 0.07, ease: EASE_OUT_EXPO }}
               >
                 {word}
-              </motion.span>
+              </m.span>
             </span>
           ))}
         </p>
 
         {/* Gold divider */}
-        <motion.div
+        <m.div
           initial={prefersReduced ? false : { opacity: 0, scaleX: 0 }}
           animate={{ opacity: 1, scaleX: 1 }}
           transition={{ duration: 0.6, delay: subtitleDuration + 0.05, ease: EASE_OUT_EXPO }}
@@ -139,7 +149,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         />
 
         {/* Description */}
-        <motion.p
+        <m.p
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: subtitleDuration + 0.2 }}
@@ -147,10 +157,10 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           style={{ color: "#fce4ec" }}
         >
           {description}
-        </motion.p>
+        </m.p>
 
         {/* CTAs */}
-        <motion.div
+        <m.div
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: subtitleDuration + 0.45 }}
@@ -166,37 +176,37 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
               {cta.label}
             </LinkButton>
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Stats */}
-        <motion.div
+        <m.div
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: subtitleDuration + 0.75 }}
           className="mt-16 flex flex-col md:flex-row gap-8 justify-center items-center"
         >
           {stats.map((stat, i) => (
-            <motion.div
+            <m.div
               key={stat.label}
               initial={prefersReduced ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: subtitleDuration + 0.75 + i * 0.1, ease: EASE_OUT_EXPO }}
             >
               <StatCard value={stat.value} label={stat.label} light />
-            </motion.div>
+            </m.div>
           ))}
-        </motion.div>
+        </m.div>
       </div>
 
       {/* Scroll indicator */}
-      <motion.div
+      <m.div
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[10] flex flex-col items-center gap-2"
         animate={prefersReduced ? {} : { y: [0, 8, 0] }}
         transition={{ duration: 1.5, repeat: 4, repeatType: "reverse" }}
       >
         <span className="text-xs uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.5)" }}>Descubre más</span>
         <div className="w-px h-8" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)" }} />
-      </motion.div>
+      </m.div>
     </section>
   )
 }

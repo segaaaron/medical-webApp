@@ -1,6 +1,6 @@
 "use client"
 import { useRef, useState, useEffect } from "react"
-import { motion, useSpring, useReducedMotion } from "framer-motion"
+import { m, useSpring, useReducedMotion } from "framer-motion"
 
 interface TiltCardProps {
   children: React.ReactNode
@@ -74,7 +74,7 @@ export function TiltCard({
   }
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       className={className}
       style={{
@@ -110,6 +110,6 @@ export function TiltCard({
       <div style={{ position: "relative", zIndex: 2 }}>
         {children}
       </div>
-    </motion.div>
+    </m.div>
   )
 }

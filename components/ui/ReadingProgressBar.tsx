@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
+import { m, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
 
 export function ReadingProgressBar() {
   const prefersReduced = useReducedMotion()
@@ -31,7 +31,7 @@ export function ReadingProgressBar() {
       style={{ top: "env(safe-area-inset-top, 0px)", height: "3px", backgroundColor: "rgba(184,151,59,0.12)" }}
       aria-hidden="true"
     >
-      <motion.div
+      <m.div
         style={{
           height: "100%",
           backgroundColor: "#B8973B",

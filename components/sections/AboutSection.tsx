@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { motion, useInView, useReducedMotion } from "framer-motion"
+import { m, useInView, useReducedMotion } from "framer-motion"
 import type { BioDoc } from "@/types/about"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 
@@ -68,7 +68,7 @@ function Cred({ value, label, prefersReduced }: CredProps) {
       </p>
       {/* Animated underline that grows after counter finishes */}
       {!prefersReduced && (
-        <motion.div
+        <m.div
           initial={{ scaleX: 0 }}
           animate={inView ? { scaleX: 1 } : { scaleX: 0 }}
           transition={{ duration: 0.4, delay: 2.1, ease: [0.16, 1, 0.3, 1] }}
@@ -117,7 +117,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
           className="about-grid"
         >
           {/* Left — text */}
-          <motion.div
+          <m.div
             initial={prefersReduced ? false : { opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -196,10 +196,10 @@ export function AboutSection({ bio }: AboutSectionProps) {
                 ) : null
               )}
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Right — portrait */}
-          <motion.div
+          <m.div
             initial={prefersReduced ? false : { opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -283,7 +283,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
             >
               Dra. Yasmin Medrano — Médica Especialista
             </p>
-          </motion.div>
+          </m.div>
         </div>
       </div>
 

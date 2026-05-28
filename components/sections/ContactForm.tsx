@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Send } from "lucide-react"
 import { WHATSAPP_NUMBER } from "@/lib/constants"
 
@@ -53,7 +53,7 @@ export function ContactForm() {
 
   if (sent) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
@@ -62,7 +62,7 @@ export function ContactForm() {
         {/* Drawn-circle check animation */}
         <div className="relative w-16 h-16" aria-hidden="true">
           <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
-            <motion.circle
+            <m.circle
               cx="32" cy="32" r="22"
               stroke={GOLD} strokeWidth="2"
               fill="rgba(184,151,59,0.08)"
@@ -72,7 +72,7 @@ export function ContactForm() {
               transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
               style={{ transformOrigin: "32px 32px", rotate: "-90deg" } as React.CSSProperties}
             />
-            <motion.path
+            <m.path
               d="M21 32 L28 39 L43 25"
               stroke={GOLD} strokeWidth="2.5"
               strokeLinecap="round" strokeLinejoin="round"
@@ -96,12 +96,12 @@ export function ContactForm() {
         >
           Enviar otro mensaje
         </button>
-      </motion.div>
+      </m.div>
     )
   }
 
   return (
-    <motion.form
+    <m.form
       onSubmit={handleSubmit}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -180,6 +180,6 @@ export function ContactForm() {
       <p className="text-xs text-center" style={{ color: "#7a6570" }}>
         Al enviar serás redirigida a WhatsApp para completar tu consulta.
       </p>
-    </motion.form>
+    </m.form>
   )
 }

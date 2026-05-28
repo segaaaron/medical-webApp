@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef } from "react"
-import { motion, useInView, useReducedMotion } from "framer-motion"
+import { m, useInView, useReducedMotion } from "framer-motion"
 
 interface AnimatedTitleProps {
   text: string
@@ -46,7 +46,7 @@ export function AnimatedTitle({
           key={word + index}
           style={{ overflow: "hidden", display: "inline-block", marginRight: "0.25em" }}
         >
-          <motion.span
+          <m.span
             style={{ display: "inline-block" }}
             initial={{ y: "110%" }}
             animate={inView ? { y: 0 } : { y: "110%" }}
@@ -57,7 +57,7 @@ export function AnimatedTitle({
             }}
           >
             {word}
-          </motion.span>
+          </m.span>
         </span>
       ))}
     </Tag>

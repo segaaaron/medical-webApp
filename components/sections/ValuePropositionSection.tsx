@@ -1,5 +1,5 @@
 "use client"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { Eye, Zap, Award, TrendingUp } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { TiltCard } from "@/components/ui/TiltCard"
@@ -24,7 +24,7 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div>
                 <TiltCard className="rounded-xl" glowColor="#B8973B">
-                  <motion.div
+                  <m.div
                     key="card-eye-1"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -47,13 +47,13 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card1Description ?? ""}
                     </p>
-                  </motion.div>
+                  </m.div>
                 </TiltCard>
               </div>
 
               <div>
                 <TiltCard className="rounded-xl" glowColor="#B8973B">
-                  <motion.div
+                  <m.div
                     key="card-Zap-2"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -76,13 +76,13 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card2Description ?? ""}
                     </p>
-                  </motion.div>
+                  </m.div>
                 </TiltCard>
               </div>
 
               <div>
                 <TiltCard className="rounded-xl" glowColor="#B8973B">
-                  <motion.div
+                  <m.div
                     key="card-Award-3"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -105,13 +105,13 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card3Description ?? ""}
                     </p>
-                  </motion.div>
+                  </m.div>
                 </TiltCard>
               </div>
 
               <div>
                 <TiltCard className="rounded-xl" glowColor="#B8973B">
-                  <motion.div
+                  <m.div
                     key="card-TrendingUp-4"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -134,7 +134,7 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                     <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
                       {features?.card4Description ?? ""}
                     </p>
-                  </motion.div>
+                  </m.div>
                 </TiltCard>
               </div>
         </div>

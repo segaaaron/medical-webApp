@@ -1,5 +1,5 @@
 "use client"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { CheckCircle, Play, FileText, Download, Sparkles } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
@@ -58,7 +58,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
   return (
     <section id="tratamientos" className="py-20 px-6" style={{ backgroundColor: "#3a0f20" }}>
       <div className="container-xl">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -70,11 +70,11 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
             subtitle={subtitle}
             light
           />
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
           {/* Included + Modules */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -116,10 +116,10 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                 ))}
               </ul>
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Consultation card */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -170,10 +170,10 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                 </p>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         </div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -183,7 +183,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
           <LinkButton href={WHATSAPP_URL} variant="warning" className="px-12">
             AGENDA TU CITA AHORA
           </LinkButton>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

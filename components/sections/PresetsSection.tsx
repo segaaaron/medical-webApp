@@ -1,6 +1,6 @@
 "use client"
 import Image from "next/image"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { Badge } from "@/components/ui/Badge"
 import { LinkButton } from "@/components/ui/Button"
@@ -26,7 +26,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
   return (
     <section id="servicios" className="py-20 px-6" style={{ backgroundColor: "#5c1f35" }}>
       <div className="container-xl">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -38,11 +38,11 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
             subtitle={`Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:#B8973B;font-weight:600;">resultados visibles y duraderos</span>.`}
             light
           />
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {presets.map((preset, i) => (
-            <motion.div
+            <m.div
               key={preset.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -70,11 +70,11 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
                   {preset.description}
                 </p>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -84,7 +84,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12">
             CONSULTAR TRATAMIENTO
           </LinkButton>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

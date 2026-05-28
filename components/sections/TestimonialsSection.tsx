@@ -1,5 +1,5 @@
 "use client"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { Star } from "lucide-react"
 
@@ -56,7 +56,7 @@ export function TestimonialsSection() {
   return (
     <section className="py-20 px-6" style={{ backgroundColor: "var(--prem-dark)" }}>
       <div className="container-xl">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -68,11 +68,11 @@ export function TestimonialsSection() {
             subtitle={`Más de <span style="color:#B8973B;font-weight:700;">5,000 pacientes satisfechas</span> avalan nuestro trabajo. La confianza de cada una es nuestra mayor motivación.`}
             light
           />
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {TESTIMONIALS.map((t, i) => (
-            <motion.div
+            <m.div
               key={t.name}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -140,12 +140,12 @@ export function TestimonialsSection() {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 
         {/* Rating badge */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -180,7 +180,7 @@ export function TestimonialsSection() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

@@ -51,7 +51,14 @@
       "Bash(xargs ls -la)",
       "mcp__plugin_socraticode_socraticode__codebase_index",
       "mcp__plugin_socraticode_socraticode__codebase_graph_circular",
-      "mcp__plugin_socraticode_socraticode__codebase_graph_query"
+      "mcp__plugin_socraticode_socraticode__codebase_graph_query",
+      "Bash(ffmpeg -version)",
+      "Bash(brew install *)",
+      "Bash(/opt/homebrew/bin/ffmpeg -version)",
+      "Bash(/usr/local/bin/ffmpeg -version)",
+      "Bash(/opt/homebrew/bin/ffmpeg -i /Users/miguelangelsaraviabelmonte/medical-webApp/public/videos/hero.mp4 -c:v libx264 -crf 28 -preset fast -an -movflags +faststart -vf scale=1920:-2 /Users/miguelangelsaraviabelmonte/medical-webApp/public/videos/hero-opt.mp4 -y)",
+      "Bash(/opt/homebrew/bin/ffmpeg -i /Users/miguelangelsaraviabelmonte/medical-webApp/public/videos/hero.mp4 -c:v libvpx-vp9 -crf 38 -b:v 0 -an -vf scale=1280:-2 /Users/miguelangelsaraviabelmonte/medical-webApp/public/videos/hero.webm -y)",
+      "Bash(/opt/homebrew/bin/ffmpeg -i /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/hero-poster.jpg -q:v 5 /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/hero-poster-opt.jpg -y)"
     ]
   }
 }

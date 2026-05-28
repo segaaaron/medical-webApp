@@ -4,24 +4,25 @@ import { getPromoData } from "@/lib/data/promo"
 import { getAboutData } from "@/lib/data/about"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
+import dynamic from "next/dynamic"
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 import { PromoBanner } from "@/components/layout/PromoBanner"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 
-// ─── Sections ─────────────────────────────────────────────────────────────────
+// ─── Above-fold sections (eager) ──────────────────────────────────────────────
 import { HeroSectionFallback } from "@/components/sections/HeroSection"
-import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
-import { ServiceSection, TreatmentsPageInfo } from "@/components/sections/CourseSection"
-import { PresetsSection } from "@/components/sections/PresetsSection"
-import { FreeResourcesSection } from "@/components/sections/FreeResourcesSection"
 import { AboutSection } from "@/components/sections/AboutSection"
-import { FAQSection } from "@/components/sections/FAQSection"
-import { TestimonialsSection } from "@/components/sections/TestimonialsSection"
-import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
-import { HeroCTA } from "@/types"
 import { HomeSection } from "@/components/sections/HomeSection"
+import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
+import { HeroCTA } from "@/types"
+
+// ─── Below-fold sections (lazy — split JS chunk, still SSR'd) ─────────────────
+const ServiceSection = dynamic(() => import("@/components/sections/CourseSection").then(m => ({ default: m.ServiceSection })))
+const ValuePropositionSection = dynamic(() => import("@/components/sections/ValuePropositionSection").then(m => ({ default: m.ValuePropositionSection })))
+const TreatmentsGrid = dynamic(() => import("@/components/sections/TreatmentsGrid").then(m => ({ default: m.TreatmentsGrid })))
+const FAQSection = dynamic(() => import("@/components/sections/FAQSection").then(m => ({ default: m.FAQSection })))
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -67,15 +68,17 @@ interface BackendTreatment {
   active: boolean
 }
 
+export const revalidate = 300 // 5 min ISR
+
 export default async function HomePage() {
-  const [homeData, homeServiceData ,footerData, promoData, aboutData, treatment, infoResult] = await Promise.all([
+  const [homeData, homeServiceData, footerData, promoData, aboutData, treatment, infoResult] = await Promise.all([
     getHomeData(),
     getHomeDataService(),
     getFooterData(),
     getPromoData(),
     getAboutData(),
-    backendFetch<BackendTreatment[]>("/treatments?active=true"),
-    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage"),
+    backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 60 }),
+    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 60 }),
   ])
 
   const faqJsonLd = buildFaqJsonLd(homeData.faqs)

@@ -1,5 +1,5 @@
 "use client"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import { Mail, Phone } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { Input } from "@/components/ui/Input"
@@ -17,7 +17,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
   return (
     <section id="recursos" className="py-20 px-6" style={{ backgroundColor: "#F8F0E3" }}>
       <div className="container-xl">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -28,11 +28,11 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
             title="Guías de Medicina Estética"
             subtitle={`Descarga nuestras guías gratuitas y prepárate para tu consulta.<br/><span style="color:#B8973B;font-weight:700;">Información confiable de tu especialista de confianza.</span>`}
           />
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* PDF list */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -57,10 +57,10 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
                 </div>
               </div>
             ))}
-          </motion.div>
+          </m.div>
 
           {/* Contact / email form */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -104,7 +104,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
                 </div>
               )}
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

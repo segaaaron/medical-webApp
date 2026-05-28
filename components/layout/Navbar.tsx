@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { Menu, X, Phone } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import type { NavLink } from "@/types"
 import { WHATSAPP_URL } from "@/lib/constants"
@@ -129,7 +129,7 @@ export function Navbar({ links }: NavbarProps) {
       {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -139,7 +139,7 @@ export function Navbar({ links }: NavbarProps) {
           >
             <ul className="flex flex-col py-4">
               {links.map((link, i) => (
-                <motion.li
+                <m.li
                   key={link.label}
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -157,9 +157,9 @@ export function Navbar({ links }: NavbarProps) {
                   >
                     {link.label}
                   </a>
-                </motion.li>
+                </m.li>
               ))}
-              <motion.li
+              <m.li
                 className="px-6 pt-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -183,9 +183,9 @@ export function Navbar({ links }: NavbarProps) {
                   <Phone size={14} />
                   Agendar Cita
                 </a>
-              </motion.li>
+              </m.li>
             </ul>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </nav>

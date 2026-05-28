@@ -1,7 +1,7 @@
 "use client"
 import DOMPurify from "isomorphic-dompurify"
 import { useState } from "react"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import type { FAQ } from "@/types"
@@ -25,7 +25,7 @@ function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps)
   const [hovered, setHovered] = useState(false)
 
   return (
-    <motion.div
+    <m.div
       initial={prefersReduced ? false : { opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -84,7 +84,7 @@ function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps)
             >
               {faq.question}
             </span>
-            <motion.span
+            <m.span
               animate={{ rotate: isOpen ? 180 : 0 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               style={{ flexShrink: 0 }}
@@ -93,12 +93,12 @@ function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps)
                 size={20}
                 style={{ color: isOpen ? GOLD : TERRACOTTA, transition: "color 0.2s" }}
               />
-            </motion.span>
+            </m.span>
           </button>
 
           <AnimatePresence initial={false}>
             {isOpen && (
-              <motion.div
+              <m.div
                 key="answer"
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
@@ -124,12 +124,12 @@ function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps)
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(faq.answer) }}
                   />
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 

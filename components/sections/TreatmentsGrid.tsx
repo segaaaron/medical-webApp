@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
@@ -239,16 +239,16 @@ function PosterCard({
 
   if (!isHome) {
     return (
-      <motion.div id={`treatment-${treatment.id}`} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: index * 0.08 }}>
+      <m.div id={`treatment-${treatment.id}`} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: index * 0.08 }}>
         <Link href={`/tratamientos/${treatment.id}`} style={cardStyle} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
           {inner}
         </Link>
-      </motion.div>
+      </m.div>
     )
   }
 
   return (
-    <motion.div
+    <m.div
       id={`treatment-${treatment.id}`}
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -260,7 +260,7 @@ function PosterCard({
       style={cardStyle}
     >
       {inner}
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -304,7 +304,7 @@ export function TreatmentsGrid({ treatments, isHome }: TreatmentsGridProps) {
           ))}
         </div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -314,7 +314,7 @@ export function TreatmentsGrid({ treatments, isHome }: TreatmentsGridProps) {
           <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12">
             AGENDA TU CONSULTA GRATUITA
           </LinkButton>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

@@ -4,25 +4,26 @@ import "./globals.css";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import { CustomCursorLoader } from "@/components/ui/CustomCursorLoader";
 import { safeJsonLd } from "@/lib/seo-utils";
+import { LazyMotion, domAnimation } from "framer-motion";
 
 const roboto = Roboto({
   variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["300", "400", "700"],
   display: "swap",
 });
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "700"],
   display: "swap",
 });
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "700"],
   style: ["normal", "italic"],
   display: "swap",
 });
@@ -30,14 +31,14 @@ const cormorant = Cormorant_Garamond({
 const sourceSerif = Source_Serif_4({
   variable: "--font-source-serif",
   subsets: ["latin"],
-  weight: ["300", "400", "600"],
+  weight: ["400", "600"],
   display: "swap",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400"],
   display: "swap",
 });
 
@@ -228,10 +229,12 @@ export default function RootLayout({
         />
       </head>
       <body className={`${roboto.variable} ${playfair.variable} ${cormorant.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
-        <SmoothScrollProvider>
-          <CustomCursorLoader />
-          {children}
-        </SmoothScrollProvider>
+        <LazyMotion features={domAnimation}>
+          <SmoothScrollProvider>
+            <CustomCursorLoader />
+            {children}
+          </SmoothScrollProvider>
+        </LazyMotion>
       </body>
     </html>
   );

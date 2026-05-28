@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import { usePathname } from "next/navigation"
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
@@ -11,7 +11,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
 
   return (
     <AnimatePresence mode="wait">
-      <motion.div
+      <m.div
         key={pathname}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -19,7 +19,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         transition={{ duration: 0.25, ease: "easeInOut" }}
       >
         {children}
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   )
 }

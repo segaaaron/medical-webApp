@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import Image from "next/image"
 
 interface ImageWithFallbackProps {
@@ -22,7 +22,7 @@ interface ImageWithFallbackProps {
 
 function LightFallback() {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -40,7 +40,7 @@ function LightFallback() {
       aria-hidden="true"
     >
       {/* Animated medical cross + sparkles ornament */}
-      <motion.svg
+      <m.svg
         width="56"
         height="56"
         viewBox="0 0 56 56"
@@ -61,7 +61,7 @@ function LightFallback() {
         <rect x="14" y="22" width="28" height="12" rx="3" stroke="#B8973B" strokeWidth="1" fill="none" />
 
         {/* Corner sparkles */}
-        <motion.g
+        <m.g
           animate={{ opacity: [0.4, 0.9, 0.4] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
         >
@@ -69,8 +69,8 @@ function LightFallback() {
           <line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#B8973B" strokeWidth="1.2" strokeLinecap="round" />
           <line x1="48" y1="43" x2="48" y2="48" stroke="#B8973B" strokeWidth="1.2" strokeLinecap="round" />
           <line x1="45.5" y1="45.5" x2="50.5" y2="45.5" stroke="#B8973B" strokeWidth="1.2" strokeLinecap="round" />
-        </motion.g>
-      </motion.svg>
+        </m.g>
+      </m.svg>
 
       <span
         style={{
@@ -83,13 +83,13 @@ function LightFallback() {
       >
         Imagen no disponible
       </span>
-    </motion.div>
+    </m.div>
   )
 }
 
 function DarkFallback() {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
@@ -103,7 +103,7 @@ function DarkFallback() {
       }}
       aria-hidden="true"
     >
-      <motion.svg
+      <m.svg
         width="52"
         height="52"
         viewBox="0 0 52 52"
@@ -117,8 +117,8 @@ function DarkFallback() {
         <rect x="20" y="12" width="12" height="28" rx="3" fill="#B8973B" />
         <rect x="12" y="20" width="28" height="12" rx="3" fill="#B8973B" />
         <rect x="20" y="12" width="12" height="28" rx="3" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0" />
-      </motion.svg>
-    </motion.div>
+      </m.svg>
+    </m.div>
   )
 }
 
@@ -159,15 +159,18 @@ export function ImageWithFallback({
     )
   }
 
+  // Non-fill: wrap in relative container so next/image fill can optimize it
   return (
-    <img
-      src={src}
-      alt={alt}
-      className={className}
-      style={{ objectPosition, ...style }}
-      loading={loading}
-      decoding={decoding}
-      onError={() => setFailed(true)}
-    />
+    <div className={className} style={{ position: "relative", overflow: "hidden", ...style }}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
+        style={{ objectFit: "cover", objectPosition }}
+        priority={loading === "eager"}
+        onError={() => setFailed(true)}
+      />
+    </div>
   )
 }

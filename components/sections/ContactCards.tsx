@@ -1,7 +1,7 @@
 "use client"
 
 import { MessageCircle, Phone, Instagram, Facebook } from "lucide-react"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 import type { ContactData } from "@/types/content"
 
 const CARD_STYLE: React.CSSProperties = {
@@ -76,7 +76,7 @@ export function ContactCards({ ct }: ContactCardsProps) {
 
         if (card.href) {
           return (
-            <motion.a
+            <m.a
               key={i}
               href={card.href}
               target="_blank"
@@ -88,7 +88,7 @@ export function ContactCards({ ct }: ContactCardsProps) {
               whileTap={{ scale: 0.98 }}
             >
               {inner}
-            </motion.a>
+            </m.a>
           )
         }
 

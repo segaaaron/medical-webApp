@@ -1,5 +1,5 @@
 "use client"
-import { motion } from "framer-motion"
+import { m } from "framer-motion"
 
 interface PageHeroProps {
   eyebrow: string
@@ -10,7 +10,7 @@ interface PageHeroProps {
 export function PageHero({ eyebrow, title, subtitle }: PageHeroProps) {
   return (
     <div className="py-16 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
-      <motion.p
+      <m.p
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -18,16 +18,16 @@ export function PageHero({ eyebrow, title, subtitle }: PageHeroProps) {
         style={{ color: "#e8a0b4" }}
       >
         {eyebrow}
-      </motion.p>
-      <motion.h1
+      </m.p>
+      <m.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
         className="text-4xl md:text-5xl font-bold text-white mb-4"
       >
         {title}
-      </motion.h1>
-      <motion.p
+      </m.h1>
+      <m.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
@@ -35,8 +35,8 @@ export function PageHero({ eyebrow, title, subtitle }: PageHeroProps) {
         style={{ color: "#fce4ec" }}
       >
         {subtitle}
-      </motion.p>
-      <motion.div
+      </m.p>
+      <m.div
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.6, delay: 0.35 }}

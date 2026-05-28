@@ -1,6 +1,6 @@
 "use client"
 
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 
 /**
  * Decorative ECG/heartbeat line that draws in on mount.
@@ -27,7 +27,7 @@ export function EcgHero() {
         style={{ width: "100%", height: "100%" }}
         xmlns="http://www.w3.org/2000/svg"
       >
-        <motion.path
+        <m.path
           d={path}
           fill="none"
           stroke="#B8973B"
@@ -42,7 +42,7 @@ export function EcgHero() {
           }}
         />
         {/* Glow dot at the end of the spike — CSS-only, no offsetPath, cross-browser safe */}
-        <motion.circle
+        <m.circle
           cx="190" cy="25" r="3"
           fill="#B8973B"
           initial={{ opacity: 0, scale: 0 }}

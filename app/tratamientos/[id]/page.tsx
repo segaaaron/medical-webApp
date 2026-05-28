@@ -168,15 +168,15 @@ export default async function TratamientoDetallePage({ params }: Props) {
 
             {/* Cover image */}
             <div
-              className="w-full rounded-2xl overflow-hidden mb-10 shadow-lg"
-              style={{ minHeight: "240px", backgroundColor: "#F8F0E3" }}
+              className="w-full rounded-2xl overflow-hidden mb-10 shadow-lg relative"
+              style={{ aspectRatio: "16/9", backgroundColor: "#F8F0E3" }}
             >
               <ImageWithFallback
                 src={treatment.imageUrl ?? ""}
                 alt={treatment.name}
                 variant="light"
-                className="w-full h-auto block"
-                style={{ width: "100%", display: "block", minHeight: "240px", objectFit: "cover" }}
+                fill
+                sizes="(max-width: 768px) 100vw, 800px"
                 loading="eager"
               />
             </div>

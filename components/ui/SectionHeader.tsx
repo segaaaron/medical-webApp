@@ -2,7 +2,7 @@
 
 import DOMPurify from "isomorphic-dompurify"
 import { clsx } from "clsx"
-import { motion, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import type { SectionHeaderProps } from "@/types"
 import { AnimatedTitle } from "./AnimatedTitle"
 
@@ -17,7 +17,7 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
       style={{ backgroundColor: "var(--prem-accent)" }}
     />
   ) : (
-    <motion.div
+    <m.div
       initial={{ scaleX: 0 }}
       whileInView={{ scaleX: 1 }}
       viewport={{ once: true }}
@@ -34,7 +34,7 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
       <line x1="96" y1="8" x2="160" y2="8" stroke="#B8973B" strokeWidth="1" opacity="0.6" />
     </svg>
   ) : (
-    <motion.svg
+    <m.svg
       width="160" height="16" viewBox="0 0 160 16"
       className="mx-auto my-8"
       aria-hidden="true"
@@ -43,29 +43,29 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
       viewport={{ once: true }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
     >
-      <motion.line
+      <m.line
         x1="80" y1="8" x2="80" y2="8"
         stroke="#B8973B" strokeWidth="1" opacity="0.6"
         animate={{ x1: 0, x2: 64 }}
         initial={{ x1: 80, x2: 80 }}
         transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       />
-      <motion.g
+      <m.g
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 0.9, scale: 1 }}
         transition={{ duration: 0.35, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
         style={{ transformOrigin: "80px 8px", transformBox: "fill-box" } as React.CSSProperties}
       >
         <polygon points="80,2 86,8 80,14 74,8" fill="#B8973B" />
-      </motion.g>
-      <motion.line
+      </m.g>
+      <m.line
         x1="80" y1="8" x2="80" y2="8"
         stroke="#B8973B" strokeWidth="1" opacity="0.6"
         animate={{ x1: 96, x2: 160 }}
         initial={{ x1: 80, x2: 80 }}
         transition={{ duration: 0.55, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       />
-    </motion.svg>
+    </m.svg>
   )
 
   return (
