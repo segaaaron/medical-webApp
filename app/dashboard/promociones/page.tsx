@@ -82,6 +82,7 @@ export default function PromocionesPage() {
       try {
         const fd = new FormData()
         Object.entries(values).forEach(([key, val]) => {
+          if (key === "imageUrl") return
           fd.append(key, String(val))
         })
         if (imageFile) {

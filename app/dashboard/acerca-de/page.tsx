@@ -122,13 +122,18 @@ export default function AcercaDeDashboardPage() {
         if (imageFile) {
           const fd = new FormData()
           fd.append("image", imageFile)
-          Object.entries(values).forEach(([key, val]) => fd.append(key, val))
+          Object.entries(values).forEach(([key, val]) => {
+            if (key === "imageUrl") return
+            fd.append(key, val)
+          })
           res = await guardedFetch("/api/about", { method: "PUT", body: fd })
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { imageUrl: _imageUrl, ...rest } = values
           res = await guardedFetch("/api/about", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(values),
+            body: JSON.stringify(rest),
           })
         }
 

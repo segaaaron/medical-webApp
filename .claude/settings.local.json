@@ -67,7 +67,8 @@
       "Bash(/opt/homebrew/bin/ffmpeg -i /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.png -c:v libwebp -quality 85 -lossless 0 /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.webp -y)",
       "Bash(sips -s format webp /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.png --out /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.webp)",
       "Bash(sips -s format jpeg -s formatOptions 80 /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.png --out /tmp/logo_test.jpg)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(xargs -I {} basename {})"
     ]
   }
 }
