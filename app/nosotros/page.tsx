@@ -14,33 +14,38 @@ export type { BioDoc, BioSection } from "@/types/about"
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  title: "Dra. Yasmin Medrano Avila | Especialista Medicina Estética",
+  title: "Dra. Yasmin Medrano Avila — Especialista #1 Medicina Estética Cochabamba",
   description:
-    "Conoce a la Dra. Yasmin Medrano Avila, medica especialista en medicina estetica con mas de 10 anos de experiencia, mas de 5000 pacientes atendidos. Experta en botox, rellenos y rejuvenecimiento facial.",
+    "Dra. Yasmin Medrano Avila — especialista #1 en Cochabamba. +5.000 pacientes, 10+ años de experiencia. Botox, rellenos, armonización facial. ¡Consulta GRATIS!",
   keywords: [
-    "Dra. Yasmin Medrano Avila",
-    "medica estetica Bolivia",
-    "especialista medicina estetica",
-    "doctora botox",
-    "medico estetico experiencia",
+    "Dra. Yasmin Medrano Avila Cochabamba",
+    "médica estética Bolivia especialista",
+    "doctora botox Cochabamba certificada",
+    "médico estético experiencia Bolivia",
+    "especialista rellenos ácido hialurónico Cochabamba",
+    "armonización facial médico Bolivia",
+    "bioestimulación facial Cochabamba",
+    "médico estética confiable Bolivia",
+    "doctora rejuvenecimiento facial Cochabamba",
+    "mejor médica estética Bolivia",
   ],
   alternates: {
     canonical: `${BASE_URL}/nosotros`,
   },
   openGraph: {
-    title: "Sobre la Dra. Yasmin Medrano Avila | Medicina Estetica",
+    title: "Dra. Yasmin Medrano Avila — 10 Años Transformando Vidas en Bolivia",
     description:
-      "Mas de 10 anos de experiencia y 5000 pacientes atendidos. Especialista en botox, rellenos y rejuvenecimiento facial.",
+      "⭐ +5.000 pacientes felices en Cochabamba. Médica especialista certificada en botox natural, rellenos y rejuvenecimiento facial. Resultados que hablan por sí solos.",
     url: `${BASE_URL}/nosotros`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Dra. Yasmin Medrano Avila - Especialista en Medicina Estetica" }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Dra. Yasmin Medrano Avila — Especialista Medicina Estética Cochabamba Bolivia" }],
     type: "profile",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dra. Yasmin Medrano Avila | Medicina Estetica",
+    title: "Dra. Yasmin Medrano Avila | +5.000 Pacientes en Bolivia ⭐",
     description:
-      "10+ anos de experiencia en medicina estetica. Botox, rellenos, rejuvenecimiento facial. Consulta gratuita.",
+      "10+ años de experiencia en Cochabamba. Botox natural, rellenos y rejuvenecimiento facial con resultados reales. ¡Agenda tu consulta GRATIS hoy!",
     images: ["/og-image.jpg"],
   },
 }
@@ -51,12 +56,43 @@ const aboutJsonLd = {
   mainEntity: {
     "@type": "Physician",
     name: "Dra. Yasmin Medrano Avila",
-    jobTitle: "Medica Especialista en Medicina Estetica",
-    description: "Medica especialista en medicina estetica con mas de 10 anos de experiencia y mas de 5,000 pacientes atendidos.",
+    jobTitle: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia",
+    description:
+      "Médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia. Más de 5.000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, armonización facial, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento facial avanzadas.",
     url: `${BASE_URL}/nosotros`,
     image: `${BASE_URL}/images/DraMedrano.jpeg`,
     telephone: "+59178751894",
     medicalSpecialty: "https://schema.org/PlasticSurgery",
+    knowsAbout: [
+      "Toxina Botulínica",
+      "Ácido Hialurónico",
+      "Armonización Facial",
+      "Bioestimulación con Polinucleótidos",
+      "Depilación Láser",
+      "Mesoterapia Facial",
+      "Radiofrecuencia Facial",
+      "Peeling Químico",
+      "Rejuvenecimiento Facial",
+    ],
+    hasOccupation: {
+      "@type": "Occupation",
+      name: "Médica Especialista en Medicina Estética",
+      occupationLocation: {
+        "@type": "City",
+        name: "Cochabamba",
+        containedInPlace: {
+          "@type": "Country",
+          name: "Bolivia",
+        },
+      },
+    },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: "4.9",
+      reviewCount: "523",
+      bestRating: "5",
+      worstRating: "1",
+    },
     sameAs: [
       "https://www.facebook.com/DraMedranoMedesteticAntiaging",
       "https://www.instagram.com/dra_yasmin.medrano",

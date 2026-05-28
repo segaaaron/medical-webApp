@@ -61,15 +61,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${treatment.name} | Dra. Yasmin Medrano Avila`,
     description,
-    keywords: [treatment.name, "medicina estética", "tratamiento estético", "Dra. Yasmin Medrano Avila"],
+    keywords: [
+      treatment.name,
+      `${treatment.name} Cochabamba`,
+      `${treatment.name} Bolivia`,
+      "medicina estética Cochabamba",
+      "tratamiento estético Bolivia",
+      "Dra. Yasmin Medrano Avila",
+      "consulta gratis medicina estética",
+    ],
     alternates: { canonical: `${BASE_URL}/tratamientos/${id}` },
     openGraph: {
-      title: treatment.name,
+      title: `${treatment.name} en Cochabamba | Dra. Yasmin Medrano Avila`,
       description,
       url: `${BASE_URL}/tratamientos/${id}`,
       type: "website",
-      images: treatment.imageUrl ? [{ url: treatment.imageUrl, width: 1200, height: 630, alt: treatment.name }] : [],
-      locale: "es_MX",
+      images: treatment.imageUrl ? [{ url: treatment.imageUrl, width: 1200, height: 630, alt: `${treatment.name} — Dra. Yasmin Medrano Avila Cochabamba` }] : [],
+      locale: "es_BO",
     },
   }
 }

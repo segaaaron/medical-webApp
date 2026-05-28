@@ -4,6 +4,10 @@ import { useState, useEffect } from "react"
 import { m } from "framer-motion"
 import Image from "next/image"
 
+// Tiny 8x8 brand-colored blur placeholder (cream #F8F0E3) — avoids layout shift on image load
+const BLUR_PLACEHOLDER =
+  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAgDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQQCAgMBAAAAAAAAAAAAAQIDBAUREiFBUWH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AoOq6fPqF1HQWGU5sZ2TkI2d0cZXAyHMcbdaIIOiDseCD7K3w9LHQW0ddbR1ltJWW0lZbSVltJWW0lZbSVltJWX/2Q=="
+
 interface ImageWithFallbackProps {
   src: string
   alt: string
@@ -154,6 +158,8 @@ export function ImageWithFallback({
         className={className}
         style={{ objectFit: "cover", objectPosition, ...style }}
         priority={loading === "eager"}
+        placeholder="blur"
+        blurDataURL={BLUR_PLACEHOLDER}
         onError={() => setFailed(true)}
       />
     )
@@ -169,6 +175,8 @@ export function ImageWithFallback({
         sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
         style={{ objectFit: "cover", objectPosition }}
         priority={loading === "eager"}
+        placeholder="blur"
+        blurDataURL={BLUR_PLACEHOLDER}
         onError={() => setFailed(true)}
       />
     </div>

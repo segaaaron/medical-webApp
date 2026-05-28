@@ -445,6 +445,21 @@ html.lenis, html.lenis body {
   }
 }
 
+/* Focus-visible — WCAG 2.1 AA compliant keyboard navigation */
+:focus-visible {
+  outline: 2px solid #B8973B;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #B8973B;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(184, 151, 59, 0.2);
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;

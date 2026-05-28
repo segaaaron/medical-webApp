@@ -13,38 +13,44 @@ import type { Metadata } from "next"
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  title: "Tratamientos Estéticos | Dra. Yasmin Medrano Avila",
+  title: "Tratamientos Estéticos Cochabamba — Botox, Rellenos & Más | Dra. Yasmin Medrano",
   description:
-    "Botox, acido hialuronico, armonizacion facial, depilacion laser y mesoterapia. Consulta de valoracion gratuita con la Dra. Yasmin Medrano Avila.",
+    "Botox, rellenos, armonización facial, depilación láser y mesoterapia en Cochabamba. Especialista #1 en Bolivia. +5.000 pacientes. ¡Consulta GRATIS!",
   keywords: [
-    "tratamientos medicina estetica",
-    "botox",
-    "acido hialuronico",
-    "armonizacion facial",
-    "depilacion laser",
-    "mesoterapia facial",
-    "rejuvenecimiento facial",
-    "tratamientos corporales esteticos",
-    "radiofrecuencia facial",
-    "bioestimulacion",
+    "tratamientos medicina estética Cochabamba",
+    "botox Cochabamba precio",
+    "botox natural Bolivia",
+    "ácido hialurónico Cochabamba",
+    "armonización facial Bolivia precio",
+    "depilación láser definitiva Cochabamba",
+    "mesoterapia facial Bolivia",
+    "rejuvenecimiento facial Cochabamba",
+    "radiofrecuencia facial Bolivia",
+    "bioestimulación polinucleótidos Cochabamba",
+    "tratamientos antiedad Bolivia",
+    "eliminar manchas piel Cochabamba",
+    "reducción medidas Bolivia",
+    "peeling químico Cochabamba",
+    "tratamiento estrías Bolivia",
+    "mejores tratamientos estéticos Bolivia",
   ],
   alternates: {
     canonical: `${BASE_URL}/tratamientos`,
   },
   openGraph: {
-    title: "Tratamientos de Medicina Estetica | Dra. Yasmin Medrano Avila",
+    title: "Tratamientos Estéticos #1 Cochabamba — Botox, Rellenos & Rejuvenecimiento",
     description:
-      "Botox, rellenos con acido hialuronico, rejuvenecimiento facial, depilacion laser y mas. Consulta de valoracion gratuita.",
+      "✨ Los mejores tratamientos estéticos en Bolivia. Botox natural, rellenos ácido hialurónico, armonización facial, depilación láser y más. +5.000 pacientes satisfechos. ¡Consulta GRATIS ahora!",
     url: `${BASE_URL}/tratamientos`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Tratamientos de medicina estetica - Dra. Yasmin Medrano Avila" }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Mejores tratamientos estéticos Cochabamba Bolivia — Dra. Yasmin Medrano Avila" }],
     type: "website",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tratamientos de Medicina Estetica | Dra. Yasmin Medrano Avila",
+    title: "Botox, Rellenos & Rejuvenecimiento en Cochabamba ✨ | Dra. Yasmin Medrano",
     description:
-      "Botox, rellenos, armonizacion facial, depilacion laser y mas. Consulta gratuita este mes.",
+      "Tratamientos estéticos de calidad internacional en Bolivia. Botox natural, armonización facial, depilación láser. +5.000 pacientes felices. ¡Agenda GRATIS!",
     images: ["/og-image.jpg"],
   },
 }

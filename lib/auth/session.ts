@@ -52,8 +52,13 @@ export async function verifyToken(token: string): Promise<{ user: string } | nul
     const payload = atob(payloadB64)
     const expectedSig = await hmac(payload, getSecret())
 
-    // Constant-time comparison
-    if (expectedSig !== signature) return null
+    // Constant-time comparison — prevents timing side-channel attacks (Edge-compatible)
+    if (expectedSig.length !== signature.length) return null
+    let diff = 0
+    for (let i = 0; i < expectedSig.length; i++) {
+      diff |= expectedSig.charCodeAt(i) ^ signature.charCodeAt(i)
+    }
+    if (diff !== 0) return null
 
     const [user, expStr] = payload.split(":")
     const exp = Number(expStr)

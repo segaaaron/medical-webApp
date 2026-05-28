@@ -14,33 +14,37 @@ import { ContactCards } from "@/components/sections/ContactCards"
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  title: "Contacto - Agenda tu Consulta Gratuita de Medicina Estetica",
+  title: "Agenda tu Consulta GRATIS — Medicina Estética Cochabamba | Dra. Yasmin Medrano",
   description:
-    "Agenda tu consulta de valoracion gratuita con la Dra. Yasmin Medrano Avila. WhatsApp, telefono, Instagram y Facebook. Horarios de atencion y ubicacion del consultorio.",
+    "Agenda tu consulta GRATIS con la Dra. Yasmin Medrano en Cochabamba. Atención vía WhatsApp e Instagram. Cupos limitados — ¡reserva el tuyo hoy!",
   keywords: [
-    "contacto medicina estetica",
-    "agendar cita botox",
-    "consulta gratuita medicina estetica",
-    "whatsapp Dra Yasmin Medrano",
-    "consultorio estetico Bolivia",
+    "agendar cita medicina estética Cochabamba",
+    "consulta gratuita estética Bolivia",
+    "whatsapp Dra Yasmin Medrano Cochabamba",
+    "consultorio estético Cochabamba Bolivia",
+    "contacto médico estético Bolivia",
+    "cita botox Cochabamba",
+    "reservar consulta estética Bolivia",
+    "médico estética cerca de mí Cochabamba",
+    "horarios consultorio estética Bolivia",
   ],
   alternates: {
     canonical: `${BASE_URL}/contacto`,
   },
   openGraph: {
-    title: "Contacto | Dra. Yasmin Medrano Avila",
+    title: "¡Agenda tu Consulta GRATIS en Cochabamba! | Dra. Yasmin Medrano Avila",
     description:
-      "Agenda tu consulta de valoracion gratuita. WhatsApp, telefono y redes sociales disponibles.",
+      "📲 Cupos limitados disponibles. Consulta de valoración GRATUITA con la especialista #1 en Cochabamba. WhatsApp, Instagram y más. ¡No esperes más para transformarte!",
     url: `${BASE_URL}/contacto`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Contacto - Consultorio Dra. Yasmin Medrano Avila" }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Agenda consulta gratis medicina estética Cochabamba — Dra. Yasmin Medrano Avila" }],
     type: "website",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contacto | Dra. Yasmin Medrano Avila",
+    title: "Consulta GRATIS en Cochabamba 📲 | Dra. Yasmin Medrano Avila",
     description:
-      "Agenda tu consulta gratuita de medicina estetica. Atencion personalizada.",
+      "¡Cupos limitados! Agenda tu consulta de valoración gratuita en Cochabamba. La especialista #1 en botox, rellenos y rejuvenecimiento facial te espera.",
     images: ["/og-image.jpg"],
   },
 }

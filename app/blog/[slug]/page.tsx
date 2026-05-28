@@ -89,7 +89,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return {}
 
   return {
-    title: `${post.title} | Dra. Yasmin Medrano Avila`,
+    title: `${post.title} | Dra. Yasmin Medrano — Medicina Estética Bolivia`,
     description: post.excerpt,
     keywords: post.tags,
     alternates: { canonical: `${BASE_URL}/blog/${post.slug}` },
@@ -101,7 +101,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.publishedAt,
       authors: [post.author],
       images: post.imageUrl ? [{ url: post.imageUrl, width: 1200, height: 630, alt: post.title }] : [],
-      locale: "es_MX",
+      locale: "es_BO",
     },
     twitter: {
       card: "summary_large_image",

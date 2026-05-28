@@ -41,6 +41,35 @@ function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   }
 }
 
+const localBusinessJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "MedicalBusiness",
+  name: "Dra. Yasmin Medrano Avila — Medicina Estética",
+  url: BASE_URL,
+  telephone: "+591 78751894",
+  image: `${BASE_URL}/images/DraMedrano.jpeg`,
+  priceRange: "$$",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Cochabamba",
+    addressCountry: "BO",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: -17.3895,
+    longitude: -66.1568,
+  },
+  openingHoursSpecification: [
+    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "19:00" },
+    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday"], opens: "09:00", closes: "14:00" },
+  ],
+  sameAs: [
+    "https://www.instagram.com/dra_yasmin.medrano",
+    "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+  ],
+  medicalSpecialty: "Aesthetic Medicine",
+}
+
 const breadcrumbJsonLd = {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -112,14 +141,9 @@ export default async function HomePage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessJsonLd) }} />
       <PromoBanner data={promoData} />
       <Navbar links={homeData.navLinks} />
       <main>

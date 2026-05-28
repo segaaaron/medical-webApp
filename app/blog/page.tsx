@@ -12,33 +12,38 @@ export const revalidate = 300 // 5 minutos — ISR
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  title: "Blog de Medicina Estetica - Consejos, Tratamientos y Novedades",
+  title: "Blog Medicina Estética Bolivia — Guías, Consejos y Verdades de una Experta",
   description:
-    "Articulos sobre medicina estetica, botox, acido hialuronico y cuidado de la piel. Informacion confiable de la Dra. Yasmin Medrano Avila.",
+    "Guías reales de medicina estética en Bolivia por la Dra. Yasmin Medrano. Botox, ácido hialurónico, cuidado de piel y los mejores tratamientos de 2026.",
   keywords: [
-    "blog medicina estetica",
-    "consejos cuidado piel",
-    "articulos botox",
-    "informacion acido hialuronico",
-    "novedades medicina estetica",
+    "blog medicina estética Bolivia",
+    "consejos botox Cochabamba",
+    "guía ácido hialurónico Bolivia",
+    "cuidado piel experta Bolivia",
+    "artículos rejuvenecimiento facial",
+    "novedades medicina estética 2026",
+    "verdades botox Bolivia médica",
+    "cómo funciona armonización facial",
+    "tratamientos antiedad Bolivia consejos",
+    "blog Dra Yasmin Medrano Avila",
   ],
   alternates: {
     canonical: `${BASE_URL}/blog`,
   },
   openGraph: {
-    title: "Blog | Dra. Yasmin Medrano Avila",
+    title: "Blog Experto de Medicina Estética en Bolivia | Dra. Yasmin Medrano",
     description:
-      "Articulos y consejos sobre medicina estetica, cuidado de la piel y bienestar.",
+      "📖 Guías reales de una médica con 10+ años de experiencia. Todo lo que necesitas saber sobre botox, rellenos, cuidado de piel y tratamientos estéticos en Bolivia.",
     url: `${BASE_URL}/blog`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Blog de Medicina Estetica - Dra. Yasmin Medrano Avila" }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Blog medicina estética Bolivia — Dra. Yasmin Medrano Avila experta" }],
     type: "website",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blog | Dra. Yasmin Medrano Avila",
+    title: "Blog Medicina Estética Bolivia 📖 | Dra. Yasmin Medrano Avila",
     description:
-      "Consejos y novedades sobre medicina estetica y cuidado de la piel.",
+      "Guías expertas, verdades del botox, cuidado de piel y los mejores tratamientos estéticos en Bolivia. Escrito por la especialista #1 en Cochabamba.",
     images: ["/og-image.jpg"],
   },
 }
