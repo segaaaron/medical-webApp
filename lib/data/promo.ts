@@ -51,6 +51,6 @@ function mapPromo(raw: any): PromoDisplayData {
  * Always resolves — never throws.
  */
 export async function getPromoData(): Promise<PromoDisplayData> {
-  const { data } = await backendFetch("/promo-banner")
+  const { data } = await backendFetch("/promo-banner", { revalidate: 300 })
   return data ? mapPromo(data) : PROMO_FALLBACK
 }

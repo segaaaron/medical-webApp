@@ -71,6 +71,6 @@ function mapFooter(raw: any): FooterData {
  * Always resolves — never throws.
  */
 export async function getFooterData(): Promise<FooterData> {
-  const { data } = await backendFetch("/footer")
+  const { data } = await backendFetch("/footer", { revalidate: 300 })
   return data ? mapFooter(data) : FOOTER_FALLBACK
 }

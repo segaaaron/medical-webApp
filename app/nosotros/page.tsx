@@ -1,6 +1,7 @@
 import { getAboutData } from "@/lib/data/about"
 import { getFooterData } from "@/lib/data/footer"
-import { getHomeData } from "@/lib/data/home"
+import { readContent } from "@/lib/store/content-store"
+import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { AboutSection } from "@/components/sections/AboutSection"
@@ -8,33 +9,7 @@ import { PageHero } from "@/components/ui/PageHero"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
 import type { Metadata } from "next"
 
-export interface BioDoc {
-  doctorTitle: string,
-  doctorName: string,
-  doctorDescription: string,
-  doctorImage: string,
-  badgeDoctor: string,
-  experienceInfoLabel: string,
-  experienceInfoValue: string,
-  pacientsLabel: string,
-  pacientValue: string,
-  treatmentLabel: string,
-  treatmentValue: string
-}
-
-export interface BioSection {
-  chooseUs: string,
-  title: string,
-  description: string,
-  card1Title: string,
-  card1Description: string,
-  card2Title: string,
-  card2Description: string
-  card3Title: string,
-  card3Description: string
-  card4Title: string,
-  card4Description: string
-}
+export type { BioDoc, BioSection } from "@/types/about"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -90,8 +65,8 @@ const aboutJsonLd = {
 }
 
 export default async function NosotrosPage() {
-  const [{ navLinks }, footerData, aboutData] = await Promise.all([
-    getHomeData(),
+  const [c, footerData, aboutData] = await Promise.all([
+    readContent(),
     getFooterData(),
     getAboutData(),
   ])
@@ -100,16 +75,15 @@ export default async function NosotrosPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(aboutJsonLd) }}
       />
-      <Navbar links={navLinks} />
+      <Navbar links={c.navLinks} />
       <main>
         <PageHero
           eyebrow="Nuestra Historia"
           title="Sobre Nosotros"
           subtitle="Dedicados a realzar tu belleza natural con los más altos estándares médicos y un trato completamente personalizado."
         />
-
         <AboutSection bio={aboutData.bio} />
         <ValuePropositionSection features={aboutData.features} />
       </main>

@@ -36,6 +36,7 @@ type FetchOptions = {
   body?: unknown
   formData?: FormData
   auth?: boolean
+  revalidate?: number  // seconds; omit = no-store (default for dynamic/auth routes)
 }
 
 /**
@@ -79,7 +80,7 @@ function validateBackendPath(path: string): boolean {
 
 export async function backendFetch<T>(
   path: string,
-  { method = "GET", body, formData, auth = false }: FetchOptions = {}
+  { method = "GET", body, formData, auth = false, revalidate }: FetchOptions = {}
 ): Promise<{ data: T | null; error: string | null; status: number }> {
   if (!validateBackendPath(path)) {
     return { data: null, error: "Invalid backend path", status: 400 }
@@ -98,12 +99,16 @@ export async function backendFetch<T>(
     }
 
     const fetchBody = formData ? formData : body ? JSON.stringify(body) : undefined
+    const cacheOption: RequestInit =
+      revalidate !== undefined
+        ? { next: { revalidate } }
+        : { cache: "no-store" }
 
     const res = await fetch(`${BACKEND_URL}/api${path}`, {
       method,
       headers,
       body: fetchBody,
-      cache: "no-store",
+      ...cacheOption,
       signal: AbortSignal.timeout(10_000),
     })
 
@@ -125,7 +130,7 @@ export async function backendFetch<T>(
                 method,
                 headers,
                 body: fetchBody,
-                cache: "no-store",
+                ...cacheOption,
                 signal: AbortSignal.timeout(10_000),
               })
               if (retry.ok) {

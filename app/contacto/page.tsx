@@ -1,4 +1,5 @@
 import { readContent, DEFAULTS } from "@/lib/store/content-store"
+import { safeJsonLd } from "@/lib/seo-utils"
 import { backendFetch } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -102,7 +103,7 @@ export default async function ContactoPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(contactJsonLd) }}
       />
       <Navbar links={c.navLinks} />
       <main>

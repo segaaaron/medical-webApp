@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Roboto, Playfair_Display, Cormorant_Garamond, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
-import { CustomCursor } from "@/components/ui/CustomCursor";
+import { CustomCursorLoader } from "@/components/ui/CustomCursorLoader";
+import { safeJsonLd } from "@/lib/seo-utils";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -210,9 +211,6 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* Preload hero video — starts fetching before component hydrates */}
-        <link rel="preload" as="video" href="/videos/hero.mp4" type="video/mp4" />
-
         {/* Preconnect to external origins for performance */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
@@ -225,13 +223,13 @@ export default function RootLayout({
 
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
           suppressHydrationWarning
         />
       </head>
       <body className={`${roboto.variable} ${playfair.variable} ${cormorant.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
         <SmoothScrollProvider>
-          <CustomCursor />
+          <CustomCursorLoader />
           {children}
         </SmoothScrollProvider>
       </body>

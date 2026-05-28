@@ -1,5 +1,6 @@
 // Node.js only — runs in Server Components and API routes, never in Edge/browser.
 
+import { unstable_cache, revalidateTag } from "next/cache"
 import type { ContentStore, ContentOverride } from "@/types/content"
 import { getPool } from "@/lib/db"
 
@@ -109,7 +110,9 @@ export const DEFAULTS: ContentStore = {
   },
 }
 
-export async function readContent(): Promise<ContentStore> {
+const CONTENT_CACHE_TAG = "site-content"
+
+async function _readContentFromDB(): Promise<ContentStore> {
   try {
     const pool = getPool()
     const result = await pool.query(
@@ -123,6 +126,17 @@ export async function readContent(): Promise<ContentStore> {
     return DEFAULTS
   }
 }
+
+/**
+ * Reads site content from DB with a 60-second Next.js cache.
+ * Works across all server processes — unlike in-memory caches.
+ * Call revalidateTag("site-content") to bust the cache immediately after writes.
+ */
+export const readContent = unstable_cache(
+  _readContentFromDB,
+  [CONTENT_CACHE_TAG],
+  { revalidate: 60, tags: [CONTENT_CACHE_TAG] }
+)
 
 export async function writeContent(override: ContentOverride): Promise<void> {
   const pool = getPool()
@@ -146,4 +160,5 @@ export async function writeContent(override: ContentOverride): Promise<void> {
        SET value = $2, updated_at = now()`,
     [CONTENT_KEY, JSON.stringify(merged)]
   )
+  revalidateTag(CONTENT_CACHE_TAG, "max")
 }

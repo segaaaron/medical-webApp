@@ -1,6 +1,7 @@
 import DOMPurify from "isomorphic-dompurify"
 import { DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
+import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -13,7 +14,17 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el post
+
+export async function generateStaticParams() {
+  try {
+    const { data: rawData } = await backendFetch("/blog", { revalidate: 3600 })
+    const posts = extractList<BackendBlogPost>(rawData)
+    return posts.filter((p) => p.published).map((p) => ({ slug: p.slug }))
+  } catch {
+    return []
+  }
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -50,7 +61,7 @@ function toStaticPost(p: BackendBlogPost): StaticBlogPost {
 
 /** Get all published posts — backend first, static fallback */
 async function getAllPosts(): Promise<StaticBlogPost[]> {
-  const { data: rawData } = await backendFetch("/blog")
+  const { data: rawData } = await backendFetch("/blog", { revalidate: 300 })
   const data = extractList<BackendBlogPost>(rawData)
   if (data.length === 0) {
     console.warn("[getAllPosts] Backend unavailable, using static posts")
@@ -150,11 +161,11 @@ export default async function BlogPostPage({ params }: Props) {
       <main>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
         />
 
         {/* Article content */}

@@ -32,7 +32,26 @@
       "Bash(rm:*)",
       "Bash(wc:*)",
       "Bash(ls /Users/miguelangelsaraviabelmonte/medical-webApp/.env*)",
-      "Bash(ls /Users/miguelangelsaraviabelmonte/medical-webApp/.nixpacks*)"
+      "Bash(ls /Users/miguelangelsaraviabelmonte/medical-webApp/.nixpacks*)",
+      "Read(//Users/miguelangelsaraviabelmonte/.claude/plugins/cache/ui-ux-pro-max-skill/ui-ux-pro-max/2.5.0/**)",
+      "Bash(python3 skills/ui-ux-pro-max/scripts/search.py \"medical aesthetics beauty spa luxury clinic treatment cards dark elegant\" --design-system -p \"Dra. Yasmin Medrano - Estética Médica\")",
+      "Bash(python3 src/ui-ux-pro-max/scripts/search.py \"medical aesthetics beauty spa luxury clinic treatment cards dark elegant\" --design-system -p \"Dra. Yasmin Medrano\")",
+      "Bash(python3 src/ui-ux-pro-max/scripts/search.py \"luxury medical spa treatment card dark cinematic hover\" --domain style -n 3)",
+      "Bash(python3 src/ui-ux-pro-max/scripts/search.py \"card hover animation stagger entrance\" --domain ux -n 4)",
+      "Bash(sed -n '228,252p' /Users/miguelangelsaraviabelmonte/medical-webApp/components/sections/AboutSection.tsx)",
+      "Bash(sed -n '85,105p' /Users/miguelangelsaraviabelmonte/medical-webApp/components/sections/TreatmentsGrid.tsx)",
+      "Bash(sed -n '40,60p' /Users/miguelangelsaraviabelmonte/medical-webApp/components/blog/BlogCard.tsx)",
+      "Bash(sed -n '102,120p' /Users/miguelangelsaraviabelmonte/medical-webApp/components/blog/BlogCard.tsx)",
+      "Bash(sed -n '136,158p' /Users/miguelangelsaraviabelmonte/medical-webApp/components/sections/CourseSection.tsx)",
+      "Bash(sed -n '38,58p' /Users/miguelangelsaraviabelmonte/medical-webApp/components/blog/BlogCard.tsx)",
+      "Bash(sed -n '100,115p' /Users/miguelangelsaraviabelmonte/medical-webApp/components/blog/BlogCard.tsx)",
+      "Bash(git *)",
+      "mcp__plugin_socraticode_socraticode__codebase_status",
+      "mcp__plugin_socraticode_socraticode__codebase_graph_stats",
+      "Bash(xargs ls -la)",
+      "mcp__plugin_socraticode_socraticode__codebase_index",
+      "mcp__plugin_socraticode_socraticode__codebase_graph_circular",
+      "mcp__plugin_socraticode_socraticode__codebase_graph_query"
     ]
   }
 }

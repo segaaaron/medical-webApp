@@ -1,5 +1,6 @@
 import DOMPurify from "isomorphic-dompurify"
-import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
+import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -12,7 +13,16 @@ import { WHATSAPP_TREATMENT_URL } from "@/lib/constants"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { EcgHero } from "@/components/ui/EcgHero"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el tratamiento
+
+export async function generateStaticParams() {
+  try {
+    const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 3600 })
+    return extractList<BackendTreatment>(data).map((t) => ({ id: t.id }))
+  } catch {
+    return []
+  }
+}
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -28,7 +38,7 @@ interface BackendTreatment {
 }
 
 async function getTreatment(id: string): Promise<BackendTreatment | null> {
-  const { data, error } = await backendFetch<BackendTreatment>(`/treatments/${id}`)
+  const { data, error } = await backendFetch<BackendTreatment>(`/treatments/${id}`, { revalidate: 300 })
   if (error || !data) return null
   return {
     ...data,
@@ -92,7 +102,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
       <main style={{ backgroundColor: "#F8F0E3", minHeight: "100vh" }}>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
         />
 
         {/* Dark hero band */}

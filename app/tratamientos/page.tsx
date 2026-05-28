@@ -1,4 +1,5 @@
 import { readContent } from "@/lib/store/content-store"
+import { safeJsonLd } from "@/lib/seo-utils"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -92,8 +93,8 @@ export default async function TratamientosPage() {
   const [c, footerData, backendResult, infoResult] = await Promise.all([
     readContent(),
     getFooterData(),
-    backendFetch<BackendTreatment[]>("/treatments"),
-    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage"),
+    backendFetch<BackendTreatment[]>("/treatments", { revalidate: 300 }),
+    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 300 }),
   ])
 
   // Use site-content info only when the service responds correctly; otherwise undefined = fallback to hardcoded
@@ -125,7 +126,7 @@ export default async function TratamientosPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(treatmentsJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(treatmentsJsonLd) }}
       />
       <Navbar links={c.navLinks} />
       <main>

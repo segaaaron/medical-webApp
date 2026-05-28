@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
-import { motion, useInView, useReducedMotion, useMotionValue, useSpring, animate } from "framer-motion"
-import { BioDoc } from "@/app/nosotros/page"
+import { motion, useInView, useReducedMotion } from "framer-motion"
+import type { BioDoc } from "@/types/about"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 
 interface AboutSectionProps {

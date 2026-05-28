@@ -3,6 +3,7 @@ import { getFooterData } from "@/lib/data/footer"
 import { getPromoData } from "@/lib/data/promo"
 import { getAboutData } from "@/lib/data/about"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
+import { safeJsonLd } from "@/lib/seo-utils"
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 import { PromoBanner } from "@/components/layout/PromoBanner"
@@ -23,14 +24,6 @@ import { HeroCTA } from "@/types"
 import { HomeSection } from "@/components/sections/HomeSection"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
-
-/** Safely serialize an object for inline JSON-LD — escapes <, >, & to prevent script injection. */
-function safeJsonLd(obj: unknown): string {
-  return JSON.stringify(obj)
-    .replace(/</g, "\\u003c")
-    .replace(/>/g, "\\u003e")
-    .replace(/&/g, "\\u0026")
-}
 
 function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   return {
@@ -104,10 +97,9 @@ export default async function HomePage() {
       }
     : undefined
 
-  const handleFilterList = backendTreatments.filter(x => x.active)
   const liveModules =
-    handleFilterList.length > 0
-      ? handleFilterList.map((t) => ({ title: t.name }))
+    backendTreatments.length > 0
+      ? backendTreatments.map((t) => ({ title: t.name }))
       : homeData.courseModules
 
   const heroCTAsSection: HeroCTA[] = [

@@ -1,5 +1,5 @@
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
-import type { BioDoc, BioSection } from "@/app/nosotros/page"
+import type { BioDoc, BioSection } from "@/types/about"
 
 export interface AboutData {
   bio: BioDoc | null
@@ -78,7 +78,7 @@ function mapAbout(raw: any): AboutData {
  * Always resolves — never throws.
  */
 export async function getAboutData(): Promise<AboutData> {
-  const { data } = await backendFetch("/about")
+  const { data } = await backendFetch("/about", { revalidate: 300 })
   if (!data) return { bio: BIO_FALLBACK, features: FEATURES_FALLBACK }
   return mapAbout(data)
 }

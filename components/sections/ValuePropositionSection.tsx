@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "framer-motion"
 import { Eye, Zap, Award, TrendingUp } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { TiltCard } from "@/components/ui/TiltCard"
-import { BioSection } from "@/app/nosotros/page"
+import type { BioSection } from "@/types/about"
 
 
 interface ValuePropositionSectionProps {

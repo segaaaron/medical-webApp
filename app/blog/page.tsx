@@ -1,4 +1,4 @@
-import { DEFAULTS } from "@/lib/store/content-store"
+import { readContent } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -7,7 +7,7 @@ import { staticBlogPosts } from "@/lib/data/blog-posts"
 import { BlogCard } from "@/components/blog/BlogCard"
 import type { Metadata } from "next"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 300 // 5 minutos — ISR
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
@@ -68,7 +68,7 @@ function formatDate(dateStr: string) {
  * Uses the same resilient pattern as /api/blog route.
  */
 async function fetchPublishedPosts() {
-  const { data: rawData, error } = await backendFetch("/blog")
+  const { data: rawData, error } = await backendFetch("/blog", { revalidate: 300 })
 
   if (error || !rawData) {
     console.warn("[BlogPage] Backend unavailable, using static posts:", error)
@@ -89,11 +89,11 @@ async function fetchPublishedPosts() {
 }
 
 export default async function BlogPage() {
-  const [allBackendPosts, footerData] = await Promise.all([
+  const [allBackendPosts, footerData, c] = await Promise.all([
     fetchPublishedPosts(),
     getFooterData(),
+    readContent(),
   ])
-  const c = DEFAULTS
 
   const publishedPosts = allBackendPosts.filter((p) => p.published)
 
