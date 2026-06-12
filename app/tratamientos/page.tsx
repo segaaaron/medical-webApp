@@ -70,6 +70,15 @@ interface BackendTreatment {
   active: boolean
 }
 
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Inicio", item: `${BASE_URL}` },
+    { "@type": "ListItem", position: 2, name: "Tratamientos", item: `${BASE_URL}/tratamientos` },
+  ],
+}
+
 const treatmentsJsonLd = {
   "@context": "https://schema.org",
   "@type": "MedicalWebPage",
@@ -130,6 +139,10 @@ export default async function TratamientosPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(treatmentsJsonLd) }}

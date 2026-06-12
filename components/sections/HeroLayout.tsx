@@ -21,8 +21,7 @@ export interface HeroLayoutProps {
 
 export function HeroLayout({ tagline, doctorName, specialty, description, ctas, stats }: HeroLayoutProps) {
   const prefersReduced = useReducedMotion()
-  const nameChars = doctorName.split("")
-  const charCount = nameChars.length
+  const charCount = doctorName.length
   const center = (charCount - 1) / 2
   // Last char animates at: delay 0.15 + (charCount-1)*0.028 + duration 0.55
   const titleDuration = prefersReduced ? 0 : 0.15 + (charCount - 1) * 0.028 + 0.55

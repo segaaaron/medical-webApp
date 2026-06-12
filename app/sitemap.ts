@@ -4,7 +4,7 @@ import { backendFetch, extractList } from "@/lib/backend-client"
 
 export const revalidate = 86400
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
 interface BackendBlogPost {
   slug: string

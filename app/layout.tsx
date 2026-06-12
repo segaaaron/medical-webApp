@@ -241,20 +241,8 @@ const jsonLd = {
       "@id": `${BASE_URL}/#website`,
       url: BASE_URL,
       name: "Dra. Yasmin Medrano Avila — Medicina Estética Avanzada",
-      inLanguage: "es",
+      inLanguage: "es-BO",
       publisher: { "@id": `${BASE_URL}/#business` },
-    },
-    {
-      "@type": "SiteNavigationElement",
-      "@id": `${BASE_URL}/#navigation`,
-      name: "Navegación Principal",
-      hasPart: [
-        { "@type": "WebPage", name: "Inicio", url: BASE_URL },
-        { "@type": "WebPage", name: "Tratamientos", url: `${BASE_URL}/tratamientos` },
-        { "@type": "WebPage", name: "Nosotros", url: `${BASE_URL}/nosotros` },
-        { "@type": "WebPage", name: "Blog", url: `${BASE_URL}/blog` },
-        { "@type": "WebPage", name: "Contacto", url: `${BASE_URL}/contacto` },
-      ],
     },
   ],
 };
