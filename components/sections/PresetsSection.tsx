@@ -24,7 +24,7 @@ interface PresetsSectionProps {
 export function PresetsSection({ presets }: PresetsSectionProps) {
 
   return (
-    <section id="servicios" className="py-20 px-6" style={{ backgroundColor: "#5c1f35" }}>
+    <section id="servicios" className="py-20 px-6" style={{ backgroundColor: "var(--primary-darker)" }}>
       <div className="container-xl">
         <m.div
           initial={{ opacity: 0, y: 30 }}
@@ -35,7 +35,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           <SectionHeader
             eyebrow="Áreas de Especialidad"
             title="Nuestras Categorías de Tratamiento"
-            subtitle={`Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:#B8973B;font-weight:600;">resultados visibles y duraderos</span>.`}
+            subtitle={`Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:var(--vintage-gold);font-weight:600;">resultados visibles y duraderos</span>.`}
             light
           />
         </m.div>
@@ -49,7 +49,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
               className="rounded-xl overflow-hidden hover:scale-105 transition-transform cursor-pointer"
-              style={{ backgroundColor: "#3a0f20" }}
+              style={{ backgroundColor: "var(--primary-darkest)" }}
             >
               <div className="relative w-full h-44 overflow-hidden">
                 <Image
@@ -66,7 +66,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
                   <h3 className="font-bold text-white text-base">{preset.name}</h3>
                   <Badge label={preset.tag} color={preset.tagColor} />
                 </div>
-                <p className="text-sm leading-relaxed" style={{ color: "#e8a0b4" }}>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--meteorite)" }}>
                   {preset.description}
                 </p>
               </div>

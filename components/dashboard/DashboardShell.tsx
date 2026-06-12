@@ -36,11 +36,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             onClick={() => setSidebarOpen(true)}
             aria-label="Abrir menú"
             className="p-1.5 rounded-lg transition-colors"
-            style={{ color: "#B8973B" }}
+            style={{ color: "var(--vintage-gold)" }}
           >
             <Menu size={20} />
           </button>
-          <span className="text-sm font-semibold" style={{ color: "#B8973B" }}>Dashboard</span>
+          <span className="text-sm font-semibold" style={{ color: "var(--vintage-gold)" }}>Dashboard</span>
         </header>
 
         <main className="flex-1">

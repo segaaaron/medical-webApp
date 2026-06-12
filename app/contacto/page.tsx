@@ -118,7 +118,7 @@ export default async function ContactoPage() {
         />
 
         {/* Contact section */}
-        <section className="py-20 px-6" style={{ backgroundColor: "#3a0f20" }}>
+        <section className="py-20 px-6" style={{ backgroundColor: "var(--primary-darkest)" }}>
           <div className="container-xl max-w-6xl">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
 
@@ -129,10 +129,10 @@ export default async function ContactoPage() {
               <div className="flex flex-col gap-6">
                 <h2 className="text-2xl font-bold text-white mb-2">Horario de Atención</h2>
 
-                <div className="p-6 rounded-2xl" style={{ backgroundColor: "#5c1f35" }}>
+                <div className="p-6 rounded-2xl" style={{ backgroundColor: "var(--primary-darker)" }}>
                   <div className="flex items-center gap-3 mb-5">
-                    <Clock size={20} style={{ color: "#B8973B" }} />
-                    <p className="text-sm uppercase tracking-widest font-semibold" style={{ color: "#e8a0b4" }}>Horarios</p>
+                    <Clock size={20} style={{ color: "var(--vintage-gold)" }} />
+                    <p className="text-sm uppercase tracking-widest font-semibold" style={{ color: "var(--meteorite)" }}>Horarios</p>
                   </div>
                   <div className="flex flex-col gap-3">
                     {[
@@ -140,18 +140,18 @@ export default async function ContactoPage() {
                       { day: "Sábado", hours: ct.scheduleSaturday },
                       { day: "Domingo", hours: ct.scheduleSunday },
                     ].map(({ day, hours }) => (
-                      <div key={day} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0" style={{ borderColor: "#3a0f20" }}>
+                      <div key={day} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0" style={{ borderColor: "var(--primary-darkest)" }}>
                         <span className="text-sm" style={{ color: "#fce4ec" }}>{day}</span>
-                        <span className="text-sm font-semibold" style={{ color: "#B8973B" }}>{hours}</span>
+                        <span className="text-sm font-semibold" style={{ color: "var(--vintage-gold)" }}>{hours}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-6 rounded-2xl" style={{ backgroundColor: "#5c1f35" }}>
+                <div className="p-6 rounded-2xl" style={{ backgroundColor: "var(--primary-darker)" }}>
                   <div className="flex items-center gap-3 mb-4">
-                    <MapPin size={20} style={{ color: "#B8973B" }} />
-                    <p className="text-sm uppercase tracking-widest font-semibold" style={{ color: "#e8a0b4" }}>Ubicación</p>
+                    <MapPin size={20} style={{ color: "var(--vintage-gold)" }} />
+                    <p className="text-sm uppercase tracking-widest font-semibold" style={{ color: "var(--meteorite)" }}>Ubicación</p>
                   </div>
                   <p className="text-sm leading-relaxed mb-4" style={{ color: "#fce4ec" }}>
                     {ct.location}
@@ -173,7 +173,7 @@ export default async function ContactoPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 mt-3 text-xs font-semibold hover:opacity-80 transition-opacity py-2 -my-2"
-                    style={{ color: "#B8973B" }}
+                    style={{ color: "var(--vintage-gold)" }}
                   >
                     <MapPin size={14} />
                     Abrir en Google Maps
@@ -186,7 +186,7 @@ export default async function ContactoPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-3 w-full py-4 rounded-full text-base font-bold uppercase tracking-wide hover:brightness-110 transition-all"
-                  style={{ backgroundColor: "#B8973B", color: "white" }}
+                  style={{ backgroundColor: "var(--vintage-gold)", color: "white" }}
                 >
                   <MessageCircle size={18} />
                   AGENDAR MI CONSULTA GRATIS

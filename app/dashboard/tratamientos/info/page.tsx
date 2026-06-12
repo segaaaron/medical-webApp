@@ -17,7 +17,7 @@ function toRawPath(url: string): string {
 }
 
 const INPUT_CLS =
-  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#B8973B] focus:ring-1 focus:ring-[#B8973B] transition-colors"
+  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
 
 const infoSchema = Yup.object({
   label: Yup.string().default(""),
@@ -241,7 +241,7 @@ export default function TratamientosInfoPage() {
             <div className="space-y-2">
               <label
                 htmlFor="info-doctor-image"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[#B8973B] hover:text-[#B8973B] transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
               >
                 <Upload size={15} aria-hidden="true" />
                 {imagePreview ? "Cambiar imagen" : "Seleccionar imagen"} (JPG, PNG, WebP)
@@ -327,7 +327,7 @@ export default function TratamientosInfoPage() {
             type="submit"
             disabled={!formik.isValid || (!formik.dirty && !imageFile) || formik.isSubmitting}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
-            style={{ backgroundColor: "#B8973B" }}
+            style={{ backgroundColor: "var(--vintage-gold)" }}
           >
             <Check size={15} aria-hidden="true" />
             {formik.isSubmitting ? "Guardando..." : "Guardar cambios"}

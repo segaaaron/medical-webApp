@@ -34,7 +34,7 @@ export function ReadingProgressBar() {
       <m.div
         style={{
           height: "100%",
-          backgroundColor: "#B8973B",
+          backgroundColor: "var(--vintage-gold)",
           transformOrigin: "left",
           scaleX,
           boxShadow: "0 0 8px rgba(184,151,59,0.6)",

@@ -61,18 +61,18 @@ function LightFallback() {
         {/* Medical cross */}
         <rect x="22" y="14" width="12" height="28" rx="3" fill="rgba(184,151,59,0.18)" />
         <rect x="14" y="22" width="28" height="12" rx="3" fill="rgba(184,151,59,0.18)" />
-        <rect x="22" y="14" width="12" height="28" rx="3" stroke="#B8973B" strokeWidth="1" fill="none" />
-        <rect x="14" y="22" width="28" height="12" rx="3" stroke="#B8973B" strokeWidth="1" fill="none" />
+        <rect x="22" y="14" width="12" height="28" rx="3" stroke="var(--vintage-gold)" strokeWidth="1" fill="none" />
+        <rect x="14" y="22" width="28" height="12" rx="3" stroke="var(--vintage-gold)" strokeWidth="1" fill="none" />
 
         {/* Corner sparkles */}
         <m.g
           animate={{ opacity: [0.4, 0.9, 0.4] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
         >
-          <line x1="8" y1="8" x2="8" y2="13" stroke="#B8973B" strokeWidth="1.2" strokeLinecap="round" />
-          <line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="#B8973B" strokeWidth="1.2" strokeLinecap="round" />
-          <line x1="48" y1="43" x2="48" y2="48" stroke="#B8973B" strokeWidth="1.2" strokeLinecap="round" />
-          <line x1="45.5" y1="45.5" x2="50.5" y2="45.5" stroke="#B8973B" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="8" y1="8" x2="8" y2="13" stroke="var(--vintage-gold)" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="5.5" y1="10.5" x2="10.5" y2="10.5" stroke="var(--vintage-gold)" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="48" y1="43" x2="48" y2="48" stroke="var(--vintage-gold)" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="45.5" y1="45.5" x2="50.5" y2="45.5" stroke="var(--vintage-gold)" strokeWidth="1.2" strokeLinecap="round" />
         </m.g>
       </m.svg>
 
@@ -117,9 +117,9 @@ function DarkFallback() {
         animate={{ opacity: 0.45, scale: 1 }}
         transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
       >
-        <circle cx="26" cy="26" r="24" stroke="#B8973B" strokeWidth="0.8" />
-        <rect x="20" y="12" width="12" height="28" rx="3" fill="#B8973B" />
-        <rect x="12" y="20" width="28" height="12" rx="3" fill="#B8973B" />
+        <circle cx="26" cy="26" r="24" stroke="var(--vintage-gold)" strokeWidth="0.8" />
+        <rect x="20" y="12" width="12" height="28" rx="3" fill="var(--vintage-gold)" />
+        <rect x="12" y="20" width="28" height="12" rx="3" fill="var(--vintage-gold)" />
         <rect x="20" y="12" width="12" height="28" rx="3" fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0" />
       </m.svg>
     </m.div>

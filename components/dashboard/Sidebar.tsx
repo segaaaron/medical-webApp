@@ -52,8 +52,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
           style={{
             backgroundColor: active ? "rgba(184,151,59,0.12)" : "transparent",
-            color: active ? "#B8973B" : "rgba(255,255,255,0.55)",
-            borderLeft: active ? "2px solid #B8973B" : "2px solid transparent",
+            color: active ? "var(--vintage-gold)" : "rgba(255,255,255,0.55)",
+            borderLeft: active ? "2px solid var(--vintage-gold)" : "2px solid transparent",
           }}
         >
           <Icon size={16} aria-hidden="true" />
@@ -68,8 +68,8 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
       {/* Brand */}
       <div className="px-6 py-5 border-b" style={{ borderColor: "rgba(184,151,59,0.15)" }}>
         <div className="flex items-center gap-2 mb-1">
-          <LayoutDashboard size={18} style={{ color: "#B8973B" }} aria-hidden="true" />
-          <span className="font-bold text-sm" style={{ color: "#B8973B" }}>Dashboard</span>
+          <LayoutDashboard size={18} style={{ color: "var(--vintage-gold)" }} aria-hidden="true" />
+          <span className="font-bold text-sm" style={{ color: "var(--vintage-gold)" }}>Dashboard</span>
         </div>
         <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>Dra. Yasmin Medrano Avila</p>
       </div>
@@ -95,9 +95,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               <div
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"
                 style={{
-                  color: pathname.startsWith("/dashboard/tratamientos") ? "#B8973B" : "rgba(255,255,255,0.55)",
+                  color: pathname.startsWith("/dashboard/tratamientos") ? "var(--vintage-gold)" : "rgba(255,255,255,0.55)",
                   backgroundColor: pathname.startsWith("/dashboard/tratamientos") ? "rgba(184,151,59,0.12)" : "transparent",
-                  borderLeft: pathname.startsWith("/dashboard/tratamientos") ? "2px solid #B8973B" : "2px solid transparent",
+                  borderLeft: pathname.startsWith("/dashboard/tratamientos") ? "2px solid var(--vintage-gold)" : "2px solid transparent",
                 }}
               >
                 <Stethoscope size={16} aria-hidden="true" />
@@ -116,7 +116,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
                         className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
                         style={{
                           backgroundColor: active ? "rgba(184,151,59,0.1)" : "transparent",
-                          color: active ? "#B8973B" : "rgba(255,255,255,0.45)",
+                          color: active ? "var(--vintage-gold)" : "rgba(255,255,255,0.45)",
                           borderLeft: active ? "2px solid rgba(184,151,59,0.6)" : "2px solid transparent",
                         }}
                       >
@@ -143,7 +143,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           aria-label="Ver sitio web público (abre en nueva pestaña)"
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors"
           style={{ color: "rgba(255,255,255,0.45)" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#B8973B" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--vintage-gold)" }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.45)" }}
         >
           <ExternalLink size={15} aria-hidden="true" />

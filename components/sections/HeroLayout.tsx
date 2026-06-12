@@ -7,7 +7,7 @@ import { StatCard } from "@/components/ui/StatCard"
 import type { HeroStat, HeroCTA } from "@/types"
 
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]
-const VINTAGE_GOLD = "#B8973B"
+const VINTAGE_GOLD = "var(--vintage-gold)"
 
 export interface HeroLayoutProps {
   tagline: string         // top eyebrow text
@@ -76,7 +76,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
           className="text-sm md:text-base uppercase tracking-[0.3em] mb-4 font-medium"
-          style={{ color: "#e8a0b4" }}
+          style={{ color: "var(--meteorite)" }}
         >
           {tagline}
         </m.p>

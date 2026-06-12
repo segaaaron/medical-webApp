@@ -120,7 +120,7 @@ function SortableRow({
           <div className="flex gap-2 shrink-0">
             <button
               onClick={onEdit}
-              className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[#B8973B] hover:text-[#B8973B] transition-colors"
+              className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
               aria-label="Editar"
             >
               <Pencil size={14} />
@@ -243,7 +243,7 @@ export default function TratamientosDashboardPage() {
                 onClick={saveOrder}
                 disabled={saving}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ backgroundColor: "#B8973B" }}
+                style={{ backgroundColor: "var(--vintage-gold)" }}
               >
                 <Save size={15} />
                 {saving ? "Guardando..." : "Guardar orden"}
@@ -263,7 +263,7 @@ export default function TratamientosDashboardPage() {
               <Link
                 href="/dashboard/tratamientos/nuevo"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white transition-opacity hover:opacity-90"
-                style={{ backgroundColor: "#B8973B" }}
+                style={{ backgroundColor: "var(--vintage-gold)" }}
               >
                 <Plus size={15} />
                 Nuevo tratamiento

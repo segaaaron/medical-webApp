@@ -22,7 +22,7 @@ interface TreatmentsGridProps {
   isHome: boolean
 }
 
-const GOLD = "#B8973B"
+const GOLD = "var(--vintage-gold)"
 
 const TAG_LABELS: Record<string, string> = {
   POPULAR:       "Popular",

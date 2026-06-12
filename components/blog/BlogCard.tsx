@@ -69,14 +69,14 @@ export function BlogCard({
             )}
             <h2
               className="text-2xl md:text-3xl font-bold mb-4 leading-tight group-hover:opacity-80 transition-opacity"
-              style={{ color: "#3a0f20" }}
+              style={{ color: "var(--primary-darkest)" }}
             >
               {title}
             </h2>
-            <p className="text-sm leading-relaxed mb-6" style={{ color: "#7a6570" }}>
+            <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--gray-mid)" }}>
               {excerpt}
             </p>
-            <div className="flex items-center gap-4 text-xs" style={{ color: "#B8973B" }}>
+            <div className="flex items-center gap-4 text-xs" style={{ color: "var(--vintage-gold)" }}>
               <span className="flex items-center gap-1.5">
                 <Calendar size={13} />
                 {formatDate(publishedAt)}
@@ -88,7 +88,7 @@ export function BlogCard({
             </div>
             <span
               className="inline-flex items-center gap-2 mt-6 text-sm font-semibold group-hover:gap-3 transition-all"
-              style={{ color: "#B8973B" }}
+              style={{ color: "var(--vintage-gold)" }}
             >
               Leer articulo completo <ArrowRight size={16} />
             </span>
@@ -132,18 +132,18 @@ export function BlogCard({
         )}
         <h3
           className="font-bold text-lg mb-3 leading-tight group-hover:opacity-80 transition-opacity"
-          style={{ color: "#3a0f20" }}
+          style={{ color: "var(--primary-darkest)" }}
         >
           {title}
         </h3>
         <p
           className="text-sm leading-relaxed mb-4 line-clamp-3 flex-1"
-          style={{ color: "#7a6570" }}
+          style={{ color: "var(--gray-mid)" }}
         >
           {excerpt}
         </p>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs" style={{ color: "#B8973B" }}>
+          <div className="flex items-center gap-3 text-xs" style={{ color: "var(--vintage-gold)" }}>
             <span className="flex items-center gap-1">
               <Calendar size={12} />
               {formatDate(publishedAt)}
@@ -157,7 +157,7 @@ export function BlogCard({
             size={16}
             aria-hidden="true"
             className="group-hover:translate-x-1 transition-transform"
-            style={{ color: "#B8973B" }}
+            style={{ color: "var(--vintage-gold)" }}
           />
         </div>
       </div>

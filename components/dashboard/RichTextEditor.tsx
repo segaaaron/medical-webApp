@@ -34,11 +34,11 @@ interface RichTextEditorProps {
 }
 
 const BTN = "p-1.5 rounded hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 disabled:opacity-30 disabled:cursor-not-allowed"
-const BTN_ACTIVE = "bg-[#B8973B]/10 text-[#B8973B]"
+const BTN_ACTIVE = "bg-[var(--vintage-gold)]/10 text-[var(--vintage-gold)]"
 const SEP = <div className="w-px h-5 bg-gray-200 mx-0.5 shrink-0" />
 
 const TEXT_COLORS = [
-  "#000000", "#3a0f20", "#b5496a", "#6b21a8", "#1d4ed8",
+  "#000000", "var(--primary-darkest)", "#b5496a", "#6b21a8", "#1d4ed8",
   "#0891b2", "#047857", "#92400e", "#dc2626", "#ea580c",
   "#ca8a04", "#4b5563", "#6b7280", "#9ca3af", "#ffffff",
 ]

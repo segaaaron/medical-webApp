@@ -6,6 +6,7 @@ import { CustomCursorLoader } from "@/components/ui/CustomCursorLoader";
 import { SkipNav } from "@/components/ui/SkipNav";
 import { safeJsonLd } from "@/lib/seo-utils";
 import { LazyMotion, domAnimation } from "framer-motion";
+import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -58,7 +59,7 @@ export const metadata: Metadata = {
     template: "%s | Dra. Yasmin Medrano Avila",
   },
   description:
-    "Especialista #1 en medicina estética Cochabamba. +5.000 pacientes felices, 10+ años. Botox, rellenos, armonización facial. ¡Consulta de valoración GRATIS!",
+    "Especialista en medicina estética en Cochabamba. +5.000 pacientes felices, 10+ años de experiencia. Botox, rellenos, armonización facial. ¡Consulta de valoración GRATIS!",
   keywords: [
     // Geo-transaccionales Bolivia/Cochabamba — alta intención de compra
     "médico estético Cochabamba Bolivia",
@@ -121,7 +122,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Medicina Estética #1 en Cochabamba | Dra. Yasmin Medrano Avila",
+    title: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
     description:
       "✨ +5.000 pacientes felices en Bolivia. Botox natural, rellenos, armonización facial. 10+ años de experiencia. ¡Consulta GRATIS este mes — reserva ahora!",
     images: ["/og-image.jpg"],
@@ -261,6 +262,7 @@ export default function RootLayout({
             <div id="main-content">{children}</div>
           </SmoothScrollProvider>
         </LazyMotion>
+        <AnalyticsScripts />
       </body>
     </html>
   );

@@ -104,6 +104,26 @@ export default async function TratamientoDetallePage({ params }: Props) {
     ],
   }
 
+  const procedureLd = {
+    "@context": "https://schema.org",
+    "@type": "MedicalProcedure",
+    name: treatment.name,
+    description: (treatment.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300),
+    url: `${BASE_URL}/tratamientos/${id}`,
+    ...(treatment.imageUrl ? { image: treatment.imageUrl } : {}),
+    provider: {
+      "@type": "Physician",
+      name: "Dra. Yasmin Medrano Avila",
+      url: BASE_URL,
+      medicalSpecialty: "Medicina Estética",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Cochabamba",
+        addressCountry: "BO",
+      },
+    },
+  }
+
   return (
     <>
       <Navbar links={navLinks} />
@@ -112,11 +132,15 @@ export default async function TratamientoDetallePage({ params }: Props) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(procedureLd) }}
+        />
 
         {/* Dark hero band */}
         <div
           className="relative overflow-hidden"
-          style={{ backgroundColor: "#3a0f20", paddingTop: "80px", paddingBottom: "64px" }}
+          style={{ backgroundColor: "var(--primary-darkest)", paddingTop: "80px", paddingBottom: "64px" }}
         >
           {/* Hero image as blurred bg when available */}
           {treatment.imageUrl && (
@@ -151,7 +175,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
             {treatment.tag && (
               <span
                 className="inline-block text-xs font-bold px-3 py-1 rounded-full mb-4 tracking-wide"
-                style={{ backgroundColor: "rgba(184,151,59,0.15)", color: "#B8973B", border: "1px solid rgba(184,151,59,0.3)" }}
+                style={{ backgroundColor: "rgba(184,151,59,0.15)", color: "var(--vintage-gold)", border: "1px solid rgba(184,151,59,0.3)" }}
               >
                 {treatment.tag}
               </span>
@@ -166,7 +190,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
             </h1>
 
             {/* Gold divider */}
-            <div className="mt-6 w-16 h-px" style={{ backgroundColor: "#B8973B" }} />
+            <div className="mt-6 w-16 h-px" style={{ backgroundColor: "var(--vintage-gold)" }} />
           </div>
         </div>
 
@@ -200,11 +224,11 @@ export default async function TratamientoDetallePage({ params }: Props) {
             {/* CTA bottom */}
             <div
               className="mt-12 p-8 rounded-2xl text-center"
-              style={{ backgroundColor: "#3a0f20", border: "1px solid rgba(184,151,59,0.25)" }}
+              style={{ backgroundColor: "var(--primary-darkest)", border: "1px solid rgba(184,151,59,0.25)" }}
             >
               <p
                 className="text-xs uppercase tracking-[0.2em] mb-3"
-                style={{ color: "#B8973B", fontFamily: "var(--font-mono, ui-monospace, monospace)" }}
+                style={{ color: "var(--vintage-gold)", fontFamily: "var(--font-mono, ui-monospace, monospace)" }}
               >
                 Consulta de Valoración
               </p>
@@ -212,7 +236,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 ¿Te interesa este tratamiento? Agenda una consulta gratuita con la Dra. Yasmin Medrano Avila.
               </p>
               {treatment.price > 0 && (
-                <p className="text-3xl font-bold mb-6" style={{ color: "#B8973B" }}>
+                <p className="text-3xl font-bold mb-6" style={{ color: "var(--vintage-gold)" }}>
                   Bs. {treatment.price.toLocaleString("es-BO")}
                 </p>
               )}
@@ -221,7 +245,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-sm font-bold text-white transition-all hover:brightness-110"
-                style={{ backgroundColor: "#B8973B" }}
+                style={{ backgroundColor: "var(--vintage-gold)" }}
               >
                 <MessageCircle size={16} aria-hidden="true" />
                 {treatment.price > 0 ? "Agendar consulta gratuita" : "Consultar por WhatsApp"}

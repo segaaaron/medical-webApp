@@ -68,7 +68,22 @@
       "Bash(sips -s format webp /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.png --out /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.webp)",
       "Bash(sips -s format jpeg -s formatOptions 80 /Users/miguelangelsaraviabelmonte/medical-webApp/public/images/logo_ym_transparent.png --out /tmp/logo_test.jpg)",
       "Read(//tmp/**)",
-      "Bash(xargs -I {} basename {})"
+      "Bash(xargs -I {} basename {})",
+      "Bash(rm /Users/miguelangelsaraviabelmonte/medical-webApp/.claude/agents/senior-next.md)",
+      "Bash(rmdir /Users/miguelangelsaraviabelmonte/medical-webApp/.claude/agents)",
+      "Bash(grep -rn 'query\\(`' app/api lib --include=\"*.ts\")",
+      "Bash(grep -v '\\\\$[0-9]')",
+      "Bash(grep -rn 'query\\(\\\\s*`[^`]*\\\\${' app/api lib --include=\"*.ts\" -E)",
+      "Bash(npx eslint *)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(cp public/videos/hero.mp4 /tmp/hero-original.mp4)",
+      "Bash(ffmpeg -y -i public/videos/hero.mp4 -vf scale=1280:-2 -c:v libx264 -crf 28 -preset slow -movflags +faststart -an /tmp/hero-new.mp4)",
+      "Bash(ffmpeg -y -i /tmp/hero-original.mp4 -vf scale=1280:-2 -c:v libvpx-vp9 -crf 38 -b:v 0 -an /tmp/hero-new.webm)",
+      "Bash(ffmpeg -y -i /tmp/hero-original.mp4 -vf scale=1280:-2 -c:v libx264 -crf 30 -preset slow -movflags +faststart -an /tmp/hero-new.mp4)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(cp public/videos/hero.webm /tmp/hero-original.webm)",
+      "Bash(cp /tmp/hero-new.mp4 public/videos/hero.mp4)",
+      "Bash(cp /tmp/hero-new.webm public/videos/hero.webm)"
     ]
   }
 }

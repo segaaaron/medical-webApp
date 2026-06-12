@@ -41,7 +41,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
   const eyebrow = info?.label || "Nuestros Servicios"
   const title = info?.title || "Tratamientos de Medicina Estética"
   const subtitle = info?.subtitle ||
-    "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:#B8973B;font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
+    "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:var(--vintage-gold);font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
   const consultationTitle = info?.consultationTitle || "Lo Que Incluye Cada Consulta"
   const sidebarBadge = info?.sidebarBadge || "Consulta de Valoración GRATIS"
   const doctorImage = info?.doctorImage || "/images/draMedrano2.jpeg"
@@ -56,7 +56,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
   const hasInfoItems = Array.isArray(info?.consultationItems) && info.consultationItems.length > 0
 
   return (
-    <section id="tratamientos" className="py-20 px-6" style={{ backgroundColor: "#3a0f20" }}>
+    <section id="tratamientos" className="py-20 px-6" style={{ backgroundColor: "var(--primary-darkest)" }}>
       <div className="container-xl">
         <m.div
           initial={{ opacity: 0, y: 30 }}
@@ -103,14 +103,14 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
               }
             </div>
 
-            <div className="p-6 rounded-xl" style={{ backgroundColor: "#5c1f35", border: "1px solid rgba(184,151,59,0.25)" }}>
-              <p className="text-sm uppercase tracking-widest mb-3" style={{ color: "#e8a0b4" }}>
+            <div className="p-6 rounded-xl" style={{ backgroundColor: "var(--primary-darker)", border: "1px solid rgba(184,151,59,0.25)" }}>
+              <p className="text-sm uppercase tracking-widest mb-3" style={{ color: "var(--meteorite)" }}>
                 Tratamientos Disponibles
               </p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {modules.map((mod) => (
                   <li key={mod.title} className="flex items-start gap-2 text-sm" style={{ color: "#fce4ec" }}>
-                    <span style={{ color: "#B8973B" }}>›</span>
+                    <span style={{ color: "var(--vintage-gold)" }}>›</span>
                     {mod.title}
                   </li>
                 ))}
@@ -128,17 +128,17 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
           >
             <div
               className="rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full"
-              style={{ backgroundColor: "#5c1f35" }}
+              style={{ backgroundColor: "var(--primary-darker)" }}
             >
               <div
                 className="text-center py-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2"
-                style={{ backgroundColor: "#B8973B", color: "white" }}
+                style={{ backgroundColor: "var(--vintage-gold)", color: "white" }}
               >
                 <Sparkles size={14} aria-hidden="true" />
                 {sidebarBadge}
               </div>
               <div className="p-8 text-center">
-                <div className="relative w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "#3a0f20" }}>
+                <div className="relative w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "var(--primary-darkest)" }}>
                   <ImageWithFallback
                     src={doctorImage}
                     alt="Dra. Yasmin Medrano Avila - Agenda tu consulta de valoracion gratuita de medicina estetica"
@@ -151,21 +151,21 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                   />
                 </div>
                 <h4 className="text-2xl font-bold text-white mb-2">{ctaTitle}</h4>
-                <p className="text-sm mb-6" style={{ color: "#e8a0b4" }}>
+                <p className="text-sm mb-6" style={{ color: "var(--meteorite)" }}>
                   {ctaSubtitle}
                 </p>
                 <div className="mb-2">
-                  <span className="text-3xl font-bold" style={{ color: "#B8973B" }}>
+                  <span className="text-3xl font-bold" style={{ color: "var(--vintage-gold)" }}>
                     {priceLabel}
                   </span>
                 </div>
-                <p className="text-xs mb-8" style={{ color: "#e8a0b4" }}>
+                <p className="text-xs mb-8" style={{ color: "var(--meteorite)" }}>
                   {priceDescription}
                 </p>
                 <LinkButton href={WHATSAPP_URL} variant="primary" className="w-full justify-center py-4">
                   {buttonText}
                 </LinkButton>
-                <p className="text-xs mt-4" style={{ color: "#7a6570" }}>
+                <p className="text-xs mt-4" style={{ color: "var(--gray-mid)" }}>
                   {disclaimer}
                 </p>
               </div>

@@ -13,7 +13,7 @@ import { useToast } from "@/components/dashboard/Toast"
 import RichTextEditor from "@/components/dashboard/RichTextEditor"
 
 const INPUT_CLS =
-  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#B8973B] focus:ring-1 focus:ring-[#B8973B] transition-colors"
+  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
 
 const blogSchema = Yup.object({
   title: Yup.string().required("El título es obligatorio"),
@@ -70,7 +70,7 @@ export default function NuevoBlogPage() {
         <Link
           href="/dashboard/blog"
           className="inline-flex items-center gap-2 text-sm font-medium transition-colors hover:opacity-80"
-          style={{ color: "#B8973B" }}
+          style={{ color: "var(--vintage-gold)" }}
           aria-label="Volver a la lista de articulos"
         >
           <ArrowLeft size={16} aria-hidden="true" />
@@ -142,7 +142,7 @@ export default function NuevoBlogPage() {
                   >
                     <ImageIcon size={32} className="text-gray-300" />
                     <span className="text-sm text-gray-400">Sin imagen seleccionada</span>
-                    <span className="text-xs text-[#B8973B] font-medium flex items-center gap-1">
+                    <span className="text-xs text-[var(--vintage-gold)] font-medium flex items-center gap-1">
                       <Upload size={12} /> Subir imagen
                     </span>
                   </label>
@@ -185,7 +185,7 @@ export default function NuevoBlogPage() {
                 checked={formik.values.published}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className="rounded accent-[#B8973B]"
+                className="rounded accent-[var(--vintage-gold)]"
               />
               Publicar inmediatamente
             </label>
@@ -197,7 +197,7 @@ export default function NuevoBlogPage() {
               disabled={!formik.isValid || formik.isSubmitting}
               aria-label={formik.isSubmitting ? "Guardando articulo" : "Crear articulo"}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
-              style={{ backgroundColor: "#B8973B" }}
+              style={{ backgroundColor: "var(--vintage-gold)" }}
             >
               <Check size={15} aria-hidden="true" />
               {formik.isSubmitting ? "Guardando..." : "Crear articulo"}

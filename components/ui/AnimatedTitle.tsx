@@ -25,7 +25,7 @@ export function AnimatedTitle({
   if (!text.trim()) return null
 
   const words = text.split(" ")
-  const color = light ? "#ffffff" : "#3a0f20"
+  const color = light ? "#ffffff" : "var(--primary-darkest)"
 
   if (shouldReduceMotion) {
     return (

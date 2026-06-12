@@ -127,7 +127,7 @@ export default async function BlogPage() {
         <section className="py-16 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
           <p
             className="text-sm uppercase tracking-[0.3em] font-semibold mb-3"
-            style={{ color: "#e8a0b4" }}
+            style={{ color: "var(--meteorite)" }}
           >
             Consejos & Novedades
           </p>
@@ -141,7 +141,7 @@ export default async function BlogPage() {
         {/* Empty state */}
         {allPosts.length === 0 && (
           <section className="py-20 px-6 text-center" style={{ backgroundColor: "#F8F0E3" }} aria-label="Sin artículos">
-            <p className="text-lg" style={{ color: "#7a6570" }}>
+            <p className="text-lg" style={{ color: "var(--gray-mid)" }}>
               No hay artículos disponibles por el momento.
             </p>
           </section>
@@ -153,7 +153,7 @@ export default async function BlogPage() {
             <div className="max-w-5xl mx-auto">
               <p
                 className="text-xs uppercase tracking-[0.2em] font-semibold mb-6"
-                style={{ color: "#B8973B", fontFamily: "var(--font-mono, ui-monospace, monospace)" }}
+                style={{ color: "var(--vintage-gold)", fontFamily: "var(--font-mono, ui-monospace, monospace)" }}
               >
                 Articulo destacado
               </p>
@@ -176,7 +176,7 @@ export default async function BlogPage() {
         {rest.length > 0 && (
           <section className="py-16 px-6" style={{ backgroundColor: "#F8F0E3" }} aria-label="Todos los artículos">
             <div className="max-w-5xl mx-auto">
-              <h2 className="text-2xl font-bold mb-8" style={{ color: "#3a0f20" }}>
+              <h2 className="text-2xl font-bold mb-8" style={{ color: "var(--primary-darkest)" }}>
                 Todos los articulos
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

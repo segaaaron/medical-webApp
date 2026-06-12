@@ -4,8 +4,8 @@ import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { motion, useSpring, useReducedMotion } from "framer-motion"
 
-const VINTAGE_GOLD = "#B8973B"
-const ROSE = "#e8a0b4"
+const VINTAGE_GOLD = "var(--vintage-gold)"
+const ROSE = "var(--meteorite)"
 
 function SyringeSVG({ color, scale }: { color: string; scale: number }) {
   return (

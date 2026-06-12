@@ -14,7 +14,7 @@ export function TiltCard({
   children,
   className = "",
   style,
-  glowColor = "#B8973B",
+  glowColor = "var(--vintage-gold)",
   intensity = 8,
 }: TiltCardProps) {
   const reducedMotion = useReducedMotion()

@@ -12,7 +12,7 @@ import RichTextEditor from "@/components/dashboard/RichTextEditor"
 const TAGS = ["POPULAR", "INNOVADOR", "RECOMENDADO", "DEFINITIVO", "ESENCIAL", "ESPECIALIZADO"]
 
 const INPUT_CLS =
-  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#B8973B] focus:ring-1 focus:ring-[#B8973B] transition-colors"
+  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
 
 const treatmentSchema = Yup.object({
   name: Yup.string().min(5, "El nombre debe tener al menos 5 caracteres").required("El nombre debe tener al menos 5 caracteres"),
@@ -142,8 +142,8 @@ export function TreatmentForm({
                   onClick={() => formik.setFieldValue("tag", t)}
                   className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
                     formik.values.tag === t
-                      ? "bg-[#B8973B] text-white border-[#B8973B]"
-                      : "bg-white text-gray-500 border-gray-200 hover:border-[#B8973B] hover:text-[#B8973B]"
+                      ? "bg-[var(--vintage-gold)] text-white border-[var(--vintage-gold)]"
+                      : "bg-white text-gray-500 border-gray-200 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)]"
                   }`}
                 >
                   {t}
@@ -157,7 +157,7 @@ export function TreatmentForm({
           <div className="space-y-2">
             <label
               htmlFor="t-image"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[#B8973B] hover:text-[#B8973B] transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
             >
               <Upload size={15} />
               {imagePreview ? "Cambiar imagen" : "Seleccionar imagen"} (JPG, PNG, WebP)
@@ -222,7 +222,7 @@ export function TreatmentForm({
             checked={formik.values.active}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            className="rounded accent-[#B8973B]"
+            className="rounded accent-[var(--vintage-gold)]"
           />
           <label htmlFor="t-active" className="text-sm text-gray-700 cursor-pointer">
             Visible en el sitio
@@ -234,7 +234,7 @@ export function TreatmentForm({
             type="submit"
             disabled={saving || !formik.isValid}
             className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-            style={{ backgroundColor: "#B8973B" }}
+            style={{ backgroundColor: "var(--vintage-gold)" }}
           >
             <Check size={15} />
             {saving ? savingLabel : submitLabel}

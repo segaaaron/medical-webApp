@@ -4,6 +4,7 @@ import { useState } from "react"
 import { m } from "framer-motion"
 import { Send } from "lucide-react"
 import { WHATSAPP_NUMBER } from "@/lib/constants"
+import { trackLead, trackWhatsAppClick } from "@/lib/analytics"
 
 const TREATMENTS = [
   "Toxina Botulínica (Botox)",
@@ -18,7 +19,7 @@ const TREATMENTS = [
   "Otro / Consulta general",
 ]
 
-const GOLD = "#B8973B"
+const GOLD = "var(--vintage-gold)"
 
 function focusRing(e: React.FocusEvent<HTMLElement>) {
   (e.target as HTMLElement).style.boxShadow = "0 0 0 2px rgba(184,151,59,0.45)"
@@ -28,7 +29,7 @@ function blurRing(e: React.FocusEvent<HTMLElement>) {
 }
 
 export function ContactForm() {
-  const [form, setForm] = useState({ name: "", phone: "", treatment: "", message: "" })
+  const [form, setForm] = useState({ name: "", phone: "", treatment: "", message: "", preferredDate: "", website: "" })
   const [sent, setSent] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
@@ -41,13 +42,27 @@ export function ContactForm() {
       `Hola, mi nombre es *${form.name}*.`,
       form.treatment ? `Me interesa el tratamiento de *${form.treatment}*.` : "",
       form.phone ? `Mi número de contacto es: ${form.phone}.` : "",
+      form.preferredDate ? `Quisiera una cita el ${form.preferredDate}.` : "",
       form.message ? `Mensaje: ${form.message}` : "",
     ]
       .filter(Boolean)
       .join(" ")
 
+    // Persist the lead before redirecting — fire-and-forget with keepalive so
+    // the request survives the navigation. window.open must stay synchronous
+    // (awaiting here would trigger popup blockers).
+    fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...form, source: "contact-form" }),
+      keepalive: true,
+    }).catch(() => {})
+
+    trackLead({ treatment: form.treatment, source: "contact-form" })
+    trackWhatsAppClick("contact-form")
+
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, "_blank")
-    setForm({ name: "", phone: "", treatment: "", message: "" })
+    setForm({ name: "", phone: "", treatment: "", message: "", preferredDate: "", website: "" })
     setSent(true)
   }
 
@@ -85,7 +100,7 @@ export function ContactForm() {
         </div>
         <div>
           <p className="text-white font-bold text-lg mb-1">¡Mensaje enviado!</p>
-          <p className="text-sm" style={{ color: "#e8a0b4" }}>
+          <p className="text-sm" style={{ color: "var(--meteorite)" }}>
             Te redirigimos a WhatsApp para continuar la conversación.
           </p>
         </div>
@@ -108,62 +123,84 @@ export function ContactForm() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4"
     >
+      {/* Honeypot anti-spam: hidden from real users, bots fill it */}
+      <input
+        type="text" name="website" tabIndex={-1} autoComplete="off"
+        value={form.website} onChange={handleChange}
+        className="absolute opacity-0 pointer-events-none h-0 w-0"
+        aria-hidden="true"
+      />
+
       <div>
-        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "#e8a0b4" }}>
+        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "var(--meteorite)" }}>
           Nombre *
         </label>
         <input
           type="text" name="name" required
           value={form.name} onChange={handleChange}
           placeholder="Tu nombre completo"
-          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[#7a6570] outline-none transition"
-          style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35" }}
+          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[var(--gray-mid)] outline-none transition"
+          style={{ backgroundColor: "var(--primary-darkest)", border: "1px solid var(--primary-darker)" }}
           onFocus={focusRing} onBlur={blurRing}
         />
       </div>
 
       <div>
-        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "#e8a0b4" }}>
+        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "var(--meteorite)" }}>
           Teléfono / WhatsApp
         </label>
         <input
           type="tel" name="phone"
           value={form.phone} onChange={handleChange}
           placeholder="Ej: 70000000"
-          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[#7a6570] outline-none transition"
-          style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35" }}
+          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[var(--gray-mid)] outline-none transition"
+          style={{ backgroundColor: "var(--primary-darkest)", border: "1px solid var(--primary-darker)" }}
           onFocus={focusRing} onBlur={blurRing}
         />
       </div>
 
       <div>
-        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "#e8a0b4" }}>
+        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "var(--meteorite)" }}>
           Tratamiento de interés
         </label>
         <select
           name="treatment"
           value={form.treatment} onChange={handleChange}
           className="w-full px-4 py-3 rounded-xl text-base outline-none transition"
-          style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35", color: form.treatment ? "white" : "#7a6570" }}
+          style={{ backgroundColor: "var(--primary-darkest)", border: "1px solid var(--primary-darker)", color: form.treatment ? "white" : "var(--gray-mid)" }}
           onFocus={focusRing} onBlur={blurRing}
         >
-          <option value="" style={{ color: "#7a6570" }}>Selecciona un tratamiento</option>
+          <option value="" style={{ color: "var(--gray-mid)" }}>Selecciona un tratamiento</option>
           {TREATMENTS.map((t) => (
-            <option key={t} value={t} style={{ color: "white", backgroundColor: "#3a0f20" }}>{t}</option>
+            <option key={t} value={t} style={{ color: "white", backgroundColor: "var(--primary-darkest)" }}>{t}</option>
           ))}
         </select>
       </div>
 
       <div>
-        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "#e8a0b4" }}>
+        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "var(--meteorite)" }}>
+          Fecha preferida para tu cita (opcional)
+        </label>
+        <input
+          type="date" name="preferredDate"
+          value={form.preferredDate} onChange={handleChange}
+          min={new Date().toISOString().slice(0, 10)}
+          className="w-full px-4 py-3 rounded-xl text-base outline-none transition [color-scheme:dark]"
+          style={{ backgroundColor: "var(--primary-darkest)", border: "1px solid var(--primary-darker)", color: form.preferredDate ? "white" : "var(--gray-mid)" }}
+          onFocus={focusRing} onBlur={blurRing}
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs uppercase tracking-widest mb-1.5 font-semibold" style={{ color: "var(--meteorite)" }}>
           Mensaje (opcional)
         </label>
         <textarea
           name="message"
           value={form.message} onChange={handleChange}
           rows={3} placeholder="Cuéntanos en qué podemos ayudarte..."
-          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[#7a6570] outline-none transition resize-none"
-          style={{ backgroundColor: "#3a0f20", border: "1px solid #5c1f35" }}
+          className="w-full px-4 py-3 rounded-xl text-base text-white placeholder-[var(--gray-mid)] outline-none transition resize-none"
+          style={{ backgroundColor: "var(--primary-darkest)", border: "1px solid var(--primary-darker)" }}
           onFocus={focusRing} onBlur={blurRing}
         />
       </div>
@@ -177,7 +214,7 @@ export function ContactForm() {
         Enviar por WhatsApp
       </button>
 
-      <p className="text-xs text-center" style={{ color: "#7a6570" }}>
+      <p className="text-xs text-center" style={{ color: "var(--gray-mid)" }}>
         Al enviar serás redirigida a WhatsApp para completar tu consulta.
       </p>
     </m.form>

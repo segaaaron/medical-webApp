@@ -116,9 +116,9 @@ export default function CitasDashboardPage() {
             onClick={() => handleFilter(f.value)}
             className="px-4 py-1.5 rounded-full text-xs font-semibold border transition-colors"
             style={{
-              backgroundColor: filter === f.value ? "#B8973B" : "white",
+              backgroundColor: filter === f.value ? "var(--vintage-gold)" : "white",
               color: filter === f.value ? "white" : "#6b7280",
-              borderColor: filter === f.value ? "#B8973B" : "#e5e7eb",
+              borderColor: filter === f.value ? "var(--vintage-gold)" : "#e5e7eb",
             }}
           >
             {f.label}

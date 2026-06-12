@@ -26,7 +26,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
           <SectionHeader
             eyebrow="Recursos Gratuitos"
             title="Guías de Medicina Estética"
-            subtitle={`Descarga nuestras guías gratuitas y prepárate para tu consulta.<br/><span style="color:#B8973B;font-weight:700;">Información confiable de tu especialista de confianza.</span>`}
+            subtitle={`Descarga nuestras guías gratuitas y prepárate para tu consulta.<br/><span style="color:var(--vintage-gold);font-weight:700;">Información confiable de tu especialista de confianza.</span>`}
           />
         </m.div>
 
@@ -48,10 +48,10 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
                   {pdf.icon}
                 </div>
                 <div>
-                  <h3 className="font-bold text-base mb-1" style={{ color: "#3a0f20" }}>
+                  <h3 className="font-bold text-base mb-1" style={{ color: "var(--primary-darkest)" }}>
                     {pdf.title}
                   </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: "#7a6570" }}>
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--gray-mid)" }}>
                     {pdf.description}
                   </p>
                 </div>
@@ -66,14 +66,14 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <div className="rounded-2xl p-8 shadow-xl text-white" style={{ backgroundColor: "#3a0f20" }}>
+            <div className="rounded-2xl p-8 shadow-xl text-white" style={{ backgroundColor: "var(--primary-darkest)" }}>
               {!submitted ? (
                 <>
                   <div className="flex items-center gap-3 mb-6">
-                    <Phone size={28} style={{ color: "#B8973B" }} />
+                    <Phone size={28} style={{ color: "var(--vintage-gold)" }} />
                     <h3 className="text-2xl font-bold">Agenda tu Consulta</h3>
                   </div>
-                  <p className="text-sm mb-8 leading-relaxed" style={{ color: "#e8a0b4" }}>
+                  <p className="text-sm mb-8 leading-relaxed" style={{ color: "var(--meteorite)" }}>
                     Ingresa tu correo y te enviaremos las guías gratuitas junto con información para agendar tu consulta de valoración.
                   </p>
                   <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -85,11 +85,11 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
                       required
                       leftIcon={<Mail size={18} />}
                     />
-                    <Button type="submit" variant="default" className="w-full py-4 bg-[#B8973B] text-white hover:brightness-110">
+                    <Button type="submit" variant="default" className="w-full py-4 bg-[var(--vintage-gold)] text-white hover:brightness-110">
                       ENVIARME LAS GUÍAS GRATIS
                     </Button>
                   </form>
-                  <p className="text-xs mt-4 text-center" style={{ color: "#7a6570" }}>
+                  <p className="text-xs mt-4 text-center" style={{ color: "var(--gray-mid)" }}>
                     🔒 Tu información está protegida. Sin spam, cancela cuando quieras.
                   </p>
                 </>
@@ -97,7 +97,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
                 <div className="text-center py-8">
                   <div className="text-5xl mb-4">✨</div>
                   <h3 className="text-2xl font-bold mb-3">¡Listo!</h3>
-                  <p style={{ color: "#e8a0b4" }}>
+                  <p style={{ color: "var(--meteorite)" }}>
                     Revisa tu bandeja de entrada. Enviamos las guías a{" "}
                     <strong className="text-white">{email}</strong>.
                   </p>

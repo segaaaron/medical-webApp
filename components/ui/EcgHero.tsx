@@ -30,7 +30,7 @@ export function EcgHero() {
         <m.path
           d={path}
           fill="none"
-          stroke="#B8973B"
+          stroke="var(--vintage-gold)"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -44,11 +44,11 @@ export function EcgHero() {
         {/* Glow dot at the end of the spike — CSS-only, no offsetPath, cross-browser safe */}
         <m.circle
           cx="190" cy="25" r="3"
-          fill="#B8973B"
+          fill="var(--vintage-gold)"
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
           transition={{ duration: 0.6, delay: 1.8, ease: "easeOut" }}
-          style={{ filter: "drop-shadow(0 0 4px #B8973B)" }}
+          style={{ filter: "drop-shadow(0 0 4px var(--vintage-gold))" }}
         />
       </svg>
     </div>

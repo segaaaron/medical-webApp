@@ -3,9 +3,10 @@
 import { MessageCircle, Phone, Instagram, Facebook } from "lucide-react"
 import { m } from "framer-motion"
 import type { ContactData } from "@/types/content"
+import { trackWhatsAppClick } from "@/lib/analytics"
 
 const CARD_STYLE: React.CSSProperties = {
-  backgroundColor: "#5c1f35",
+  backgroundColor: "var(--primary-darker)",
   border: "1px solid rgba(184,151,59,0.08)",
   transition: "border-color 0.25s, box-shadow 0.25s",
 }
@@ -29,28 +30,28 @@ export function ContactCards({ ct }: ContactCardsProps) {
   const cards = [
     {
       href: ct.whatsappUrl,
-      icon: <MessageCircle size={22} style={{ color: "#B8973B" }} />,
+      icon: <MessageCircle size={22} style={{ color: "var(--vintage-gold)" }} />,
       label: "WhatsApp",
       value: ct.whatsappNumber,
       sub: "Respuesta rápida · Consulta gratuita",
     },
     {
       href: `tel:${ct.phone}`,
-      icon: <Phone size={22} style={{ color: "#B8973B" }} />,
+      icon: <Phone size={22} style={{ color: "var(--vintage-gold)" }} />,
       label: "Teléfono",
       value: ct.phone,
       sub: undefined,
     },
     {
       href: ct.instagramUrl,
-      icon: <Instagram size={22} style={{ color: "#e8a0b4" }} />,
+      icon: <Instagram size={22} style={{ color: "var(--meteorite)" }} />,
       label: "Instagram",
       value: ct.instagram,
       sub: undefined,
     },
     {
       href: ct.facebookUrl,
-      icon: <Facebook size={22} style={{ color: "#e8a0b4" }} />,
+      icon: <Facebook size={22} style={{ color: "var(--meteorite)" }} />,
       label: "Facebook",
       value: ct.facebook,
       sub: undefined,
@@ -63,13 +64,13 @@ export function ContactCards({ ct }: ContactCardsProps) {
       {cards.map((card, i) => {
         const inner = (
           <>
-            <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "#3a0f20" }}>
+            <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: "var(--primary-darkest)" }}>
               {card.icon}
             </div>
             <div>
-              <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "#e8a0b4" }}>{card.label}</p>
+              <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--meteorite)" }}>{card.label}</p>
               <p className="text-white font-semibold">{card.value}</p>
-              {card.sub && <p className="text-xs mt-1" style={{ color: "#7a6570" }}>{card.sub}</p>}
+              {card.sub && <p className="text-xs mt-1" style={{ color: "var(--gray-mid)" }}>{card.sub}</p>}
             </div>
           </>
         )
@@ -81,6 +82,7 @@ export function ContactCards({ ct }: ContactCardsProps) {
               href={card.href}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={card.label === "WhatsApp" ? () => trackWhatsAppClick("contact-cards") : undefined}
               className="flex items-center gap-5 p-6 rounded-2xl"
               style={CARD_STYLE}
               onMouseEnter={hoverIn}

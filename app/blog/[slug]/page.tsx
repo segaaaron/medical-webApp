@@ -178,7 +178,7 @@ export default async function BlogPostPage({ params }: Props) {
                 href="/blog"
                 aria-label="Volver al listado del blog"
                 className="inline-flex items-center gap-2 text-xs font-medium hover:opacity-80 transition-opacity py-2 -my-2"
-                style={{ color: "#B8973B", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.08em" }}
+                style={{ color: "var(--vintage-gold)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.08em" }}
               >
                 <ArrowLeft size={14} aria-hidden="true" /> VOLVER AL BLOG
               </Link>
@@ -187,7 +187,7 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Title */}
             <h1
               className="text-3xl md:text-5xl font-light leading-tight mb-4"
-              style={{ color: "#3a0f20", fontFamily: "var(--font-display, Georgia, serif)", letterSpacing: "-0.02em" }}
+              style={{ color: "var(--primary-darkest)", fontFamily: "var(--font-display, Georgia, serif)", letterSpacing: "-0.02em" }}
             >
               {post.title}
             </h1>
@@ -197,10 +197,10 @@ export default async function BlogPostPage({ params }: Props) {
               className="flex flex-wrap items-center gap-4 pb-6 mb-6 border-b"
               style={{ borderColor: "rgba(184,151,59,0.2)" }}
             >
-              <span className="text-sm font-medium" style={{ color: "#3a0f20" }}>
+              <span className="text-sm font-medium" style={{ color: "var(--primary-darkest)" }}>
                 {post.author}
               </span>
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: "#B8973B" }}>
+              <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--vintage-gold)" }}>
                 <Calendar size={14} />
                 {new Date(post.publishedAt).toLocaleDateString("es-BO", {
                   day: "2-digit",
@@ -208,7 +208,7 @@ export default async function BlogPostPage({ params }: Props) {
                   year: "numeric",
                 })}
               </span>
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: "#B8973B" }}>
+              <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--vintage-gold)" }}>
                 <Clock size={14} />
                 {post.readTime} de lectura
               </span>
@@ -238,7 +238,7 @@ export default async function BlogPostPage({ params }: Props) {
         {related.length > 0 && (
           <section className="py-16 px-6" style={{ backgroundColor: "#F8F0E3" }} aria-label="Artículos relacionados">
             <div className="max-w-3xl mx-auto">
-              <h2 className="text-xl font-bold mb-8" style={{ color: "#3a0f20" }}>
+              <h2 className="text-xl font-bold mb-8" style={{ color: "var(--primary-darkest)" }}>
                 Articulos relacionados
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

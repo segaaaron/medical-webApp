@@ -74,7 +74,7 @@ function Cred({ value, label, prefersReduced }: CredProps) {
           transition={{ duration: 0.4, delay: 2.1, ease: [0.16, 1, 0.3, 1] }}
           style={{
             height: "1.5px",
-            backgroundColor: "#B8973B",
+            backgroundColor: "var(--vintage-gold)",
             transformOrigin: "left",
             marginBottom: "6px",
             width: "32px",

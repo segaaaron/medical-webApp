@@ -49,21 +49,21 @@ export function PromoBanner({ data }: PromoBannerProps) {
         aria-labelledby={TITLE_ID}
         tabIndex={-1}
         className="relative w-full max-w-lg mx-4 rounded-2xl text-center py-10 px-8 shadow-2xl outline-none"
-        style={{ backgroundColor: "#FDF8F2", color: "#3a0f20", border: "1px solid rgba(184,151,59,0.2)" }}
+        style={{ backgroundColor: "#FDF8F2", color: "var(--primary-darkest)", border: "1px solid rgba(184,151,59,0.2)" }}
       >
         <div className="text-4xl mb-3" aria-hidden="true">💉</div>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#B8973B" }}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--vintage-gold)" }}>
           {data.label}
         </p>
-        <p id={TITLE_ID} className="text-lg md:text-xl font-bold leading-snug mb-1" style={{ color: "#3a0f20" }}>
+        <p id={TITLE_ID} className="text-lg md:text-xl font-bold leading-snug mb-1" style={{ color: "var(--primary-darkest)" }}>
           {data.title}{data.highlightedText && (
-            <> <span style={{ color: "#B8973B" }}>{data.highlightedText}</span></>
+            <> <span style={{ color: "var(--vintage-gold)" }}>{data.highlightedText}</span></>
           )}
         </p>
-        <p className="text-sm leading-relaxed mb-6" style={{ color: "#5c1f35" }}>
+        <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--primary-darker)" }}>
           {data.description}
         </p>
-        <p className="text-xs mb-6" style={{ color: "#7a6570" }}>
+        <p className="text-xs mb-6" style={{ color: "var(--gray-mid)" }}>
           {data.doctorName} · {data.location}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -79,7 +79,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
           <button
             onClick={dismiss}
             className="px-6 py-3 rounded-full font-bold text-sm uppercase tracking-wide border-2 transition-opacity hover:opacity-60"
-            style={{ borderColor: "#B8973B", color: "#B8973B" }}
+            style={{ borderColor: "var(--vintage-gold)", color: "var(--vintage-gold)" }}
           >
             {data.dismissLabel}
           </button>
@@ -88,7 +88,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
           onClick={dismiss}
           className="absolute top-4 right-4 hover:opacity-60 transition-opacity"
           aria-label="Cerrar"
-          style={{ color: "#B8973B" }}
+          style={{ color: "var(--vintage-gold)" }}
         >
           <X size={24} />
         </button>

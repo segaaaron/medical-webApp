@@ -15,7 +15,7 @@ export function PageHero({ eyebrow, title, subtitle }: PageHeroProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-sm uppercase tracking-[0.3em] font-semibold mb-3"
-        style={{ color: "#e8a0b4" }}
+        style={{ color: "var(--meteorite)" }}
       >
         {eyebrow}
       </m.p>
@@ -41,7 +41,7 @@ export function PageHero({ eyebrow, title, subtitle }: PageHeroProps) {
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.6, delay: 0.35 }}
         className="w-16 h-0.5 mx-auto mt-6"
-        style={{ backgroundColor: "#B8973B" }}
+        style={{ backgroundColor: "var(--vintage-gold)" }}
       />
     </div>
   )

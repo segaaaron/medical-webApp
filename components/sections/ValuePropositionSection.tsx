@@ -23,7 +23,7 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div>
-                <TiltCard className="rounded-xl" glowColor="#B8973B">
+                <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
                   <m.div
                     key="card-eye-1"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
@@ -52,7 +52,7 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
               </div>
 
               <div>
-                <TiltCard className="rounded-xl" glowColor="#B8973B">
+                <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
                   <m.div
                     key="card-Zap-2"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
@@ -81,7 +81,7 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
               </div>
 
               <div>
-                <TiltCard className="rounded-xl" glowColor="#B8973B">
+                <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
                   <m.div
                     key="card-Award-3"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
@@ -110,7 +110,7 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
               </div>
 
               <div>
-                <TiltCard className="rounded-xl" glowColor="#B8973B">
+                <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
                   <m.div
                     key="card-TrendingUp-4"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}

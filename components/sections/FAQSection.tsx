@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import type { FAQ } from "@/types"
 
-const GOLD = "#B8973B"
+const GOLD = "var(--vintage-gold)"
 const TERRACOTTA = "oklch(58% 0.16 35)"
 
 interface FAQSectionProps {
@@ -78,7 +78,7 @@ function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps)
                 fontSize: "15px",
                 fontWeight: 600,
                 lineHeight: 1.45,
-                color: isOpen ? "#2a0d14" : "#3a0f20",
+                color: isOpen ? "#2a0d14" : "var(--primary-darkest)",
                 transition: "color 0.2s",
               }}
             >

@@ -30,7 +30,7 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
         style={{
           fontFamily: "var(--font-mono)",
           letterSpacing: "0.24em",
-          color: "#B8973B",
+          color: "var(--vintage-gold)",
           fontWeight: 600,
         }}
       >
@@ -66,8 +66,8 @@ export function Footer({ data }: { data: FooterData }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <h3 className="font-bold text-xl mb-1" style={{ color: "#B8973B" }}>{nameParts}</h3>
-            {nameRest && <h3 className="font-bold text-xl mb-2" style={{ color: "#B8973B" }}>{nameRest}</h3>}
+            <h3 className="font-bold text-xl mb-1" style={{ color: "var(--vintage-gold)" }}>{nameParts}</h3>
+            {nameRest && <h3 className="font-bold text-xl mb-2" style={{ color: "var(--vintage-gold)" }}>{nameRest}</h3>}
             <p className="text-sm italic mb-4" style={{ color: "var(--prem-dark-muted)" }}>
               {data.specialty}
             </p>
