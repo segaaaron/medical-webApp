@@ -10,6 +10,8 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { WHATSAPP_TREATMENT_URL } from "@/lib/constants"
+import { TreatmentPageTracker } from "@/components/analytics/TreatmentPageTracker"
+import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { EcgHero } from "@/components/ui/EcgHero"
 
@@ -128,6 +130,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
     <>
       <Navbar links={navLinks} />
       <main style={{ backgroundColor: "#F8F0E3", minHeight: "100vh" }}>
+        <TreatmentPageTracker id={id} name={treatment.name} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
@@ -240,16 +243,16 @@ export default async function TratamientoDetallePage({ params }: Props) {
                   Bs. {treatment.price.toLocaleString("es-BO")}
                 </p>
               )}
-              <a
+              <TrackWhatsAppLink
                 href={WHATSAPP_TREATMENT_URL(treatment.name)}
-                target="_blank"
-                rel="noopener noreferrer"
+                source="treatment-detail-cta"
+                treatment={treatment.name}
                 className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-sm font-bold text-white transition-all hover:brightness-110"
                 style={{ backgroundColor: "var(--vintage-gold)" }}
               >
                 <MessageCircle size={16} aria-hidden="true" />
                 {treatment.price > 0 ? "Agendar consulta gratuita" : "Consultar por WhatsApp"}
-              </a>
+              </TrackWhatsAppLink>
               <p className="text-xs mt-4" style={{ color: "rgba(255,255,255,0.35)" }}>
                 Sin compromiso · Atención personalizada garantizada
               </p>

@@ -13,6 +13,7 @@ import { Calendar, Clock, ArrowLeft } from "lucide-react"
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { BlogPageTracker } from "@/components/analytics/BlogPageTracker"
 
 export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el post
 
@@ -158,6 +159,7 @@ export default async function BlogPostPage({ params }: Props) {
     <>
       <Navbar links={c.navLinks} />
       <ReadingProgressBar />
+      <BlogPageTracker slug={post.slug} title={post.title} />
       <main>
         <script
           type="application/ld+json"

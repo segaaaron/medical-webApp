@@ -1,5 +1,6 @@
 "use client"
 import { MessageCircle, Facebook, Instagram } from "lucide-react"
+import { trackWhatsAppClick } from "@/lib/analytics"
 
 export interface FooterData {
   doctorName: string
@@ -85,6 +86,7 @@ export function Footer({ data }: { data: FooterData }) {
                   aria-label="WhatsApp"
                   className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                   style={{ backgroundColor: "var(--prem-dark-border)" }}
+                  onClick={() => trackWhatsAppClick("footer")}
                 >
                   <MessageCircle size={18} color="var(--prem-dark-muted)" />
                 </a>

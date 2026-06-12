@@ -5,6 +5,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader"
 import { Badge } from "@/components/ui/Badge"
 import { LinkButton } from "@/components/ui/Button"
 import { WHATSAPP_URL } from "@/lib/constants"
+import { trackWhatsAppClick } from "@/lib/analytics"
 import type { PresetCategory } from "@/types"
 
 // Images for each treatment category
@@ -81,7 +82,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12">
+          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12" onClick={() => trackWhatsAppClick("presets-section")}>
             CONSULTAR TRATAMIENTO
           </LinkButton>
         </m.div>

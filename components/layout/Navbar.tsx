@@ -6,6 +6,7 @@ import { m, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import type { NavLink } from "@/types"
 import { WHATSAPP_URL } from "@/lib/constants"
+import { trackWhatsAppClick } from "@/lib/analytics"
 
 interface NavbarProps {
   links: NavLink[]
@@ -100,6 +101,7 @@ export function Navbar({ links }: NavbarProps) {
               letterSpacing: "0.1em",
               padding: "10px 22px",
             }}
+            onClick={() => trackWhatsAppClick("navbar")}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--prem-accent)"
               ;(e.currentTarget as HTMLAnchorElement).style.color = "white"

@@ -8,6 +8,7 @@ import { MessageCircle, MapPin, Clock } from "lucide-react"
 import type { Metadata } from "next"
 import type { ContactData } from "@/types/content"
 import { PageHero } from "@/components/ui/PageHero"
+import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ContactForm } from "@/components/sections/ContactForm"
 import { ContactCards } from "@/components/sections/ContactCards"
 
@@ -181,16 +182,15 @@ export default async function ContactoPage() {
                 </div>
 
                 {/* CTA */}
-                <a
+                <TrackWhatsAppLink
                   href={ct.whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  source="contacto-page-cta"
                   className="flex items-center justify-center gap-3 w-full py-4 rounded-full text-base font-bold uppercase tracking-wide hover:brightness-110 transition-all"
                   style={{ backgroundColor: "var(--vintage-gold)", color: "white" }}
                 >
                   <MessageCircle size={18} />
                   AGENDAR MI CONSULTA GRATIS
-                </a>
+                </TrackWhatsAppLink>
               </div>
 
               {/* Contact form */}

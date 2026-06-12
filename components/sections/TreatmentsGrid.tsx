@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { WHATSAPP_TREATMENT_URL, WHATSAPP_URL } from "@/lib/constants"
+import { trackWhatsAppClick, trackTreatmentClick } from "@/lib/analytics"
 
 export interface Treatment {
   id: string
@@ -225,7 +226,7 @@ function PosterCard({
                 href={WHATSAPP_TREATMENT_URL(treatment.name)}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); trackWhatsAppClick("treatment-card", treatment.name) }}
                 style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "9px", letterSpacing: "0.14em", textTransform: "uppercase", color: "#000", background: GOLD, padding: "10px 16px", borderRadius: "2px", textDecoration: "none", display: "inline-flex", alignItems: "center", minHeight: "44px" }}
               >
                 Consultar
@@ -240,7 +241,7 @@ function PosterCard({
   if (!isHome) {
     return (
       <m.div id={`treatment-${treatment.id}`} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: index * 0.08 }}>
-        <Link href={`/tratamientos/${treatment.id}`} style={cardStyle} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+        <Link href={`/tratamientos/${treatment.id}`} style={cardStyle} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onClick={() => trackTreatmentClick({ id: treatment.id, name: treatment.name })}>
           {inner}
         </Link>
       </m.div>
@@ -311,7 +312,7 @@ export function TreatmentsGrid({ treatments, isHome }: TreatmentsGridProps) {
           transition={{ duration: 0.6 }}
           className="text-center mt-12"
         >
-          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12">
+          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12" onClick={() => trackWhatsAppClick("treatments-grid-bottom")}>
             AGENDA TU CONSULTA GRATUITA
           </LinkButton>
         </m.div>

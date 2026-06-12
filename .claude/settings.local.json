@@ -83,7 +83,12 @@
       "Bash(awk '{print $5, $9}')",
       "Bash(cp public/videos/hero.webm /tmp/hero-original.webm)",
       "Bash(cp /tmp/hero-new.mp4 public/videos/hero.mp4)",
-      "Bash(cp /tmp/hero-new.webm public/videos/hero.webm)"
+      "Bash(cp /tmp/hero-new.webm public/videos/hero.webm)",
+      "Bash(sed -n '85,95p' components/layout/Navbar.tsx)",
+      "Bash(sed -n '75,90p' components/layout/Footer.tsx)",
+      "Bash(sed -n '220,230p' components/sections/TreatmentsGrid.tsx)",
+      "Bash(sed -n '310,320p' components/sections/TreatmentsGrid.tsx)",
+      "Bash(sed -n '224,245p' \"app/tratamientos/[id]/page.tsx\")"
     ]
   }
 }

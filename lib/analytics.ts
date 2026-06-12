@@ -29,9 +29,7 @@ function fbq(...args: unknown[]) {
   }
 }
 
-/**
- * Lead captured (contact form submitted).
- */
+/** Lead captured via contact form. */
 export function trackLead(params: { treatment?: string; source: string }) {
   umami("lead", {
     treatment: params.treatment || "(sin especificar)",
@@ -40,10 +38,38 @@ export function trackLead(params: { treatment?: string; source: string }) {
   fbq("track", "Lead", { content_category: params.treatment || undefined })
 }
 
-/**
- * WhatsApp CTA clicked anywhere on the site.
- */
-export function trackWhatsAppClick(source: string) {
-  umami("whatsapp_click", { source })
+/** WhatsApp CTA clicked — pass source label (navbar, footer, hero, treatment-card, etc). */
+export function trackWhatsAppClick(source: string, treatment?: string) {
+  umami("whatsapp_click", { source, ...(treatment ? { treatment } : {}) })
   fbq("track", "Contact")
+}
+
+/** Treatment detail page viewed. */
+export function trackTreatmentView(params: { id: string; name: string }) {
+  umami("treatment_view", { id: params.id, name: params.name })
+}
+
+/** Treatment card clicked on /tratamientos grid. */
+export function trackTreatmentClick(params: { id: string; name: string }) {
+  umami("treatment_click", { id: params.id, name: params.name })
+}
+
+/** Blog post viewed. */
+export function trackBlogView(params: { slug: string; title: string }) {
+  umami("blog_view", { slug: params.slug, title: params.title })
+}
+
+/** Blog card clicked on /blog list. */
+export function trackBlogClick(params: { slug: string; title: string }) {
+  umami("blog_click", { slug: params.slug, title: params.title })
+}
+
+/** Hero CTA clicked (primary/secondary buttons in hero). */
+export function trackHeroCTA(params: { label: string; href: string }) {
+  umami("hero_cta_click", { label: params.label, href: params.href })
+}
+
+/** Scroll depth milestones (25/50/75/100%). */
+export function trackScrollDepth(percent: number) {
+  umami("scroll_depth", { percent })
 }

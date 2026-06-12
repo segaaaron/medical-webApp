@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
+import { trackBlogClick } from "@/lib/analytics"
 
 interface BlogCardProps {
   id: string
@@ -38,6 +39,7 @@ export function BlogCard({
     return (
       <Link
         href={`/blog/${slug}`}
+        onClick={() => trackBlogClick({ slug, title })}
         className="group block rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
         style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.12)" }}
       >
