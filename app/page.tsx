@@ -23,8 +23,9 @@ const ServiceSection = dynamic(() => import("@/components/sections/CourseSection
 const ValuePropositionSection = dynamic(() => import("@/components/sections/ValuePropositionSection").then(m => ({ default: m.ValuePropositionSection })))
 const TreatmentsGrid = dynamic(() => import("@/components/sections/TreatmentsGrid").then(m => ({ default: m.TreatmentsGrid })))
 const FAQSection = dynamic(() => import("@/components/sections/FAQSection").then(m => ({ default: m.FAQSection })))
+const TestimonialsSection = dynamic(() => import("@/components/sections/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })))
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
 function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   return {
@@ -46,7 +47,7 @@ const localBusinessJsonLd = {
   "@type": "MedicalBusiness",
   name: "Dra. Yasmin Medrano Avila — Medicina Estética",
   url: BASE_URL,
-  telephone: "+591 78751894",
+  telephone: "+59178751894",
   image: `${BASE_URL}/images/DraMedrano.jpeg`,
   priceRange: "$$",
   address: {
@@ -56,8 +57,8 @@ const localBusinessJsonLd = {
   },
   geo: {
     "@type": "GeoCoordinates",
-    latitude: -17.3895,
-    longitude: -66.1568,
+    latitude: -17.386471,
+    longitude: -66.152366,
   },
   openingHoursSpecification: [
     { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "19:00" },
@@ -67,7 +68,7 @@ const localBusinessJsonLd = {
     "https://www.instagram.com/dra_yasmin.medrano",
     "https://www.facebook.com/DraMedranoMedesteticAntiaging",
   ],
-  medicalSpecialty: "Aesthetic Medicine",
+  medicalSpecialty: "Medicina Estética",
 }
 
 const breadcrumbJsonLd = {
@@ -75,10 +76,6 @@ const breadcrumbJsonLd = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Inicio", item: BASE_URL },
-    { "@type": "ListItem", position: 2, name: "Tratamientos", item: `${BASE_URL}/tratamientos` },
-    { "@type": "ListItem", position: 3, name: "Nosotros", item: `${BASE_URL}/nosotros` },
-    { "@type": "ListItem", position: 4, name: "Blog", item: `${BASE_URL}/blog` },
-    { "@type": "ListItem", position: 5, name: "Contacto", item: `${BASE_URL}/contacto` },
   ],
 }
 
@@ -168,7 +165,7 @@ export default async function HomePage() {
         <ValuePropositionSection features={aboutData.features} />
         <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
-        {/* <TestimonialsSection /> */}
+        <TestimonialsSection />
         <FAQSection faqs={homeData.faqs} />
       </main>
       <Footer data={footerData} />
