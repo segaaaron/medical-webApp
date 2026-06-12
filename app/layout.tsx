@@ -143,23 +143,58 @@ const jsonLd = {
       name: "Consultorio Dra. Yasmin Medrano Avila",
       alternateName: "Medicina Estética Avanzada — Dra. Yasmin",
       url: BASE_URL,
+      image: `${BASE_URL}/og-image.jpg`,
       description:
         "Consultorio líder en medicina estética en Cochabamba, Bolivia. Más de 10 años de experiencia, +5.000 pacientes atendidos. Tratamientos faciales y corporales seguros con tecnología de vanguardia.",
       priceRange: "$$",
       currenciesAccepted: "BOB, USD",
       paymentAccepted: "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR",
-      medicalSpecialty: "https://schema.org/PlasticSurgery",
+      medicalSpecialty: "Medicina Estética",
+      hasMap: "https://www.google.com/maps?q=-17.386471,-66.152366",
       address: {
         "@type": "PostalAddress",
+        streetAddress: "Cochabamba",
         addressLocality: "Cochabamba",
         addressRegion: "Cochabamba",
         addressCountry: "BO",
+        postalCode: "0000",
       },
       geo: {
         "@type": "GeoCoordinates",
-        latitude: -17.3895,
-        longitude: -66.1568,
+        latitude: -17.386471,
+        longitude: -66.152366,
       },
+      openingHoursSpecification: [
+        {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          opens: "09:00",
+          closes: "19:00",
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: "Saturday",
+          opens: "09:00",
+          closes: "14:00",
+        },
+      ],
+      contactPoint: [
+        {
+          "@type": "ContactPoint",
+          telephone: "+59178751894",
+          contactType: "customer service",
+          areaServed: "BO",
+          availableLanguage: "Spanish",
+          contactOption: "TollFree",
+        },
+        {
+          "@type": "ContactPoint",
+          url: "https://wa.me/59178751894",
+          contactType: "customer service",
+          areaServed: "BO",
+          availableLanguage: "Spanish",
+        },
+      ],
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: "4.9",
@@ -195,9 +230,10 @@ const jsonLd = {
       description:
         "Médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, armonización facial, bioestimulación y técnicas de vanguardia.",
       url: BASE_URL,
+      image: `${BASE_URL}/images/DraMedrano.jpeg`,
       telephone: "+59178751894",
       worksFor: { "@id": `${BASE_URL}/#business` },
-      medicalSpecialty: "https://schema.org/PlasticSurgery",
+      medicalSpecialty: "Medicina Estética",
       sameAs: [
         "https://www.facebook.com/DraMedranoMedesteticAntiaging",
         "https://www.instagram.com/dra_yasmin.medrano",
@@ -232,7 +268,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es-BO">
       <head>
         {/* Preconnect to external origins for performance */}
         <link rel="preconnect" href="https://service.drayasminmedrano-services.cloud" />
@@ -241,8 +277,10 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* hreflang — site is Spanish only */}
+        {/* hreflang — Spanish Bolivia */}
+        <link rel="alternate" hrefLang="es-BO" href={BASE_URL} />
         <link rel="alternate" hrefLang="es" href={BASE_URL} />
+        <link rel="alternate" hrefLang="x-default" href={BASE_URL} />
 
         {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />

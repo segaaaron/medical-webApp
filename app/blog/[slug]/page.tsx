@@ -147,6 +147,11 @@ export default async function BlogPostPage({ params }: Props) {
     },
     mainEntityOfPage: `${BASE_URL}/blog/${post.slug}`,
     keywords: post.tags.join(", "),
+    speakable: {
+      "@type": "SpeakableSpecification",
+      cssSelector: ["h1", "h2", ".blog-content p"],
+    },
+    inLanguage: "es-BO",
   }
 
   const breadcrumbLd = {

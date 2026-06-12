@@ -50,6 +50,15 @@ export const metadata: Metadata = {
   },
 }
 
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Inicio", item: BASE_URL },
+    { "@type": "ListItem", position: 2, name: "Nosotros", item: `${BASE_URL}/nosotros` },
+  ],
+}
+
 const aboutJsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfilePage",
@@ -62,7 +71,7 @@ const aboutJsonLd = {
     url: `${BASE_URL}/nosotros`,
     image: `${BASE_URL}/images/DraMedrano.jpeg`,
     telephone: "+59178751894",
-    medicalSpecialty: "https://schema.org/PlasticSurgery",
+    medicalSpecialty: "Medicina Estética",
     knowsAbout: [
       "Toxina Botulínica",
       "Ácido Hialurónico",
@@ -109,6 +118,10 @@ export default async function NosotrosPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(aboutJsonLd) }}

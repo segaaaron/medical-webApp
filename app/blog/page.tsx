@@ -5,11 +5,21 @@ import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
 import { staticBlogPosts } from "@/lib/data/blog-posts"
 import { BlogCard } from "@/components/blog/BlogCard"
+import { safeJsonLd } from "@/lib/seo-utils"
 import type { Metadata } from "next"
 
 export const revalidate = 300 // 5 minutos — ISR
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
+
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Inicio", item: BASE_URL },
+    { "@type": "ListItem", position: 2, name: "Blog", item: `${BASE_URL}/blog` },
+  ],
+}
 
 export const metadata: Metadata = {
   title: "Blog Medicina Estética Bolivia — Guías, Consejos y Verdades de una Experta",
@@ -43,7 +53,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Blog Medicina Estética Bolivia 📖 | Dra. Yasmin Medrano Avila",
     description:
-      "Guías expertas, verdades del botox, cuidado de piel y los mejores tratamientos estéticos en Bolivia. Escrito por la especialista #1 en Cochabamba.",
+      "Guías expertas, verdades del botox, cuidado de piel y los mejores tratamientos estéticos en Bolivia. Escrito por especialista médica en Cochabamba.",
     images: ["/og-image.jpg"],
   },
 }
@@ -121,6 +131,10 @@ export default async function BlogPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
+      />
       <Navbar links={c.navLinks} />
       <main>
         {/* Hero */}

@@ -50,6 +50,15 @@ export const metadata: Metadata = {
   },
 }
 
+const breadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Inicio", item: BASE_URL },
+    { "@type": "ListItem", position: 2, name: "Contacto", item: `${BASE_URL}/contacto` },
+  ],
+}
+
 const contactJsonLd = {
   "@context": "https://schema.org",
   "@type": "ContactPage",
@@ -106,6 +115,10 @@ export default async function ContactoPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(contactJsonLd) }}
