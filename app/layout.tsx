@@ -153,11 +153,9 @@ const jsonLd = {
       hasMap: "https://www.google.com/maps?q=-17.386471,-66.152366",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "Cochabamba",
         addressLocality: "Cochabamba",
         addressRegion: "Cochabamba",
         addressCountry: "BO",
-        postalCode: "0000",
       },
       geo: {
         "@type": "GeoCoordinates",
@@ -185,7 +183,6 @@ const jsonLd = {
           contactType: "customer service",
           areaServed: "BO",
           availableLanguage: "Spanish",
-          contactOption: "TollFree",
         },
         {
           "@type": "ContactPoint",
