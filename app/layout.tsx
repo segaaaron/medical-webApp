@@ -7,6 +7,7 @@ import { SkipNav } from "@/components/ui/SkipNav";
 import { safeJsonLd } from "@/lib/seo-utils";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
+import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -285,6 +286,7 @@ export default function RootLayout({
             <div id="main-content">{children}</div>
           </SmoothScrollProvider>
         </LazyMotion>
+        <WhatsAppFAB />
         <AnalyticsScripts />
       </body>
     </html>
