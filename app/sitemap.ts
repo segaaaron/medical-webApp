@@ -41,45 +41,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Fetch active treatments from backend
   const { data: rawTreatmentData } = await backendFetch("/treatments?active=true")
   const treatmentData = extractList<BackendTreatment>(rawTreatmentData)
+  const now = new Date()
   const treatmentEntries: MetadataRoute.Sitemap = treatmentData
     .filter((t) => t.active)
     .map((t) => ({
       url: `${BASE_URL}/tratamientos/${t.id}`,
-      lastModified: new Date("2026-01-01"),
+      lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     }))
 
-  const SITE_LAUNCH = new Date("2024-01-01")
-
   return [
     {
       url: BASE_URL,
-      lastModified: SITE_LAUNCH,
+      lastModified: now,
       changeFrequency: "monthly",
       priority: 1,
     },
     {
       url: `${BASE_URL}/tratamientos`,
-      lastModified: SITE_LAUNCH,
+      lastModified: now,
       changeFrequency: "monthly",
       priority: 0.9,
     },
     {
       url: `${BASE_URL}/nosotros`,
-      lastModified: SITE_LAUNCH,
+      lastModified: now,
       changeFrequency: "yearly",
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/blog`,
-      lastModified: SITE_LAUNCH,
+      lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/contacto`,
-      lastModified: SITE_LAUNCH,
+      lastModified: now,
       changeFrequency: "yearly",
       priority: 0.8,
     },

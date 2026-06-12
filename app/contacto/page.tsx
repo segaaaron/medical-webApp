@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "¡Agenda tu Consulta GRATIS en Cochabamba! | Dra. Yasmin Medrano Avila",
     description:
-      "📲 Cupos limitados disponibles. Consulta de valoración GRATUITA con la especialista #1 en Cochabamba. WhatsApp, Instagram y más. ¡No esperes más para transformarte!",
+      "📲 Cupos limitados disponibles. Consulta de valoración GRATUITA con la Dra. Yasmin Medrano en Cochabamba. WhatsApp, Instagram y más. ¡No esperes más para transformarte!",
     url: `${BASE_URL}/contacto`,
     images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Agenda consulta gratis medicina estética Cochabamba — Dra. Yasmin Medrano Avila" }],
     type: "website",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Consulta GRATIS en Cochabamba 📲 | Dra. Yasmin Medrano Avila",
     description:
-      "¡Cupos limitados! Agenda tu consulta de valoración gratuita en Cochabamba. La especialista #1 en botox, rellenos y rejuvenecimiento facial te espera.",
+      "¡Cupos limitados! Agenda tu consulta de valoración gratuita en Cochabamba. Especialista en botox, rellenos y rejuvenecimiento facial te espera.",
     images: ["/og-image.jpg"],
   },
 }

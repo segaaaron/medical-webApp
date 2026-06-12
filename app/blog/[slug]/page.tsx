@@ -135,6 +135,10 @@ export default async function BlogPostPage({ params }: Props) {
       "@type": "Person",
       name: post.author,
       jobTitle: "Medica Especialista en Medicina Estetica",
+      sameAs: [
+        "https://www.instagram.com/dra_yasmin.medrano",
+        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+      ],
     },
     publisher: {
       "@type": "MedicalBusiness",

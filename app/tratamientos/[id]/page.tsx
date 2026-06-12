@@ -106,6 +106,39 @@ export default async function TratamientoDetallePage({ params }: Props) {
     ],
   }
 
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: `¿Cuánto cuesta ${treatment.name} en Cochabamba?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: treatment.price > 0
+            ? `El precio de ${treatment.name} en nuestro consultorio es Bs. ${treatment.price.toLocaleString("es-BO")}. Agenda una consulta gratuita para un presupuesto personalizado.`
+            : `El precio de ${treatment.name} varía según cada paciente. Agenda una consulta de valoración gratuita con la Dra. Yasmin Medrano para un presupuesto personalizado.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `¿Es seguro el tratamiento de ${treatment.name}?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Sí. ${treatment.name} es realizado por la Dra. Yasmin Medrano Avila, médica especialista certificada con más de 10 años de experiencia en medicina estética en Cochabamba, Bolivia.`,
+        },
+      },
+      {
+        "@type": "Question",
+        name: `¿Dónde puedo realizarme ${treatment.name} en Cochabamba?`,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: `Puedes realizarte ${treatment.name} en el consultorio de la Dra. Yasmin Medrano Avila, ubicado en Cochabamba, Bolivia. Contáctanos por WhatsApp para agendar tu consulta gratuita.`,
+        },
+      },
+    ],
+  }
+
   const procedureLd = {
     "@context": "https://schema.org",
     "@type": "MedicalProcedure",
@@ -138,6 +171,10 @@ export default async function TratamientoDetallePage({ params }: Props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(procedureLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(faqLd) }}
         />
 
         {/* Dark hero band */}

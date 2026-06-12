@@ -4,6 +4,7 @@ import { m, useReducedMotion, useScroll, useTransform } from "framer-motion"
 import { useState, useEffect } from "react"
 import { LinkButton } from "@/components/ui/Button"
 import { StatCard } from "@/components/ui/StatCard"
+import { trackHeroCTA } from "@/lib/analytics"
 import type { HeroStat, HeroCTA } from "@/types"
 
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -172,6 +173,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
               href={cta.href}
               variant={idx === 0 ? "primary" : "warning"}
               className="px-10 py-4"
+              onClick={() => trackHeroCTA({ label: cta.label, href: cta.href })}
             >
               {cta.label}
             </LinkButton>
