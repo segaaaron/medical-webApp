@@ -1,7 +1,7 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useRef, useState } from "react"
-import { Star, Check, X, Clock, Trash2, RefreshCw } from "lucide-react"
+import { Star, Check, X, Clock, RefreshCw } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { InviteManager } from "@/components/dashboard/InviteManager"
 
@@ -12,21 +12,21 @@ interface Review {
   treatment: string | null
   body: string
   rating: number
-  status: "pending" | "approved" | "rejected"
-  createdAt: string
+  status: "pending" | "approved" | "deleted"
+  created_at: string
 }
 
 const FILTERS: { label: string; value: string }[] = [
   { label: "Todas", value: "" },
   { label: "Pendientes", value: "pending" },
   { label: "Aprobadas", value: "approved" },
-  { label: "Rechazadas", value: "rejected" },
+  { label: "Rechazadas", value: "deleted" },
 ]
 
 const STATUS_CONFIG = {
   pending: { label: "Pendiente", cls: "bg-yellow-50 text-yellow-700 border-yellow-200" },
   approved: { label: "Aprobada", cls: "bg-green-50 text-green-700 border-green-200" },
-  rejected: { label: "Rechazada", cls: "bg-red-50 text-red-600 border-red-200" },
+  deleted: { label: "Rechazada", cls: "bg-red-50 text-red-600 border-red-200" },
 }
 
 function StarDisplay({ rating }: { rating: number }) {
@@ -105,7 +105,7 @@ export default function ResenasDashboardPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("¿Eliminar esta reseña permanentemente?")) return
+    if (!confirm("¿Rechazar esta reseña? No se mostrará en la web.")) return
     setActionId(id)
     setError("")
     try {
@@ -217,14 +217,14 @@ export default function ResenasDashboardPage() {
                         )}
                         <span className="flex items-center gap-1">
                           <Clock size={11} />
-                          {formatDate(review.createdAt)}
+                          {formatDate(review.created_at)}
                         </span>
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {review.status !== "approved" && (
+                      {review.status === "pending" && (
                         <button
                           onClick={() => handleStatus(review.id, "approved")}
                           disabled={busy}
@@ -235,36 +235,18 @@ export default function ResenasDashboardPage() {
                           Aprobar
                         </button>
                       )}
-                      {review.status !== "rejected" && (
+                      {review.status !== "deleted" && (
                         <button
-                          onClick={() => handleStatus(review.id, "rejected")}
+                          onClick={() => handleDelete(review.id)}
                           disabled={busy}
                           title="Rechazar"
+                          aria-label={`Rechazar reseña de ${review.patient_name}`}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors disabled:opacity-50"
                         >
                           <X size={13} />
                           Rechazar
                         </button>
                       )}
-                      {review.status === "approved" && (
-                        <button
-                          onClick={() => handleStatus(review.id, "pending")}
-                          disabled={busy}
-                          title="Mover a pendiente"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200 transition-colors disabled:opacity-50"
-                        >
-                          <Clock size={13} />
-                          Pendiente
-                        </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(review.id)}
-                        disabled={busy}
-                        aria-label={`Eliminar reseña de ${review.patient_name}`}
-                        className="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors disabled:opacity-50"
-                      >
-                        <Trash2 size={14} />
-                      </button>
                     </div>
                   </div>
 

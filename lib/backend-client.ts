@@ -233,10 +233,37 @@ export async function backendFetch<T>(
  */
 export function extractList<T>(data: unknown): T[] {
   if (Array.isArray(data)) return data as T[]
-  if (data && typeof data === "object" && "data" in data && Array.isArray((data as { data: unknown }).data)) {
-    return (data as { data: T[] }).data
+  if (data && typeof data === "object") {
+    if ("data" in data && Array.isArray((data as { data: unknown }).data)) {
+      return (data as { data: T[] }).data
+    }
+    // Backend review endpoints wrap the array under `reviews`
+    if ("reviews" in data && Array.isArray((data as { reviews: unknown }).reviews)) {
+      return (data as { reviews: T[] }).reviews
+    }
   }
   return []
+}
+
+/**
+ * Extracts the `{ avg_rating, total_count }` aggregate from a backend
+ * `/reviews/public` response. The aggregate is computed server-side over ALL
+ * approved reviews (not just the returned page), so it is the source of truth
+ * for the rating badge and JSON-LD `aggregateRating`. Returns null when absent.
+ */
+export function extractReviewAggregate(
+  data: unknown
+): { avg_rating: number | null; total_count: number } | null {
+  if (data && typeof data === "object" && "aggregate" in data) {
+    const agg = (data as { aggregate?: unknown }).aggregate
+    if (agg && typeof agg === "object" && "total_count" in agg) {
+      const a = agg as { avg_rating?: number | null; total_count?: unknown }
+      if (typeof a.total_count === "number") {
+        return { avg_rating: a.avg_rating ?? null, total_count: a.total_count }
+      }
+    }
+  }
+  return null
 }
 
 /**

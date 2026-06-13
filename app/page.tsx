@@ -2,7 +2,7 @@ import { getHomeData, getHomeDataService } from "@/lib/data/home"
 import { getFooterData } from "@/lib/data/footer"
 import { getPromoData } from "@/lib/data/promo"
 import { getAboutData } from "@/lib/data/about"
-import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
+import { backendFetch, resolveImageUrl, extractList, extractReviewAggregate } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
 import dynamic from "next/dynamic"
 
@@ -16,7 +16,7 @@ import { HeroSectionFallback } from "@/components/sections/HeroSection"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { HomeSection } from "@/components/sections/HomeSection"
 import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
-import type { PublicReview } from "@/components/sections/TestimonialsSection"
+import type { PublicReview, ReviewAggregate } from "@/components/sections/TestimonialsSection"
 import { HeroCTA } from "@/types"
 
 // ─── Below-fold sections (lazy — split JS chunk, still SSR'd) ─────────────────
@@ -28,11 +28,14 @@ const TestimonialsSection = dynamic(() => import("@/components/sections/Testimon
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
-function buildTestimonialsJsonLd(reviews: PublicReview[]) {
+function buildTestimonialsJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) {
   const hasReviews = reviews.length > 0
-  const avg = hasReviews
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
-    : null
+  const avg = aggregate?.avg_rating != null
+    ? aggregate.avg_rating.toFixed(1)
+    : hasReviews
+      ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+      : null
+  const reviewCount = aggregate?.total_count ?? reviews.length
   return {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -43,7 +46,7 @@ function buildTestimonialsJsonLd(reviews: PublicReview[]) {
       aggregateRating: {
         "@type": "AggregateRating",
         ratingValue: avg,
-        reviewCount: String(reviews.length),
+        reviewCount: String(reviewCount),
         bestRating: "5",
         worstRating: "1",
       },
@@ -135,7 +138,7 @@ export default async function HomePage() {
     getAboutData(),
     backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 60 }),
     backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 60 }),
-    backendFetch<PublicReview[]>("/reviews?status=approved&limit=6", { revalidate: 300 }),
+    backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
   ])
 
   const faqJsonLd = buildFaqJsonLd(homeData.faqs)
@@ -143,13 +146,24 @@ export default async function HomePage() {
   const approvedReviews = reviewsResult.error === null
     ? extractList<PublicReview>(reviewsResult.data)
     : []
-  const reviewAggregate = approvedReviews.length > 0
-    ? {
-        avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
-        total_count: approvedReviews.length,
-      }
-    : undefined
-  const testimonialsJsonLd = buildTestimonialsJsonLd(approvedReviews)
+  const backendAggregate = reviewsResult.error === null
+    ? extractReviewAggregate(reviewsResult.data)
+    : null
+  const reviewAggregate: ReviewAggregate | undefined =
+    backendAggregate && backendAggregate.total_count > 0
+      ? {
+          avg_rating:
+            backendAggregate.avg_rating ??
+            approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
+          total_count: backendAggregate.total_count,
+        }
+      : approvedReviews.length > 0
+        ? {
+            avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
+            total_count: approvedReviews.length,
+          }
+        : undefined
+  const testimonialsJsonLd = buildTestimonialsJsonLd(approvedReviews, reviewAggregate)
 
   const backendError = treatment.error !== null
   const backendTreatments = backendError

@@ -1,14 +1,14 @@
 import { getAboutData } from "@/lib/data/about"
 import { getFooterData } from "@/lib/data/footer"
 import { readContent } from "@/lib/store/content-store"
-import { backendFetch, extractList } from "@/lib/backend-client"
+import { backendFetch, extractList, extractReviewAggregate } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { PageHero } from "@/components/ui/PageHero"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
-import { TestimonialsSection, type PublicReview } from "@/components/sections/TestimonialsSection"
+import { TestimonialsSection, type PublicReview, type ReviewAggregate } from "@/components/sections/TestimonialsSection"
 import type { Metadata } from "next"
 
 export type { BioDoc, BioSection } from "@/types/about"
@@ -61,11 +61,14 @@ const breadcrumbLd = {
   ],
 }
 
-function buildAboutJsonLd(reviews: PublicReview[]) {
+function buildAboutJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) {
   const hasReviews = reviews.length > 0
-  const avgRating = hasReviews
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
-    : null
+  const avgRating = aggregate?.avg_rating != null
+    ? aggregate.avg_rating.toFixed(1)
+    : hasReviews
+      ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+      : null
+  const reviewCount = aggregate?.total_count ?? reviews.length
 
   return {
     "@context": "https://schema.org",
@@ -104,7 +107,7 @@ function buildAboutJsonLd(reviews: PublicReview[]) {
         aggregateRating: {
           "@type": "AggregateRating",
           ratingValue: avgRating,
-          reviewCount: String(reviews.length),
+          reviewCount: String(reviewCount),
           bestRating: "5",
           worstRating: "1",
         },
@@ -122,20 +125,31 @@ export default async function NosotrosPage() {
     readContent(),
     getFooterData(),
     getAboutData(),
-    backendFetch<PublicReview[]>("/reviews?status=approved&limit=6", { revalidate: 300 }),
+    backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
   ])
 
   const approvedReviews = reviewsResult.error === null
     ? extractList<PublicReview>(reviewsResult.data)
     : []
-  const reviewAggregate = approvedReviews.length > 0
-    ? {
-        avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
-        total_count: approvedReviews.length,
-      }
-    : undefined
+  const backendAggregate = reviewsResult.error === null
+    ? extractReviewAggregate(reviewsResult.data)
+    : null
+  const reviewAggregate: ReviewAggregate | undefined =
+    backendAggregate && backendAggregate.total_count > 0
+      ? {
+          avg_rating:
+            backendAggregate.avg_rating ??
+            approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
+          total_count: backendAggregate.total_count,
+        }
+      : approvedReviews.length > 0
+        ? {
+            avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
+            total_count: approvedReviews.length,
+          }
+        : undefined
 
-  const aboutJsonLd = buildAboutJsonLd(approvedReviews)
+  const aboutJsonLd = buildAboutJsonLd(approvedReviews, reviewAggregate)
 
   return (
     <>

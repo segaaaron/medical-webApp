@@ -28,11 +28,14 @@ export async function GET(req: NextRequest) {
   const { data, error, status } = await backendFetch<unknown>(path, { auth: true })
   if (error) return proxyError(error, status)
 
+  const obj = data as Record<string, unknown> | null
   const list = Array.isArray(data)
     ? data
-    : Array.isArray((data as Record<string, unknown>)?.data)
-      ? (data as Record<string, unknown>).data
-      : data
+    : Array.isArray(obj?.reviews)
+      ? obj!.reviews
+      : Array.isArray(obj?.data)
+        ? obj!.data
+        : data
 
   return NextResponse.json(list)
 }

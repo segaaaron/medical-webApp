@@ -32,14 +32,17 @@ export async function PATCH(
   }
 
   const { status } = body as Record<string, unknown>
-  const VALID_STATUSES = ["approved", "rejected", "pending"]
-  if (!status || !VALID_STATUSES.includes(status as string)) {
-    return NextResponse.json({ error: "Estado inválido. Usa: approved, rejected, pending." }, { status: 400 })
+  // El backend solo soporta la transición pending -> approved vía /reviews/:id/approve.
+  // Rechazar/eliminar usa DELETE (soft delete). No existe "un-approve".
+  if (status !== "approved") {
+    return NextResponse.json(
+      { error: "Solo se admite la aprobación aquí. Para rechazar usa DELETE." },
+      { status: 400 }
+    )
   }
 
-  const { data, error, status: httpStatus } = await backendFetch<unknown>(`/reviews/${id}`, {
+  const { data, error, status: httpStatus } = await backendFetch<unknown>(`/reviews/${id}/approve`, {
     method: "PATCH",
-    body: { status },
     auth: true,
   })
   if (error) return proxyError(error, httpStatus)
