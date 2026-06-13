@@ -16,6 +16,7 @@ import { HeroSectionFallback } from "@/components/sections/HeroSection"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { HomeSection } from "@/components/sections/HomeSection"
 import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
+import type { PublicReview } from "@/components/sections/TestimonialsSection"
 import { HeroCTA } from "@/types"
 
 // ─── Below-fold sections (lazy — split JS chunk, still SSR'd) ─────────────────
@@ -120,7 +121,7 @@ interface BackendTreatment {
 export const revalidate = 300 // 5 min ISR
 
 export default async function HomePage() {
-  const [homeData, homeServiceData, footerData, promoData, aboutData, treatment, infoResult] = await Promise.all([
+  const [homeData, homeServiceData, footerData, promoData, aboutData, treatment, infoResult, reviewsResult] = await Promise.all([
     getHomeData(),
     getHomeDataService(),
     getFooterData(),
@@ -128,9 +129,21 @@ export default async function HomePage() {
     getAboutData(),
     backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 60 }),
     backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 60 }),
+    backendFetch<PublicReview[]>("/reviews?status=approved&limit=6", { revalidate: 300 }),
   ])
 
   const faqJsonLd = buildFaqJsonLd(homeData.faqs)
+
+  const approvedReviews = reviewsResult.error === null
+    ? extractList<PublicReview>(reviewsResult.data)
+    : []
+  const reviewAggregate = approvedReviews.length > 0
+    ? {
+        avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
+        total_count: approvedReviews.length,
+      }
+    : undefined
+
   const backendError = treatment.error !== null
   const backendTreatments = backendError
     ? []
@@ -189,7 +202,7 @@ export default async function HomePage() {
         <ValuePropositionSection features={aboutData.features} />
         <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
-        <TestimonialsSection />
+        <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate} />
         <FAQSection faqs={homeData.faqs} />
       </main>
       <Footer data={footerData} />
