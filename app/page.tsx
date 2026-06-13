@@ -29,28 +29,31 @@ const TestimonialsSection = dynamic(() => import("@/components/sections/Testimon
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
 function buildTestimonialsJsonLd(reviews: PublicReview[]) {
-  const avg = reviews.length > 0
+  const hasReviews = reviews.length > 0
+  const avg = hasReviews
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
-    : "5.0"
+    : null
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: "Medicina Estética — Dra. Yasmin Medrano Avila",
     description: "Tratamientos de medicina estética en Cochabamba, Bolivia. Botox, rellenos, armonización facial y más.",
     brand: { "@type": "Brand", name: "Dra. Yasmin Medrano Avila" },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: avg,
-      reviewCount: String(reviews.length > 0 ? reviews.length : 6),
-      bestRating: "5",
-      worstRating: "1",
-    },
-    review: reviews.slice(0, 6).map((r) => ({
-      "@type": "Review",
-      author: { "@type": "Person", name: r.patient_name },
-      reviewRating: { "@type": "Rating", ratingValue: String(r.rating) },
-      reviewBody: r.body,
-    })),
+    ...(hasReviews && avg ? {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: avg,
+        reviewCount: String(reviews.length),
+        bestRating: "5",
+        worstRating: "1",
+      },
+      review: reviews.slice(0, 6).map((r) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: r.patient_name },
+        reviewRating: { "@type": "Rating", ratingValue: String(r.rating) },
+        reviewBody: r.body,
+      })),
+    } : {}),
   }
 }
 

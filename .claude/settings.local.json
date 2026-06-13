@@ -88,7 +88,11 @@
       "Bash(sed -n '75,90p' components/layout/Footer.tsx)",
       "Bash(sed -n '220,230p' components/sections/TreatmentsGrid.tsx)",
       "Bash(sed -n '310,320p' components/sections/TreatmentsGrid.tsx)",
-      "Bash(sed -n '224,245p' \"app/tratamientos/[id]/page.tsx\")"
+      "Bash(sed -n '224,245p' \"app/tratamientos/[id]/page.tsx\")",
+      "Bash(python3 /Users/miguelangelsaraviabelmonte/.claude/plugins/cache/ui-ux-pro-max-skill/ui-ux-pro-max/2.5.0/.claude/skills/ui-ux-pro-max/scripts/search.py \"medical aesthetics beauty review form dark premium vintage\" --design-system -p \"yasminmedrano reviews\" -f markdown)",
+      "Bash(mkdir -p /Users/miguelangelsaraviabelmonte/medical-webApp/app/api/reviews)",
+      "Bash(mkdir -p \"/Users/miguelangelsaraviabelmonte/medical-webApp/app/api/reviews/[id]\")",
+      "Bash(mkdir -p /Users/miguelangelsaraviabelmonte/medical-webApp/app/dashboard/resenas)"
     ]
   }
 }
