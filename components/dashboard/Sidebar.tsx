@@ -14,6 +14,7 @@ import {
   Users,
   PanelBottom,
   Megaphone,
+  Star,
 } from "lucide-react"
 
 const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boolean }[] = [
@@ -22,6 +23,7 @@ const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boo
 
 const NAV_SERVICES = [
   { label: "Blog", href: "/dashboard/blog", icon: Newspaper },
+  { label: "Reseñas", href: "/dashboard/resenas", icon: Star },
   { label: "Contacto", href: "/dashboard/contacto", icon: Phone },
   { label: "Acerca de", href: "/dashboard/acerca-de", icon: Users },
   { label: "Footer", href: "/dashboard/footer", icon: PanelBottom },
