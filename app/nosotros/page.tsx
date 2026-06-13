@@ -1,12 +1,15 @@
 import { getAboutData } from "@/lib/data/about"
 import { getFooterData } from "@/lib/data/footer"
 import { readContent } from "@/lib/store/content-store"
+import { backendFetch, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { PageHero } from "@/components/ui/PageHero"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
+import { TestimonialsSection } from "@/components/sections/TestimonialsSection"
+import type { PublicReview } from "@/components/sections/TestimonialsSection"
 import type { Metadata } from "next"
 
 export type { BioDoc, BioSection } from "@/types/about"
@@ -59,62 +62,81 @@ const breadcrumbLd = {
   ],
 }
 
-const aboutJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "ProfilePage",
-  mainEntity: {
-    "@type": "Physician",
-    name: "Dra. Yasmin Medrano Avila",
-    jobTitle: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia",
-    description:
-      "Médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia. Más de 5.000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, armonización facial, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento facial avanzadas.",
-    url: `${BASE_URL}/nosotros`,
-    image: `${BASE_URL}/images/DraMedrano.jpeg`,
-    telephone: "+59178751894",
-    medicalSpecialty: "Medicina Estética",
-    knowsAbout: [
-      "Toxina Botulínica",
-      "Ácido Hialurónico",
-      "Armonización Facial",
-      "Bioestimulación con Polinucleótidos",
-      "Depilación Láser",
-      "Mesoterapia Facial",
-      "Radiofrecuencia Facial",
-      "Peeling Químico",
-      "Rejuvenecimiento Facial",
-    ],
-    hasOccupation: {
-      "@type": "Occupation",
-      name: "Médica Especialista en Medicina Estética",
-      occupationLocation: {
-        "@type": "City",
-        name: "Cochabamba",
-        containedInPlace: {
-          "@type": "Country",
-          name: "Bolivia",
+function buildAboutJsonLd(reviews: PublicReview[]) {
+  const hasReviews = reviews.length > 0
+  const avgRating = hasReviews
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : null
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    mainEntity: {
+      "@type": "Physician",
+      name: "Dra. Yasmin Medrano Avila",
+      jobTitle: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia",
+      description:
+        "Médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia. Experta en toxina botulínica, ácido hialurónico, armonización facial, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento facial avanzadas.",
+      url: `${BASE_URL}/nosotros`,
+      image: `${BASE_URL}/images/DraMedrano.jpeg`,
+      telephone: "+59178751894",
+      medicalSpecialty: "Medicina Estética",
+      knowsAbout: [
+        "Toxina Botulínica",
+        "Ácido Hialurónico",
+        "Armonización Facial",
+        "Bioestimulación con Polinucleótidos",
+        "Depilación Láser",
+        "Mesoterapia Facial",
+        "Radiofrecuencia Facial",
+        "Peeling Químico",
+        "Rejuvenecimiento Facial",
+      ],
+      hasOccupation: {
+        "@type": "Occupation",
+        name: "Médica Especialista en Medicina Estética",
+        occupationLocation: {
+          "@type": "City",
+          name: "Cochabamba",
+          containedInPlace: { "@type": "Country", name: "Bolivia" },
         },
       },
+      ...(hasReviews && avgRating ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: avgRating,
+          reviewCount: String(reviews.length),
+          bestRating: "5",
+          worstRating: "1",
+        },
+      } : {}),
+      sameAs: [
+        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+        "https://www.instagram.com/dra_yasmin.medrano",
+      ],
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      reviewCount: "523",
-      bestRating: "5",
-      worstRating: "1",
-    },
-    sameAs: [
-      "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-      "https://www.instagram.com/dra_yasmin.medrano",
-    ],
-  },
+  }
 }
 
 export default async function NosotrosPage() {
-  const [c, footerData, aboutData] = await Promise.all([
+  const [c, footerData, aboutData, reviewsResult] = await Promise.all([
     readContent(),
     getFooterData(),
     getAboutData(),
+    backendFetch<PublicReview[]>("/reviews?status=approved&limit=6", { revalidate: 300 }),
   ])
+
+  const approvedReviews = reviewsResult.error === null
+    ? extractList<PublicReview>(reviewsResult.data)
+    : []
+  const reviewAggregate = approvedReviews.length > 0
+    ? {
+        avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
+        total_count: approvedReviews.length,
+      }
+    : undefined
+
+  const aboutJsonLd = buildAboutJsonLd(approvedReviews)
 
   return (
     <>
@@ -135,6 +157,10 @@ export default async function NosotrosPage() {
         />
         <AboutSection bio={aboutData.bio} />
         <ValuePropositionSection features={aboutData.features} />
+        <TestimonialsSection
+          reviews={approvedReviews.length > 0 ? approvedReviews : undefined}
+          aggregate={reviewAggregate}
+        />
       </main>
       <Footer data={footerData} />
     </>

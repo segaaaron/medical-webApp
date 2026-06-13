@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
   LayoutDashboard,
   LogOut,
@@ -23,12 +24,13 @@ const NAV_CONTENT: { label: string; href: string; icon: typeof Home; exact?: boo
 
 const NAV_SERVICES = [
   { label: "Blog", href: "/dashboard/blog", icon: Newspaper },
-  { label: "Reseñas", href: "/dashboard/resenas", icon: Star },
   { label: "Contacto", href: "/dashboard/contacto", icon: Phone },
   { label: "Acerca de", href: "/dashboard/acerca-de", icon: Users },
   { label: "Footer", href: "/dashboard/footer", icon: PanelBottom },
   { label: "Promociones", href: "/dashboard/promociones", icon: Megaphone },
 ]
+
+const RESENAS_LINK = { label: "Reseñas", href: "/dashboard/resenas", icon: Star }
 
 const NAV_TRATAMIENTOS = [
   { label: "Categorías", href: "/dashboard/tratamientos", icon: Tag, exact: true },
@@ -37,6 +39,22 @@ const NAV_TRATAMIENTOS = [
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
+  const [pendingCount, setPendingCount] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/reviews?status=pending")
+      .then((res) => {
+        if (!res.ok) return
+        return res.json()
+      })
+      .then((data: unknown) => {
+        if (cancelled) return
+        if (Array.isArray(data)) setPendingCount(data.length)
+      })
+      .catch(() => {/* silently ignore */})
+    return () => { cancelled = true }
+  }, [])
 
   async function handleLogout() {
     await fetch("/api/auth", { method: "DELETE" })
@@ -131,6 +149,47 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
               </ul>
             </li>
 
+            {/* Reseñas — rendered separately to support the pending badge */}
+            {(() => {
+              const { label, href, icon: Icon } = RESENAS_LINK
+              const active = pathname.startsWith(href)
+              return (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={onClose}
+                    aria-current={active ? "page" : undefined}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      backgroundColor: active ? "rgba(184,151,59,0.12)" : "transparent",
+                      color: active ? "var(--vintage-gold)" : "rgba(255,255,255,0.55)",
+                      borderLeft: active ? "2px solid var(--vintage-gold)" : "2px solid transparent",
+                    }}
+                  >
+                    <span className="relative shrink-0">
+                      <Icon size={16} aria-hidden="true" />
+                      {pendingCount > 0 && (
+                        <span
+                          aria-label={`${pendingCount} reseñas pendientes`}
+                          className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full text-white font-bold leading-none"
+                          style={{
+                            backgroundColor: "#c0392b",
+                            fontSize: "9px",
+                            minWidth: "14px",
+                            height: "14px",
+                            padding: "0 3px",
+                            boxShadow: "0 0 0 1.5px #1a0510",
+                          }}
+                        >
+                          {pendingCount > 99 ? "99+" : pendingCount}
+                        </span>
+                      )}
+                    </span>
+                    {label}
+                  </Link>
+                </li>
+              )
+            })()}
             {NAV_SERVICES.map(({ label, href, icon: Icon }) => navLink(href, label, Icon))}
           </ul>
         </div>
