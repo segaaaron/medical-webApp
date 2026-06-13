@@ -28,27 +28,30 @@ const TestimonialsSection = dynamic(() => import("@/components/sections/Testimon
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
-const testimonialsJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  name: "Medicina Estética — Dra. Yasmin Medrano Avila",
-  description: "Tratamientos de medicina estética en Cochabamba, Bolivia. Botox, rellenos, armonización facial y más.",
-  brand: { "@type": "Brand", name: "Dra. Yasmin Medrano Avila" },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "5.0",
-    reviewCount: "6",
-    bestRating: "5",
-    worstRating: "1",
-  },
-  review: [
-    { "@type": "Review", author: { "@type": "Person", name: "María José R." }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "Quedé encantada con los resultados. La Dra. Yasmin es muy profesional, me explicó todo el procedimiento con detalle y el resultado fue completamente natural." },
-    { "@type": "Review", author: { "@type": "Person", name: "Lucía F." }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "La doctora me dio toda la confianza necesaria. El resultado es increíble, nadie nota que me hice algo, solo que me veo descansada y fresca." },
-    { "@type": "Review", author: { "@type": "Person", name: "Carolina M." }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "Mi piel cambió completamente. Después de tres sesiones noto la diferencia en la hidratación y la luminosidad." },
-    { "@type": "Review", author: { "@type": "Person", name: "Valentina S." }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "Excelente atención desde el primer día. Resultados visibles desde las primeras sesiones. Muy recomendable." },
-    { "@type": "Review", author: { "@type": "Person", name: "Andrea P." }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "La Dra. Medrano tiene una mano increíble. Los rellenos quedaron perfectos, muy naturales." },
-    { "@type": "Review", author: { "@type": "Person", name: "Gabriela T." }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "Los resultados de la radiofrecuencia superaron mis expectativas. La piel se ve más firme y rejuvenecida." },
-  ],
+function buildTestimonialsJsonLd(reviews: PublicReview[]) {
+  const avg = reviews.length > 0
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : "5.0"
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: "Medicina Estética — Dra. Yasmin Medrano Avila",
+    description: "Tratamientos de medicina estética en Cochabamba, Bolivia. Botox, rellenos, armonización facial y más.",
+    brand: { "@type": "Brand", name: "Dra. Yasmin Medrano Avila" },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: avg,
+      reviewCount: String(reviews.length > 0 ? reviews.length : 6),
+      bestRating: "5",
+      worstRating: "1",
+    },
+    review: reviews.slice(0, 6).map((r) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: r.patient_name },
+      reviewRating: { "@type": "Rating", ratingValue: String(r.rating) },
+      reviewBody: r.body,
+    })),
+  }
 }
 
 function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
@@ -143,6 +146,7 @@ export default async function HomePage() {
         total_count: approvedReviews.length,
       }
     : undefined
+  const testimonialsJsonLd = buildTestimonialsJsonLd(approvedReviews)
 
   const backendError = treatment.error !== null
   const backendTreatments = backendError
