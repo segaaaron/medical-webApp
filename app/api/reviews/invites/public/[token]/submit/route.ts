@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { backendFetch } from "@/lib/backend-client"
 import { proxyError, checkCsrfOrigin, checkWriteRateLimit, INVITE_TOKEN_RE } from "@/lib/api-helpers"
 
-// POST /api/reviews/invites/[token]/submit — public (patient submits review)
+// POST /api/reviews/invites/public/[token]/submit — public (patient submits review)
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ token: string }> }

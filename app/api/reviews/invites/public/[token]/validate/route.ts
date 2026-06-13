@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { backendFetch } from "@/lib/backend-client"
 import { proxyError, INVITE_TOKEN_RE } from "@/lib/api-helpers"
 
-// GET /api/reviews/invites/[token]/validate — public (validate invite token)
+// GET /api/reviews/invites/public/[token]/validate — public (validate invite token)
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ token: string }> }

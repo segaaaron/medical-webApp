@@ -267,7 +267,7 @@ export function InviteReviewForm({
     setError(null)
 
     try {
-      const res = await fetch(`/api/reviews/invites/${token}/submit`, {
+      const res = await fetch(`/api/reviews/invites/public/${token}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
