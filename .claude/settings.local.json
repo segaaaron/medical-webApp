@@ -92,7 +92,19 @@
       "Bash(python3 /Users/miguelangelsaraviabelmonte/.claude/plugins/cache/ui-ux-pro-max-skill/ui-ux-pro-max/2.5.0/.claude/skills/ui-ux-pro-max/scripts/search.py \"medical aesthetics beauty review form dark premium vintage\" --design-system -p \"yasminmedrano reviews\" -f markdown)",
       "Bash(mkdir -p /Users/miguelangelsaraviabelmonte/medical-webApp/app/api/reviews)",
       "Bash(mkdir -p \"/Users/miguelangelsaraviabelmonte/medical-webApp/app/api/reviews/[id]\")",
-      "Bash(mkdir -p /Users/miguelangelsaraviabelmonte/medical-webApp/app/dashboard/resenas)"
+      "Bash(mkdir -p /Users/miguelangelsaraviabelmonte/medical-webApp/app/dashboard/resenas)",
+      "Bash(echo \"---EXIT: $?---\")",
+      "Bash(grep -n \"</div>\\\\s*$\\\\|</main>\\\\|</aside>\" /Users/miguelangelsaraviabelmonte/medical-webApp/components/sections/InviteReviewForm.tsx)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"=== EXIT $? ===\")",
+      "Bash(echo \"TSC EXIT: $?\")",
+      "Bash(echo \"ESLINT EXIT: $?\")",
+      "Bash(grep -E \"validate|submit|api/reviews/invites/\\\\\\\\$\")",
+      "Bash(mkdir -p \"app/api/reviews/invites/public/[token]\")",
+      "Bash(rmdir \"app/api/reviews/invites/[token]\")",
+      "Bash(sed -i '' 's#// POST /api/reviews/invites/\\\\[token\\\\]/submit#// POST /api/reviews/invites/public/[token]/submit#' \"app/api/reviews/invites/public/[token]/submit/route.ts\")",
+      "Bash(sed -i '' 's#// GET /api/reviews/invites/\\\\[token\\\\]/validate#// GET /api/reviews/invites/public/[token]/validate#' \"app/api/reviews/invites/public/[token]/validate/route.ts\")",
+      "Bash(grep -rn \"invites/\\\\${token}\\\\|invites/\\\\[token\\\\]\" --include=\"*.ts\" --include=\"*.tsx\" .)"
     ]
   }
 }
