@@ -109,6 +109,8 @@ export function InviteManager() {
     const url = status ? `/api/reviews/invites?status=${status}` : "/api/reviews/invites"
     try {
       const res = await guardedFetch(url, { signal: ctrl.signal })
+      // A newer load() superseded this one — drop its result silently.
+      if (abortRef.current !== ctrl) return
       if (res.ok) {
         const data = await res.json()
         const list = Array.isArray(data) ? data : data?.invites ?? data?.data ?? []
@@ -120,7 +122,9 @@ export function InviteManager() {
       if (e instanceof Error && e.name === "AbortError") return
       setListError("Error de conexión.")
     } finally {
-      setLoading(false)
+      // Only the current in-flight request may clear the spinner; a superseded
+      // request must not toggle loading state owned by the newer one.
+      if (abortRef.current === ctrl) setLoading(false)
     }
   }
 

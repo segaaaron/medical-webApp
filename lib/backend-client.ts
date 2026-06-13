@@ -16,18 +16,75 @@ import {
   CLEAR_COOKIE_OPTIONS,
   refreshBackendAccessToken,
 } from "@/lib/auth/backend-tokens"
-import { COOKIE_NAME } from "@/lib/auth/session"
-
-const SESSION_CLEAR = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 0,
-}
 
 const BACKEND_URL = process.env.BACKEND_URL ?? ""
 const SERVICE_TOKEN = process.env.BACKEND_SERVICE_TOKEN ?? ""
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Deduped refresh with rotation grace.
+//
+// The backend ROTATES the refresh token on every /auth/refresh call: the old
+// token is invalidated and a new one returned. Two failure modes under
+// concurrency, both of which wiped the user's backend session:
+//
+//   1. Simultaneous refresh — the Sidebar pending-badge + the Reseñas
+//      InviteManager both mount on the same page load and hit an expired access
+//      token at once. Both try to refresh with the SAME token; the first
+//      rotates it, the second sends the now-invalid old token and fails.
+//      → Fixed by sharing one in-flight promise per token (`inflightByToken`).
+//
+//   2. Propagation lag — after a rotation R0→R1 completes, a straggler request
+//      the browser already sent with R0 (before the R1 Set-Cookie propagated)
+//      arrives and re-spends R0, which the backend now rejects.
+//      → Fixed by a short-TTL grace cache (`rotatedCache`) mapping a just-
+//      consumed token to its successful result, so the straggler reuses the
+//      rotated tokens instead of hitting the backend again.
+//
+// Module scope is shared across concurrent requests within a server instance —
+// exactly where these races occur. Maps are keyed by token (per-user unique),
+// so distinct users never collide.
+
+type RefreshResult = { accessToken: string; refreshToken: string }
+
+const ROTATION_GRACE_MS = 30_000
+
+const inflightByToken = new Map<string, Promise<RefreshResult | null>>()
+const rotatedCache = new Map<string, { result: RefreshResult; expiresAt: number }>()
+
+function pruneRotatedCache(now: number): void {
+  for (const [token, entry] of rotatedCache) {
+    if (entry.expiresAt <= now) rotatedCache.delete(token)
+  }
+}
+
+function refreshDeduped(refreshToken: string): Promise<RefreshResult | null> {
+  const now = Date.now()
+
+  // Grace cache — a token we already rotated within the window returns the
+  // result it produced, so propagation-lagged stragglers don't re-spend it.
+  const cached = rotatedCache.get(refreshToken)
+  if (cached && cached.expiresAt > now) return Promise.resolve(cached.result)
+
+  // Coalesce concurrent refreshes of the same token onto one backend call.
+  const existing = inflightByToken.get(refreshToken)
+  if (existing) return existing
+
+  const promise = refreshBackendAccessToken(refreshToken)
+    .then((result) => {
+      if (result) {
+        const ts = Date.now()
+        pruneRotatedCache(ts)
+        rotatedCache.set(refreshToken, { result, expiresAt: ts + ROTATION_GRACE_MS })
+      }
+      return result
+    })
+    .finally(() => {
+      inflightByToken.delete(refreshToken)
+    })
+
+  inflightByToken.set(refreshToken, promise)
+  return promise
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -54,7 +111,7 @@ async function resolveToken(): Promise<string | null> {
 
     const refreshToken = cookieStore.get(BACKEND_REFRESH_COOKIE)?.value
     if (refreshToken) {
-      const tokens = await refreshBackendAccessToken(refreshToken)
+      const tokens = await refreshDeduped(refreshToken)
       if (tokens) {
         cookieStore.set(BACKEND_ACCESS_COOKIE, tokens.accessToken, ACCESS_COOKIE_OPTIONS)
         cookieStore.set(BACKEND_REFRESH_COOKIE, tokens.refreshToken, REFRESH_COOKIE_OPTIONS)
@@ -119,7 +176,7 @@ export async function backendFetch<T>(
           const storedRefresh = cookieStore.get(BACKEND_REFRESH_COOKIE)?.value
 
           if (storedRefresh) {
-            const tokens = await refreshBackendAccessToken(storedRefresh)
+            const tokens = await refreshDeduped(storedRefresh)
 
             if (tokens) {
               // Refresh succeeded — update cookies and retry original request
@@ -142,11 +199,15 @@ export async function backendFetch<T>(
               return { data: null, error: retryErr.error ?? "Backend error", status: retry.status }
             }
 
-            // Refresh token expired — wipe all auth cookies to force logout
+            // Refresh failed — backend tokens are dead. Clear ONLY the backend
+            // cookies. Do NOT touch the dashboard session (jn_session): it is an
+            // independent HMAC cookie governed by middleware, and wiping it here
+            // logs the user out of the whole dashboard over a backend-only
+            // failure. Return 401 with a distinct error; proxyError maps it to a
+            // 502 so the client surfaces a feature error instead of a logout.
             cookieStore.set(BACKEND_ACCESS_COOKIE, "", CLEAR_COOKIE_OPTIONS)
             cookieStore.set(BACKEND_REFRESH_COOKIE, "", CLEAR_COOKIE_OPTIONS)
-            cookieStore.set(COOKIE_NAME, "", SESSION_CLEAR)
-            return { data: null, error: "SESSION_EXPIRED", status: 401 }
+            return { data: null, error: "BACKEND_SESSION_EXPIRED", status: 401 }
           }
         } catch {
           // cookies() may throw outside request context (e.g. generateMetadata)

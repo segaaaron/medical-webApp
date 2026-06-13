@@ -8,9 +8,23 @@ import { NextRequest, NextResponse } from "next/server"
 
 /**
  * Maps a backend error to a NextResponse.
- * 4xx errors are forwarded as-is; 5xx / unreachable become 502.
+ *
+ * Callers ALWAYS validate the dashboard session (getSession) before reaching
+ * here, so a 401 coming back from the backend is never the user's session
+ * expiring — it's the backend rejecting our service/user token. Forwarding it
+ * as a 401 would make the client's guardedFetch log the user out of an
+ * otherwise-valid dashboard session, so we remap it to 502 (upstream failure).
+ *
+ * Other 4xx (403/404/400/429) are forwarded as-is; 5xx / unreachable become 502.
  */
 export function proxyError(error: string | null, backendStatus: number): NextResponse {
+  if (backendStatus === 401) {
+    // Backend token rejected — not a user-session problem. Generic upstream msg.
+    return NextResponse.json(
+      { error: "El servicio no está disponible temporalmente. Intenta de nuevo." },
+      { status: 502 }
+    )
+  }
   const status = backendStatus >= 400 && backendStatus < 500 ? backendStatus : 502
   return NextResponse.json({ error: error ?? "Error del servidor" }, { status })
 }
