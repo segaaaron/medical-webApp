@@ -3,10 +3,12 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useRef, useState } from "react"
 import { Star, Check, X, Clock, Trash2, RefreshCw } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
+import { InviteManager } from "@/components/dashboard/InviteManager"
 
 interface Review {
   id: string
   patient_name: string
+  patient_lastname: string | null
   treatment: string | null
   body: string
   rating: number
@@ -131,6 +133,8 @@ export default function ResenasDashboardPage() {
       />
 
       <div className="flex flex-col gap-4">
+        <InviteManager />
+
         {/* Filters */}
         <div className="flex flex-wrap gap-2">
           {FILTERS.map(({ label, value }) => (
@@ -197,7 +201,9 @@ export default function ResenasDashboardPage() {
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm text-gray-800">{review.patient_name}</span>
+                        <span className="font-semibold text-sm text-gray-800">
+                          {review.patient_name}{review.patient_lastname ? ` ${review.patient_lastname}` : ""}
+                        </span>
                         <StarDisplay rating={review.rating} />
                         <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${cfg.cls}`}>
                           {cfg.label}

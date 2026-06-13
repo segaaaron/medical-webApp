@@ -34,6 +34,12 @@ export function invalidIdResponse() {
   return NextResponse.json({ error: "Invalid resource ID" }, { status: 400 })
 }
 
+/**
+ * Invitation token shape — base64url (CSPRNG), 20–64 chars.
+ * Used to reject malformed tokens before hitting the backend.
+ */
+export const INVITE_TOKEN_RE = /^[A-Za-z0-9_-]{20,64}$/
+
 // ── CSRF Origin Check ─────────────────────────────────────────────────────────
 
 /**

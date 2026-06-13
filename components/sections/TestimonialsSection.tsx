@@ -9,6 +9,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader"
 export interface PublicReview {
   id: string
   patient_name: string
+  patient_lastname?: string | null
   treatment: string | null
   body: string
   rating: number
@@ -157,7 +158,7 @@ function ReviewCard({ review, index }: { review: PublicReview; index: number }) 
             className="text-sm font-semibold"
             style={{ color: "var(--prem-dark-fg)", fontFamily: "var(--font-heading)" }}
           >
-            {review.patient_name}
+            {review.patient_name}{review.patient_lastname ? ` ${review.patient_lastname}` : ""}
           </p>
           {review.treatment && (
             <p

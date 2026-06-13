@@ -49,7 +49,7 @@ function buildTestimonialsJsonLd(reviews: PublicReview[]) {
       },
       review: reviews.slice(0, 6).map((r) => ({
         "@type": "Review",
-        author: { "@type": "Person", name: r.patient_name },
+        author: { "@type": "Person", name: r.patient_lastname ? `${r.patient_name} ${r.patient_lastname}` : r.patient_name },
         reviewRating: { "@type": "Rating", ratingValue: String(r.rating) },
         reviewBody: r.body,
       })),
