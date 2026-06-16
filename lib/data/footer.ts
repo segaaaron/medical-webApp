@@ -28,7 +28,7 @@ export const FOOTER_FALLBACK: FooterData = {
     { label: "Agenda tu Cita", href: "https://wa.me/59178751894" },
   ],
   legalLinks: [
-    { label: "Política de Privacidad", href: "#" },
+    { label: "Política de Privacidad", href: "/privacidad" },
     { label: "Política de Reembolso", href: "#" },
     { label: "Términos y Condiciones", href: "#" },
   ],
