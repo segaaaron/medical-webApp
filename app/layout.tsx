@@ -92,6 +92,9 @@ export const metadata: Metadata = {
   publisher: "Dra. Yasmin Medrano Avila",
   verification: {
     google: "mP89lsorVeyGLDWP6kHRjQUcD-TGByGX1O9b5324zf8",
+    other: {
+      "facebook-domain-verification": "t2p54dlzm9nvsr88bfsq4mum6ylk48",
+    },
   },
   robots: {
     index: true,
