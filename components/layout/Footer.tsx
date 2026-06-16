@@ -1,6 +1,11 @@
 "use client"
+import Link from "next/link"
 import { MessageCircle, Facebook, Instagram } from "lucide-react"
 import { trackWhatsAppClick } from "@/lib/analytics"
+
+const LINK_STYLE = { color: "rgba(255,255,255,0.65)" }
+const setWhite = (e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#ffffff" }
+const setMuted = (e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "rgba(255,255,255,0.65)" }
 
 export interface FooterData {
   doctorName: string
@@ -38,19 +43,36 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
         {title}
       </h4>
       <ul className="flex flex-col gap-3">
-        {links.map((link) => (
-          <li key={link.label}>
-            <a
-              href={link.href}
-              className="text-sm transition-colors"
-              style={{ color: "rgba(255,255,255,0.65)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#ffffff" }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.65)" }}
-            >
-              {link.label}
-            </a>
-          </li>
-        ))}
+        {links.map((link) => {
+          // Internal app routes use next/link (SPA nav + prefetch); external
+          // URLs and hash anchors fall back to a plain anchor.
+          const isInternal = link.href.startsWith("/") && !link.href.startsWith("//")
+          return (
+            <li key={link.label}>
+              {isInternal ? (
+                <Link
+                  href={link.href}
+                  className="text-sm transition-colors"
+                  style={LINK_STYLE}
+                  onMouseEnter={setWhite}
+                  onMouseLeave={setMuted}
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  href={link.href}
+                  className="text-sm transition-colors"
+                  style={LINK_STYLE}
+                  onMouseEnter={setWhite}
+                  onMouseLeave={setMuted}
+                >
+                  {link.label}
+                </a>
+              )}
+            </li>
+          )
+        })}
       </ul>
     </div>
   )

@@ -1,6 +1,14 @@
 import { backendFetch } from "@/lib/backend-client"
 import type { FooterData } from "@/components/layout/Footer"
 
+// Canonical legal links. Forced on the frontend so they always resolve to the
+// real pages regardless of what the backend returns (the backend previously
+// served placeholder "#" hrefs and a Refund Policy page that does not exist).
+const LEGAL_LINKS = [
+  { label: "Política de Privacidad", href: "/privacidad" },
+  { label: "Términos y Condiciones", href: "/terminos" },
+]
+
 export const FOOTER_FALLBACK: FooterData = {
   doctorName: "Dra. Yasmin Medrano Avila",
   specialty: "Medicina Estética Avanzada",
@@ -27,11 +35,7 @@ export const FOOTER_FALLBACK: FooterData = {
     { label: "Contacto", href: "/contacto" },
     { label: "Agenda tu Cita", href: "https://wa.me/59178751894" },
   ],
-  legalLinks: [
-    { label: "Política de Privacidad", href: "/privacidad" },
-    { label: "Política de Reembolso", href: "#" },
-    { label: "Términos y Condiciones", href: "#" },
-  ],
+  legalLinks: LEGAL_LINKS,
   copyrightText: `© ${new Date().getFullYear()} Dra. Yasmin Medrano Avila — Medicina Estética Avanzada. Todos los derechos reservados.`,
   designedByText: "Diseñado con ❤️ para tu bienestar y belleza.",
 }
@@ -57,10 +61,9 @@ function mapFooter(raw: any): FooterData {
       Array.isArray(raw.officeLinks) && raw.officeLinks.length
         ? raw.officeLinks
         : FOOTER_FALLBACK.officeLinks,
-    legalLinks:
-      Array.isArray(raw.legalLinks) && raw.legalLinks.length
-        ? raw.legalLinks
-        : FOOTER_FALLBACK.legalLinks,
+    // Always use our canonical legal links — never the backend's (which served
+    // placeholder "#" hrefs and a non-existent Refund Policy).
+    legalLinks: LEGAL_LINKS,
     copyrightText: raw.copyrightText || FOOTER_FALLBACK.copyrightText,
     designedByText: raw.designedByText || FOOTER_FALLBACK.designedByText,
   }

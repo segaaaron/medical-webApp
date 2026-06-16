@@ -10,7 +10,7 @@ import type { Metadata } from "next"
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 // Última actualización del documento. Cambiar al editar el contenido legal.
-const LAST_UPDATED = "15 de junio de 2026"
+const LAST_UPDATED = "16 de junio de 2026"
 
 export const metadata: Metadata = {
   title: "Política de Privacidad — Dra. Yasmin Medrano Avila | Medicina Estética Cochabamba",
