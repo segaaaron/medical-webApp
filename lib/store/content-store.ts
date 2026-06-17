@@ -107,6 +107,9 @@ export const DEFAULTS: ContentStore = {
     scheduleSaturday: "9:00 AM – 2:00 PM",
     scheduleSunday: "Cerrado",
     location: "Bolivia — Consulta vía WhatsApp para confirmar dirección exacta del consultorio.",
+    latitude: "-17.386471",
+    longitude: "-66.152366",
+    mapsUrl: "https://www.google.com/maps?q=-17.386471,-66.152366",
   },
 }
 

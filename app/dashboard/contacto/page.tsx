@@ -24,6 +24,9 @@ const DEFAULTS: ContactData = {
   scheduleSaturday: "9:00 AM – 2:00 PM",
   scheduleSunday: "Cerrado",
   location: "Bolivia — Consulta vía WhatsApp para confirmar dirección exacta del consultorio.",
+  latitude: "-17.386471",
+  longitude: "-66.152366",
+  mapsUrl: "https://www.google.com/maps?q=-17.386471,-66.152366",
 }
 
 // Maps backend field names → local ContactData
@@ -41,6 +44,9 @@ function fromBackend(raw: any): ContactData {
     scheduleSaturday: raw.saturdayHours ?? DEFAULTS.scheduleSaturday,
     scheduleSunday: raw.sundayStatus ?? DEFAULTS.scheduleSunday,
     location: raw.locationDescription ?? DEFAULTS.location,
+    latitude: raw.latitude != null ? String(raw.latitude) : DEFAULTS.latitude,
+    longitude: raw.longitude != null ? String(raw.longitude) : DEFAULTS.longitude,
+    mapsUrl: raw.mapsUrl ?? DEFAULTS.mapsUrl,
   }
 }
 
@@ -58,6 +64,9 @@ function toBackend(form: ContactData) {
     saturdayHours: form.scheduleSaturday,
     sundayStatus: form.scheduleSunday,
     locationDescription: form.location,
+    latitude: form.latitude.trim() ? Number(form.latitude) : null,
+    longitude: form.longitude.trim() ? Number(form.longitude) : null,
+    mapsUrl: form.mapsUrl.trim() || null,
   }
 }
 
@@ -266,6 +275,38 @@ export default function ContactoDashboardPage() {
               value={form.location}
               onChange={(e) => set("location", e.target.value)}
               placeholder="Bolivia — Consulta vía WhatsApp para confirmar dirección exacta del consultorio."
+            />
+          </FormField>
+          <p className="text-xs text-gray-400 mt-4 mb-2">
+            Pin exacto del consultorio (se envía al paciente al confirmar su cita).
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Latitud" htmlFor="latitude">
+              <input
+                id="latitude"
+                className={INPUT_CLS}
+                value={form.latitude}
+                onChange={(e) => set("latitude", e.target.value)}
+                placeholder="-17.386471"
+              />
+            </FormField>
+            <FormField label="Longitud" htmlFor="longitude">
+              <input
+                id="longitude"
+                className={INPUT_CLS}
+                value={form.longitude}
+                onChange={(e) => set("longitude", e.target.value)}
+                placeholder="-66.152366"
+              />
+            </FormField>
+          </div>
+          <FormField label="Enlace de Google Maps" htmlFor="mapsUrl">
+            <input
+              id="mapsUrl"
+              className={INPUT_CLS}
+              value={form.mapsUrl}
+              onChange={(e) => set("mapsUrl", e.target.value)}
+              placeholder="https://www.google.com/maps?q=-17.386471,-66.152366"
             />
           </FormField>
         </EditorCard>

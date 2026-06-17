@@ -40,6 +40,9 @@ export interface ContactData {
   scheduleSaturday: string
   scheduleSunday: string
   location: string
+  latitude: string
+  longitude: string
+  mapsUrl: string
 }
 
 export interface ContentStore {

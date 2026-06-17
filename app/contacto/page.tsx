@@ -102,6 +102,9 @@ function mapContact(raw: any): ContactData {
     scheduleSaturday: raw.saturdayHours ?? DEFAULTS.contact.scheduleSaturday,
     scheduleSunday: raw.sundayStatus ?? DEFAULTS.contact.scheduleSunday,
     location: raw.locationDescription ?? DEFAULTS.contact.location,
+    latitude: raw.latitude != null ? String(raw.latitude) : DEFAULTS.contact.latitude,
+    longitude: raw.longitude != null ? String(raw.longitude) : DEFAULTS.contact.longitude,
+    mapsUrl: raw.mapsUrl ?? DEFAULTS.contact.mapsUrl,
   }
 }
 
