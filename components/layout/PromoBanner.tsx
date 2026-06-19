@@ -125,7 +125,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
         {/* Cerrar — arriba derecha */}
         <button
           onClick={dismiss}
-          className="absolute top-4 right-4 z-10 flex items-center justify-center w-9 h-9 rounded-full transition-transform hover:scale-110"
+          className="absolute top-4 right-4 z-10 flex items-center justify-center w-9 h-9 rounded-full"
           aria-label="Cerrar"
           style={{ backgroundColor: "rgba(255,255,255,0.18)", color: "#fff", backdropFilter: "blur(6px)", border: "1px solid rgba(255,255,255,0.25)" }}
         >
@@ -171,7 +171,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
               href={data.ctaHref}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
-              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm transition-transform hover:scale-[1.02]"
+              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm"
               style={{ backgroundColor: "#25D366", color: "white", boxShadow: "0 8px 22px rgba(37,211,102,0.4)" }}
             >
               <MessageCircle size={17} aria-hidden="true" /> {data.ctaLabel}
@@ -181,7 +181,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
             </p>
             <button
               onClick={dismiss}
-              className="w-full py-2 rounded-full font-semibold text-xs uppercase tracking-wide transition-colors hover:bg-white/10"
+              className="w-full py-2 rounded-full font-semibold text-xs uppercase tracking-wide"
               style={{ color: "rgba(255,255,255,0.6)", letterSpacing: "0.12em" }}
             >
               {data.dismissLabel}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { revalidatePath } from "next/cache"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
@@ -31,5 +32,9 @@ export async function PUT(req: NextRequest) {
     auth: true,
   })
   if (error) return proxyError(error, status)
+
+  // Refrescar la home al instante (el banner se sirve con ISR 5 min)
+  revalidatePath("/")
+
   return NextResponse.json(data)
 }

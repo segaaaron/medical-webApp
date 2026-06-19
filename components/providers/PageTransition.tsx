@@ -1,6 +1,6 @@
 "use client"
 
-import { m, AnimatePresence, useReducedMotion } from "framer-motion"
+import { m, useReducedMotion } from "framer-motion"
 import { usePathname } from "next/navigation"
 
 export function PageTransition({ children }: { children: React.ReactNode }) {
@@ -9,17 +9,11 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
 
   if (prefersReduced) return <>{children}</>
 
+  // Sin `exit`/AnimatePresence mode="wait": evita el hueco en blanco entre páginas
+  // (ese era el "destello"). Solo un fade de entrada sutil de la nueva página.
   return (
-    <AnimatePresence mode="wait">
-      <m.div
-        key={pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25, ease: "easeInOut" }}
-      >
-        {children}
-      </m.div>
-    </AnimatePresence>
+    <m.div key={pathname} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, ease: "easeOut" }}>
+      {children}
+    </m.div>
   )
 }

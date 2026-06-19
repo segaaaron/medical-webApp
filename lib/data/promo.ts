@@ -24,7 +24,8 @@ function parseBadges(raw: unknown): string[] {
 }
 
 export const PROMO_FALLBACK: PromoDisplayData = {
-  active: true,
+  // false: si el backend no devuelve un registro, NO se muestra banner (respeta "desactivar").
+  active: false,
   label: DEFAULTS.promoPopup.label,
   badges: [],
   title: "Biorevitalización con",
@@ -38,10 +39,17 @@ export const PROMO_FALLBACK: PromoDisplayData = {
   imageUrl: "",
 }
 
+/** Interpreta `active` venga como boolean o como string "true"/"false" (multipart). */
+function parseActive(raw: unknown): boolean {
+  if (typeof raw === "boolean") return raw
+  if (typeof raw === "string") return raw.trim().toLowerCase() === "true"
+  return PROMO_FALLBACK.active
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapPromo(raw: any): PromoDisplayData {
   return {
-    active: raw.active ?? PROMO_FALLBACK.active,
+    active: parseActive(raw.active),
     label: raw.tag || PROMO_FALLBACK.label,
     badges: parseBadges(raw.badges),
     title: raw.title || PROMO_FALLBACK.title,
