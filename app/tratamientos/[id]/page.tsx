@@ -5,7 +5,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
 import { DEFAULTS, readContent } from "@/lib/store/content-store"
-import { ArrowLeft, MessageCircle, ImageIcon } from "lucide-react"
+import { ArrowLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -14,6 +14,7 @@ import { TreatmentPageTracker } from "@/components/analytics/TreatmentPageTracke
 import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { EcgHero } from "@/components/ui/EcgHero"
+import { BeforeAfter } from "@/components/sections/BeforeAfter"
 
 export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el tratamiento
 
@@ -290,73 +291,11 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 <div className="mt-5 mx-auto w-16 h-px" style={{ backgroundColor: "var(--vintage-gold)" }} />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
-                {[
-                  { label: "Antes", src: treatment.beforeImageUrl, gold: false },
-                  { label: "Después", src: treatment.afterImageUrl, gold: true },
-                ].map((side) => (
-                  <figure
-                    key={side.label}
-                    className="group rounded-2xl overflow-hidden transition-all duration-500"
-                    style={{
-                      backgroundColor: "#FDF8F2",
-                      border: side.gold ? "1px solid rgba(184,151,59,0.5)" : "1px solid rgba(184,151,59,0.2)",
-                      boxShadow: side.gold ? "0 14px 40px rgba(58,15,32,0.16)" : "0 8px 28px rgba(58,15,32,0.1)",
-                    }}
-                  >
-                    <div className="relative aspect-[4/5] overflow-hidden">
-                      {side.src ? (
-                        <>
-                          {/* Fondo borroso de la misma foto → rellena la caja sin recortar la foto real */}
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={side.src}
-                            alt=""
-                            aria-hidden="true"
-                            loading="lazy"
-                            className="absolute inset-0 w-full h-full object-cover scale-110"
-                            style={{ filter: "blur(18px) brightness(0.92)" }}
-                          />
-                          {/* Foto completa: sin recorte ni deformación (mantiene su proporción) */}
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={side.src}
-                            alt={`${side.label} — ${treatment.name}`}
-                            loading="lazy"
-                            className="absolute inset-0 w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
-                          />
-                        </>
-                      ) : (
-                        /* Placeholder elegante mientras no haya foto */
-                        <div
-                          className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-                          style={{
-                            background:
-                              "linear-gradient(155deg, var(--vintage-parchment, #FAF6EE) 0%, var(--vintage-cream-dark, #EDE5D5) 100%)",
-                          }}
-                        >
-                          <div
-                            className="flex items-center justify-center w-14 h-14 rounded-full"
-                            style={{ backgroundColor: "rgba(184,151,59,0.12)", border: "1px solid rgba(184,151,59,0.3)" }}
-                          >
-                            <ImageIcon size={22} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
-                          </div>
-                          <span
-                            className="text-[11px] uppercase"
-                            style={{
-                              color: "rgba(58,15,32,0.45)",
-                              fontFamily: "var(--font-mono, ui-monospace, monospace)",
-                              letterSpacing: "0.16em",
-                            }}
-                          >
-                            Foto próximamente
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </figure>
-                ))}
-              </div>
+              <BeforeAfter
+                before={treatment.beforeImageUrl}
+                after={treatment.afterImageUrl}
+                name={treatment.name}
+              />
 
               <p className="mt-5 text-center text-xs" style={{ color: "rgba(58,15,32,0.45)" }}>
                 * Imágenes referenciales. Los resultados varían según cada paciente.

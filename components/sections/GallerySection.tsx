@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { m, useReducedMotion } from "framer-motion"
 import { ImageIcon, X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react"
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 
 interface GallerySectionProps {
   /** URLs de las fotos (hasta 10). Las posiciones vacías muestran un placeholder elegante. */
@@ -101,26 +102,28 @@ export function GallerySection({ images }: GallerySectionProps) {
                         className="group block bg-white p-1.5 pb-4 md:p-2 md:pb-6 shadow-xl transition-transform duration-500 ease-out hover:rotate-0 hover:scale-[1.08] hover:shadow-2xl cursor-pointer"
                         style={{ transform: `rotate(${TILTS[i]}deg)`, borderRadius: "3px" }}
                       >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={src}
-                          alt={`Galería — foto ${i + 1}`}
-                          loading="lazy"
-                          decoding="async"
-                          style={{ width: "clamp(52px, 16.5vw, 160px)" }}
-                          className="block aspect-[3/4] object-cover transition-[filter] duration-500 [filter:sepia(0.42)_saturate(0.78)_contrast(0.9)_brightness(1.05)] group-hover:[filter:sepia(0.1)_saturate(1)_contrast(1)_brightness(1)]"
-                        />
-                        {/* Tinte cálido vintage */}
-                        <span
-                          className="absolute inset-1.5 pointer-events-none mix-blend-multiply opacity-60 group-hover:opacity-0 transition-opacity duration-500"
-                          style={{ background: "linear-gradient(160deg, rgba(255,225,170,0.35), rgba(120,70,40,0.28))" }}
-                          aria-hidden="true"
-                        />
-                        <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true">
-                          <span className="flex items-center justify-center w-9 h-9 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.92)", color: "var(--primary-darkest)", boxShadow: "0 2px 10px rgba(0,0,0,0.3)" }}>
-                            <ZoomIn size={15} />
+                        <div className="relative overflow-hidden" style={{ width: "clamp(52px, 16.5vw, 160px)", aspectRatio: "3/4" }}>
+                          <ImageWithFallback
+                            src={src}
+                            alt={`Galería — foto ${i + 1}`}
+                            fill
+                            variant="light"
+                            loading="lazy"
+                            sizes="160px"
+                            imgClassName="transition-[filter] duration-500 [filter:sepia(0.42)_saturate(0.78)_contrast(0.9)_brightness(1.05)] group-hover:[filter:sepia(0.1)_saturate(1)_contrast(1)_brightness(1)]"
+                          />
+                          {/* Tinte cálido vintage */}
+                          <span
+                            className="absolute inset-0 pointer-events-none mix-blend-multiply opacity-60 group-hover:opacity-0 transition-opacity duration-500"
+                            style={{ background: "linear-gradient(160deg, rgba(255,225,170,0.35), rgba(120,70,40,0.28))" }}
+                            aria-hidden="true"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true">
+                            <span className="flex items-center justify-center w-9 h-9 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.92)", color: "var(--primary-darkest)", boxShadow: "0 2px 10px rgba(0,0,0,0.3)" }}>
+                              <ZoomIn size={15} />
+                            </span>
                           </span>
-                        </span>
+                        </div>
                       </button>
                     ) : (
                       <div className="bg-white p-1.5 pb-4 md:p-2 md:pb-6 shadow-lg" style={{ transform: `rotate(${TILTS[i]}deg)`, borderRadius: "3px" }}>

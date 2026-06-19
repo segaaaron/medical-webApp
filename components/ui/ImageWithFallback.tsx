@@ -18,6 +18,8 @@ interface ImageWithFallbackProps {
   fill?: boolean
   /** srcset sizes hint — only used when fill=true */
   sizes?: string
+  /** Clases aplicadas al elemento <img> real (ej. filtros, transiciones). */
+  imgClassName?: string
 }
 
 function LightFallback() {
@@ -133,6 +135,7 @@ export function ImageWithFallback({
   objectPosition,
   fill: useFill = false,
   sizes,
+  imgClassName,
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(!src)
   const [loaded, setLoaded] = useState(false)
@@ -168,6 +171,7 @@ export function ImageWithFallback({
       alt={alt}
       loading={loading}
       decoding={decoding}
+      className={imgClassName}
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition }}
       onLoad={() => setLoaded(true)}
       onError={() => setFailed(true)}
@@ -178,6 +182,7 @@ export function ImageWithFallback({
       alt={alt}
       fill
       sizes={sizesAttr}
+      className={imgClassName}
       style={{ objectFit: "cover", objectPosition }}
       priority={loading === "eager"}
       onLoad={() => setLoaded(true)}
