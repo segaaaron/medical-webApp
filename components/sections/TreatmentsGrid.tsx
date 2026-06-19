@@ -21,6 +21,8 @@ export interface Treatment {
 interface TreatmentsGridProps {
   treatments: Treatment[]
   isHome: boolean
+  /** Controles de paginación, renderizados justo debajo del grid de cards. */
+  pager?: React.ReactNode
 }
 
 const GOLD = "var(--vintage-gold)"
@@ -102,15 +104,6 @@ function PosterCard({
           <div style={{ width: "100%", height: "100%", background: "linear-gradient(155deg, oklch(26% 0.05 50) 0%, oklch(14% 0.03 44) 100%)" }} />
         )}
       </div>
-
-      {/* Base gradient */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "linear-gradient(to top, rgba(10,2,6,0.96) 0%, rgba(10,2,6,0.55) 45%, rgba(10,2,6,0.12) 100%)",
-        }}
-      />
 
       {/* Hover overlay "Ver más" — solo para tratamientos page, oculto en touch */}
       {!isHome && (
@@ -200,11 +193,11 @@ function PosterCard({
       <div style={{ position: "absolute", inset: 0, padding: "22px 20px", display: "flex", flexDirection: "column", justifyContent: "flex-end", zIndex: 5 }}>
         {/* Number */}
         <div style={{ marginBottom: "10px" }}>
-          <span style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "10px", letterSpacing: "0.22em", color: GOLD }}>{num}</span>
+          <span style={{ fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace", fontSize: "10px", letterSpacing: "0.22em", color: GOLD, textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}>{num}</span>
         </div>
 
         {/* Title */}
-        <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(15px, 1.6vw, 20px)", fontWeight: 500, color: "#ffffff", lineHeight: 1.25, marginBottom: "10px", letterSpacing: "-0.01em", textTransform: "capitalize" }}>
+        <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(15px, 1.6vw, 20px)", fontWeight: 500, color: "#ffffff", lineHeight: 1.25, marginBottom: "10px", letterSpacing: "-0.01em", textTransform: "capitalize", textShadow: "0 2px 12px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.7)" }}>
           {treatment.name.toLowerCase()}
         </h4>
 
@@ -265,7 +258,7 @@ function PosterCard({
   )
 }
 
-export function TreatmentsGrid({ treatments, isHome }: TreatmentsGridProps) {
+export function TreatmentsGrid({ treatments, isHome, pager }: TreatmentsGridProps) {
   if (treatments.length === 0) return null
 
   const activeTreatments = treatments.filter((x) => x.active)
@@ -304,6 +297,8 @@ export function TreatmentsGrid({ treatments, isHome }: TreatmentsGridProps) {
             />
           ))}
         </div>
+
+        {pager}
 
         <m.div
           initial={{ opacity: 0, y: 20 }}

@@ -314,12 +314,6 @@ export default async function TratamientoDetallePage({ params }: Props) {
                             loading="lazy"
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                           />
-                          {/* gradient para legibilidad de la etiqueta */}
-                          <div
-                            className="absolute inset-x-0 top-0 h-24 pointer-events-none"
-                            style={{ background: "linear-gradient(to bottom, rgba(58,15,32,0.55), transparent)" }}
-                            aria-hidden="true"
-                          />
                         </>
                       ) : (
                         /* Placeholder elegante mientras no haya foto */
@@ -348,19 +342,6 @@ export default async function TratamientoDetallePage({ params }: Props) {
                           </span>
                         </div>
                       )}
-                      <figcaption
-                        className="absolute top-4 left-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase px-3.5 py-1.5 rounded-full"
-                        style={{
-                          backgroundColor: side.gold ? "var(--vintage-gold)" : "rgba(255,255,255,0.92)",
-                          color: side.gold ? "#3a0f20" : "var(--primary-darkest, #3a0f20)",
-                          letterSpacing: "0.14em",
-                          fontFamily: "var(--font-mono, ui-monospace, monospace)",
-                          backdropFilter: "blur(4px)",
-                          boxShadow: "0 2px 10px rgba(58,15,32,0.25)",
-                        }}
-                      >
-                        {side.label}
-                      </figcaption>
                     </div>
                   </figure>
                 ))}
