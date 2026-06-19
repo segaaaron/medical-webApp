@@ -29,7 +29,8 @@ const TestimonialsSection = dynamic(() => import("@/components/sections/Testimon
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
-function buildTestimonialsJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) {
+/** Campos de rating/reseñas para adjuntar al negocio (estrellas en Google). */
+function buildRatingFields(reviews: PublicReview[], aggregate?: ReviewAggregate) {
   const hasReviews = reviews.length > 0
   const avg = aggregate?.avg_rating != null
     ? aggregate.avg_rating.toFixed(1)
@@ -37,27 +38,21 @@ function buildTestimonialsJsonLd(reviews: PublicReview[], aggregate?: ReviewAggr
       ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
       : null
   const reviewCount = aggregate?.total_count ?? reviews.length
+  if (!hasReviews || !avg) return {}
   return {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name: "Medicina Estética — Dra. Yasmin Medrano Avila",
-    description: "Tratamientos de medicina estética en Cochabamba, Bolivia. Botox, rellenos, armonización facial y más.",
-    brand: { "@type": "Brand", name: "Dra. Yasmin Medrano Avila" },
-    ...(hasReviews && avg ? {
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: avg,
-        reviewCount: String(reviewCount),
-        bestRating: "5",
-        worstRating: "1",
-      },
-      review: reviews.slice(0, 6).map((r) => ({
-        "@type": "Review",
-        author: { "@type": "Person", name: r.patient_lastname ? `${r.patient_name} ${r.patient_lastname}` : r.patient_name },
-        reviewRating: { "@type": "Rating", ratingValue: String(r.rating) },
-        reviewBody: r.body,
-      })),
-    } : {}),
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: avg,
+      reviewCount: String(reviewCount),
+      bestRating: "5",
+      worstRating: "1",
+    },
+    review: reviews.slice(0, 6).map((r) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: r.patient_lastname ? `${r.patient_name} ${r.patient_lastname}` : r.patient_name },
+      reviewRating: { "@type": "Rating", ratingValue: String(r.rating), bestRating: "5", worstRating: "1" },
+      reviewBody: r.body,
+    })),
   }
 }
 
@@ -76,33 +71,63 @@ function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   }
 }
 
-const localBusinessJsonLd = {
+const SAME_AS = [
+  "https://www.instagram.com/dra_yasmin.medrano",
+  "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+]
+
+/** MedicalBusiness (subtipo de Organization) con datos del negocio + estrellas. */
+function buildLocalBusinessJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "MedicalBusiness",
+    "@id": `${BASE_URL}/#business`,
+    name: "Dra. Yasmin Medrano Avila — Medicina Estética",
+    url: BASE_URL,
+    logo: `${BASE_URL}/icon.svg`,
+    telephone: "+59178751894",
+    image: `${BASE_URL}/images/DraMedrano.jpeg`,
+    priceRange: "$$",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Cochabamba",
+      addressCountry: "BO",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: -17.386471,
+      longitude: -66.152366,
+    },
+    openingHoursSpecification: [
+      { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "19:00" },
+      { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday"], opens: "09:00", closes: "14:00" },
+    ],
+    sameAs: SAME_AS,
+    medicalSpecialty: "Medicina Estética",
+    ...buildRatingFields(reviews, aggregate),
+  }
+}
+
+const websiteJsonLd = {
   "@context": "https://schema.org",
-  "@type": "MedicalBusiness",
-  name: "Dra. Yasmin Medrano Avila — Medicina Estética",
+  "@type": "WebSite",
+  "@id": `${BASE_URL}/#website`,
+  name: "Dra. Yasmin Medrano Avila",
   url: BASE_URL,
-  telephone: "+59178751894",
-  image: `${BASE_URL}/images/DraMedrano.jpeg`,
-  priceRange: "$$",
-  address: {
-    "@type": "PostalAddress",
-    addressLocality: "Cochabamba",
-    addressCountry: "BO",
-  },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: -17.386471,
-    longitude: -66.152366,
-  },
-  openingHoursSpecification: [
-    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "19:00" },
-    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday"], opens: "09:00", closes: "14:00" },
-  ],
-  sameAs: [
-    "https://www.instagram.com/dra_yasmin.medrano",
-    "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-  ],
-  medicalSpecialty: "Medicina Estética",
+  inLanguage: "es-BO",
+  publisher: { "@id": `${BASE_URL}/#business` },
+}
+
+function buildSiteNavJsonLd(navLinks: { label?: string; name?: string; href?: string; url?: string }[]) {
+  const items = navLinks
+    .map((l) => ({ name: l.label ?? l.name ?? "", href: l.href ?? l.url ?? "" }))
+    .filter((l) => l.name && l.href)
+  return {
+    "@context": "https://schema.org",
+    "@type": "SiteNavigationElement",
+    name: items.map((l) => l.name),
+    url: items.map((l) => (l.href.startsWith("http") ? l.href : `${BASE_URL}${l.href.startsWith("/") ? "" : "/"}${l.href}`)),
+  }
 }
 
 const breadcrumbJsonLd = {
@@ -164,7 +189,8 @@ export default async function HomePage() {
             total_count: approvedReviews.length,
           }
         : undefined
-  const testimonialsJsonLd = buildTestimonialsJsonLd(approvedReviews, reviewAggregate)
+  const localBusinessJsonLd = buildLocalBusinessJsonLd(approvedReviews, reviewAggregate)
+  const siteNavJsonLd = buildSiteNavJsonLd(homeData.navLinks)
 
   const backendError = treatment.error !== null
   const backendTreatments = backendError
@@ -200,8 +226,9 @@ export default async function HomePage() {
       <link rel="preload" as="image" href="/images/hero-poster.jpg" fetchPriority="high" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(siteNavJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(testimonialsJsonLd) }} />
       <PromoBanner data={promoData} />
       <Navbar links={homeData.navLinks} />
       <FadeIn>
