@@ -5,10 +5,9 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { ServiceSection, type TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import { PresetsSection } from "@/components/sections/PresetsSection"
-import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
+import { TreatmentsPaginated } from "@/components/sections/TreatmentsPaginated"
 import { getFooterData } from "@/lib/data/footer"
 import { PageHero } from "@/components/ui/PageHero"
-import { Pagination } from "@/components/ui/Pagination"
 import type { Metadata } from "next"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
@@ -226,10 +225,11 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
         {backendError
           ? <PresetsSection presets={c.presets} />
           : (
-            <>
-              <TreatmentsGrid treatments={backendTreatments} isHome={false} />
-              <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/tratamientos" />
-            </>
+            <TreatmentsPaginated
+              initialTreatments={backendTreatments}
+              initialPage={currentPage}
+              totalPages={totalPages}
+            />
           )
         }
       </main>

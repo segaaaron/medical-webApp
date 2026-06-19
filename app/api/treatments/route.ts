@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { revalidatePath } from "next/cache"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
+/** Refresca las páginas públicas que listan tratamientos tras una mutación. */
+function revalidateTreatments() {
+  revalidatePath("/tratamientos")
+  revalidatePath("/")
+}
+
 // Allowed query parameters for treatments endpoint
-const ALLOWED_TREATMENT_PARAMS = new Set(["category", "page", "limit", "search", "active"])
+const ALLOWED_TREATMENT_PARAMS = new Set(["category", "page", "limit", "search", "active", "all"])
 
 // GET /api/treatments — public (auth forwarded when session present, backend may return all for admins)
 export async function GET(req: NextRequest) {
@@ -64,12 +71,14 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData()
     const { data, error, status: s1 } = await backendFetch("/treatments", { method: "POST", formData, auth: true })
     if (error) return proxyError(error, s1)
+    revalidateTreatments()
     return NextResponse.json(data, { status: 201 })
   }
 
   const body = await req.json()
   const { data, error, status: s2 } = await backendFetch("/treatments", { method: "POST", body, auth: true })
   if (error) return proxyError(error, s2)
+  revalidateTreatments()
   return NextResponse.json(data, { status: 201 })
 }
 

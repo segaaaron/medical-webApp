@@ -264,7 +264,7 @@ export default function TratamientosDashboardPage() {
     setLoading(true)
     const all = opts?.all ?? false
     const pageToLoad = opts?.page ?? page
-    const path = all ? "/api/treatments" : `/api/treatments?page=${pageToLoad}`
+    const path = all ? "/api/treatments?all=true" : `/api/treatments?page=${pageToLoad}`
     const res = await guardedFetch(path)
     if (res.ok) {
       const json = await res.json()
