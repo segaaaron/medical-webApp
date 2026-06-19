@@ -158,7 +158,16 @@ export default function EditarBlogPage() {
           <FormField label="Imagen de portada" htmlFor="blog-image">
             <div className="space-y-3">
               {/* Preview card */}
-              <div className="w-full rounded-xl overflow-hidden border border-gray-200 bg-gray-50" style={{ minHeight: 180 }}>
+              <div
+                className="w-full rounded-xl overflow-hidden border border-gray-200 bg-gray-50"
+                style={{ minHeight: 180 }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  const file = Array.from(e.dataTransfer.files).find((f) => f.type.startsWith("image/"))
+                  if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)) }
+                }}
+              >
                 {imagePreview ? (
                   <div className="relative group">
                     <img

@@ -4,9 +4,10 @@ import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import Link from "next/link"
-import { Check, Upload, X } from "lucide-react"
+import { Check } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
+import { ImageDropzone } from "@/components/ui/ImageDropzone"
 import RichTextEditor from "@/components/dashboard/RichTextEditor"
 
 const TAGS = ["POPULAR", "INNOVADOR", "RECOMENDADO", "DEFINITIVO", "ESENCIAL", "ESPECIALIZADO"]
@@ -85,42 +86,14 @@ interface ImagePickerFieldProps {
 function ImagePickerField({ id, label, hint, preview, onSelect, onRemove, previewClassName }: ImagePickerFieldProps) {
   return (
     <FormField label={label} htmlFor={id}>
-      <div className="space-y-2">
-        <label
-          htmlFor={id}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
-        >
-          <Upload size={15} />
-          {preview ? "Cambiar imagen" : "Seleccionar imagen"} {hint ?? "(JPG, PNG, WebP)"}
-          <input
-            id={id}
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) onSelect(file)
-            }}
-          />
-        </label>
-        {preview && (
-          <div className="relative w-fit">
-            <img
-              src={preview}
-              alt="Vista previa"
-              className={previewClassName ?? "h-32 rounded-lg object-cover border border-gray-200"}
-            />
-            <button
-              type="button"
-              onClick={onRemove}
-              className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-200 p-0.5 hover:bg-red-50"
-              aria-label="Eliminar imagen"
-            >
-              <X size={12} className="text-gray-500" />
-            </button>
-          </div>
-        )}
-      </div>
+      <ImageDropzone
+        id={id}
+        preview={preview}
+        onFile={onSelect}
+        onRemove={onRemove}
+        hint={hint}
+        previewClassName={previewClassName}
+      />
     </FormField>
   )
 }

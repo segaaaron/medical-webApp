@@ -25,6 +25,7 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { useToast } from "@/components/dashboard/Toast"
 import { DeleteTreatmentDialog } from "@/components/ui/DialogAlert"
+import { TAG_COLORS, DEFAULT_TAG_COLOR } from "@/lib/treatment-tags"
 
 interface Treatment {
   id: string
@@ -127,7 +128,7 @@ function SortableRow({
             <span
               className="inline-flex items-center text-[10px] font-bold uppercase px-2.5 py-1 rounded-full text-white"
               style={{
-                backgroundColor: "var(--vintage-gold)",
+                backgroundColor: TAG_COLORS[treatment.tag] ?? DEFAULT_TAG_COLOR,
                 letterSpacing: "0.1em",
                 boxShadow: "0 2px 8px rgba(58,15,32,0.3)",
               }}

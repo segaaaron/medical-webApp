@@ -307,12 +307,23 @@ export default async function TratamientoDetallePage({ params }: Props) {
                     <div className="relative aspect-[4/5] overflow-hidden">
                       {side.src ? (
                         <>
+                          {/* Fondo borroso de la misma foto → rellena la caja sin recortar la foto real */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={side.src}
+                            alt=""
+                            aria-hidden="true"
+                            loading="lazy"
+                            className="absolute inset-0 w-full h-full object-cover scale-110"
+                            style={{ filter: "blur(18px) brightness(0.92)" }}
+                          />
+                          {/* Foto completa: sin recorte ni deformación (mantiene su proporción) */}
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={side.src}
                             alt={`${side.label} — ${treatment.name}`}
                             loading="lazy"
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                            className="absolute inset-0 w-full h-full object-contain transition-transform duration-700 ease-out group-hover:scale-105"
                           />
                         </>
                       ) : (

@@ -1,13 +1,14 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Check, Tag, Image as ImageIcon, MessageCircle, ToggleLeft, ToggleRight } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
+import { ImageDropzone } from "@/components/ui/ImageDropzone"
 import { useToast } from "@/components/dashboard/Toast"
 import { resolveImageUrl } from "@/lib/image-utils"
 
@@ -19,6 +20,7 @@ const INPUT_ERROR_CLS =
 
 interface PromoBannerForm {
   tag: string
+  badges: string
   title: string
   highlightedText: string
   description: string
@@ -33,6 +35,7 @@ interface PromoBannerForm {
 
 const EMPTY: PromoBannerForm = {
   tag: "",
+  badges: "",
   title: "",
   highlightedText: "",
   description: "",
@@ -53,6 +56,7 @@ const promoBannerSchema = Yup.object({
 function fromBackend(raw: any): PromoBannerForm {
   return {
     tag: raw.tag ?? "",
+    badges: raw.badges ?? "",
     title: raw.title ?? "",
     highlightedText: raw.highlightedText ?? "",
     description: raw.description ?? "",
@@ -72,7 +76,6 @@ export default function PromocionesPage() {
   const [saved, setSaved] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const formik = useFormik<PromoBannerForm>({
     initialValues: EMPTY,
@@ -121,13 +124,6 @@ export default function PromocionesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-  }
-
   function inputCls(field: keyof PromoBannerForm) {
     return formik.touched[field] && formik.errors[field] ? INPUT_ERROR_CLS : INPUT_CLS
   }
@@ -165,27 +161,38 @@ export default function PromocionesPage() {
               )}
             </FormField>
 
-            {/* Estado activo */}
+            <FormField label="Tags de oferta (separados por coma)" htmlFor="badges">
+              <input
+                id="badges"
+                className={inputCls("badges")}
+                {...formik.getFieldProps("badges")}
+                placeholder="Ej: 10% DESCUENTO, OFERTA DEL MES, CUPOS LIMITADOS"
+              />
+              <p className="text-xs text-gray-400 mt-1">Se muestran como chips dorados en el banner. Déjalo vacío para no mostrar ninguno.</p>
+            </FormField>
+
+            {/* Publicar banner */}
             <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
               <div>
-                <p className="text-sm font-medium text-gray-700">Estado del banner</p>
-                <p className="text-xs text-gray-400">Activa o desactiva la visualización del banner</p>
+                <p className="text-sm font-medium text-gray-700">Publicar banner</p>
+                <p className="text-xs text-gray-400">Si está publicado, el banner se muestra en la web; si no, queda oculto.</p>
               </div>
               <button
                 type="button"
                 onClick={() => formik.setFieldValue("active", !formik.values.active)}
+                aria-pressed={formik.values.active}
                 className="flex items-center gap-2 text-sm font-medium transition-colors"
                 style={{ color: formik.values.active ? "var(--vintage-gold)" : "#9ca3af" }}
               >
                 {formik.values.active ? (
                   <>
                     <ToggleRight size={22} />
-                    Activo
+                    Publicado
                   </>
                 ) : (
                   <>
                     <ToggleLeft size={22} />
-                    Inactivo
+                    No publicado
                   </>
                 )}
               </button>
@@ -286,33 +293,17 @@ export default function PromocionesPage() {
             <ImageIcon size={16} className="text-blue-500" />
             <span className="text-sm text-gray-500">Imagen que acompaña la promoción (opcional)</span>
           </div>
-          <div className="flex flex-col gap-4">
-            {imagePreview && (
-              <div className="w-40 h-40 rounded-lg overflow-hidden border border-gray-200">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imagePreview} alt="Vista previa" className="w-full h-full object-cover" width={160} height={160} />
-              </div>
+          <div className="flex flex-col gap-2">
+            <ImageDropzone
+              preview={imagePreview ?? ""}
+              onFile={(file) => { setImageFile(file); setImagePreview(URL.createObjectURL(file)) }}
+              hint="(opcional)"
+              previewClassName="w-40 h-40 rounded-lg object-cover border border-gray-200"
+            />
+            {imageFile && <p className="text-xs text-gray-500">{imageFile.name}</p>}
+            {!imageFile && formik.values.imageUrl && (
+              <p className="text-xs text-gray-400">Imagen actual conservada del servidor</p>
             )}
-            <div className="flex flex-col gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-fit px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                {imageFile ? "Cambiar imagen" : "Subir imagen"}
-              </button>
-              {imageFile && <p className="text-xs text-gray-500">{imageFile.name}</p>}
-              {!imageFile && formik.values.imageUrl && (
-                <p className="text-xs text-gray-400">Imagen actual conservada del servidor</p>
-              )}
-            </div>
           </div>
         </EditorCard>
 

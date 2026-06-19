@@ -4,9 +4,10 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
-import { Check, Upload, X } from "lucide-react"
+import { Check } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
+import { ImageDropzone } from "@/components/ui/ImageDropzone"
 import { useToast } from "@/components/dashboard/Toast"
 import { resolveImageUrl } from "@/lib/image-utils"
 
@@ -146,13 +147,6 @@ export default function TratamientosInfoPage() {
     formik.setFieldValue("consultationItems", items)
   }
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-  }
-
   if (loading) {
     return <p className="text-gray-400 text-sm" role="status">Cargando información...</p>
   }
@@ -238,42 +232,12 @@ export default function TratamientosInfoPage() {
           </FormField>
 
           <FormField label="Imagen del doctor" htmlFor="info-doctor-image">
-            <div className="space-y-2">
-              <label
-                htmlFor="info-doctor-image"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
-              >
-                <Upload size={15} aria-hidden="true" />
-                {imagePreview ? "Cambiar imagen" : "Seleccionar imagen"} (JPG, PNG, WebP)
-                <input
-                  id="info-doctor-image"
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleImageChange}
-                />
-              </label>
-              {imagePreview && (
-                <div className="relative w-fit">
-                  <img
-                    src={imagePreview}
-                    alt="Vista previa"
-                    className="h-32 rounded-lg object-cover border border-gray-200"
-                    width={200}
-                    height={128}
-                    onError={() => setImagePreview("")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => { setImagePreview(""); setImageFile(null); formik.setFieldValue("doctorImage", "") }}
-                    className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-200 p-0.5 hover:bg-red-50"
-                    aria-label="Eliminar imagen"
-                  >
-                    <X size={12} className="text-gray-500" />
-                  </button>
-                </div>
-              )}
-            </div>
+            <ImageDropzone
+              id="info-doctor-image"
+              preview={imagePreview ?? ""}
+              onFile={(file) => { setImageFile(file); setImagePreview(URL.createObjectURL(file)) }}
+              onRemove={() => { setImagePreview(""); setImageFile(null); formik.setFieldValue("doctorImage", "") }}
+            />
           </FormField>
 
           <FormField label="Título del CTA" htmlFor="info-cta-title">

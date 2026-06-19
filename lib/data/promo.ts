@@ -4,6 +4,7 @@ import { DEFAULTS } from "@/lib/store/content-store"
 export interface PromoDisplayData {
   active: boolean
   label: string
+  badges: string[]
   title: string
   highlightedText: string
   description: string
@@ -15,9 +16,17 @@ export interface PromoDisplayData {
   imageUrl: string
 }
 
+/** Convierte el string "a, b, c" del backend en lista de chips (sin vacíos, máx 4). */
+function parseBadges(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.map((b) => String(b).trim()).filter(Boolean).slice(0, 4)
+  if (typeof raw === "string") return raw.split(",").map((b) => b.trim()).filter(Boolean).slice(0, 4)
+  return []
+}
+
 export const PROMO_FALLBACK: PromoDisplayData = {
   active: true,
   label: DEFAULTS.promoPopup.label,
+  badges: [],
   title: "Biorevitalización con",
   highlightedText: "NCTF 135 HA",
   description: DEFAULTS.promoPopup.description,
@@ -34,6 +43,7 @@ function mapPromo(raw: any): PromoDisplayData {
   return {
     active: raw.active ?? PROMO_FALLBACK.active,
     label: raw.tag || PROMO_FALLBACK.label,
+    badges: parseBadges(raw.badges),
     title: raw.title || PROMO_FALLBACK.title,
     highlightedText: raw.highlightedText || PROMO_FALLBACK.highlightedText,
     description: raw.description || PROMO_FALLBACK.description,

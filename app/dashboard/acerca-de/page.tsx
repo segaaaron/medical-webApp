@@ -1,13 +1,14 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Check, User, Image as ImageIcon, Award, BarChart2, Star } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
+import { ImageDropzone } from "@/components/ui/ImageDropzone"
 import { useToast } from "@/components/dashboard/Toast"
 
 const INPUT_CLS =
@@ -109,8 +110,6 @@ export default function AcercaDeDashboardPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
   const formik = useFormik<AboutForm>({
     initialValues: EMPTY,
     validationSchema: aboutSchema,
@@ -166,12 +165,6 @@ export default function AcercaDeDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-  }
 
   function inputCls(field: keyof AboutForm) {
     return formik.touched[field] && formik.errors[field] ? INPUT_ERROR_CLS : INPUT_CLS
@@ -240,36 +233,13 @@ export default function AcercaDeDashboardPage() {
             <ImageIcon size={16} className="text-blue-500" />
             <span className="text-sm text-gray-500">Foto que aparece en la sección About Us</span>
           </div>
-          <div className="flex flex-col gap-4">
-            {imagePreview && (
-              <div className="w-32 h-32 rounded-lg overflow-hidden border border-gray-200">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imagePreview}
-                  alt="Vista previa"
-                  className="w-full h-full object-cover"
-                  width={128}
-                  height={128}
-                />
-              </div>
-            )}
-            <div className="flex flex-col gap-2">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageChange}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-fit px-4 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                {imageFile ? "Cambiar imagen" : "Subir imagen"}
-              </button>
-              {imageFile && <p className="text-xs text-gray-500">{imageFile.name}</p>}
-            </div>
+          <div className="flex flex-col gap-2">
+            <ImageDropzone
+              preview={imagePreview ?? ""}
+              onFile={(file) => { setImageFile(file); setImagePreview(URL.createObjectURL(file)) }}
+              previewClassName="w-32 h-32 rounded-lg object-cover border border-gray-200"
+            />
+            {imageFile && <p className="text-xs text-gray-500">{imageFile.name}</p>}
           </div>
         </EditorCard>
 
