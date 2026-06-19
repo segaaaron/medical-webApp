@@ -4,6 +4,7 @@ import type { BioDoc, BioSection } from "@/types/about"
 export interface AboutData {
   bio: BioDoc | null
   features: BioSection | null
+  gallery: string[]
 }
 
 const BIO_FALLBACK: BioDoc = {
@@ -40,6 +41,27 @@ const FEATURES_FALLBACK: BioSection = {
     "Más allá de la estética, buscamos mejorar tu confianza y calidad de vida con tratamientos que te hacen sentir y verte mejor.",
 }
 
+// TEMPORAL (mock): galería de previsualización mientras el backend no envía `gallery`.
+// Quitar `MOCK_GALLERY` y su uso cuando backend lo soporte.
+const MOCK_GALLERY: string[] = Array.from(
+  { length: 10 },
+  (_, i) => `https://picsum.photos/seed/ym-galeria-${i + 1}/600/${i % 2 === 0 ? 760 : 600}`
+)
+
+/** Extrae la galería del backend: acepta array de strings o de objetos {url}. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapGallery(raw: any): string[] {
+  const list = raw?.gallery ?? raw?.galleryImages ?? raw?.gallery_images
+  if (!Array.isArray(list)) return []
+  return list
+    .map((item: unknown) => {
+      const url = typeof item === "string" ? item : (item as { url?: string; imageUrl?: string })?.url ?? (item as { imageUrl?: string })?.imageUrl
+      return url ? resolveImageUrl(url) : ""
+    })
+    .filter(Boolean)
+    .slice(0, 10)
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapAbout(raw: any): AboutData {
   const bio: BioDoc = {
@@ -70,7 +92,9 @@ function mapAbout(raw: any): AboutData {
     card4Description: raw.feature4Description?.trim() || FEATURES_FALLBACK.card4Description,
   }
 
-  return { bio, features }
+  const gallery = mapGallery(raw)
+  // TEMPORAL: usar mock si el backend aún no envía galería.
+  return { bio, features, gallery: gallery.length ? gallery : MOCK_GALLERY }
 }
 
 /**
@@ -79,6 +103,6 @@ function mapAbout(raw: any): AboutData {
  */
 export async function getAboutData(): Promise<AboutData> {
   const { data } = await backendFetch("/about", { revalidate: 300 })
-  if (!data) return { bio: BIO_FALLBACK, features: FEATURES_FALLBACK }
+  if (!data) return { bio: BIO_FALLBACK, features: FEATURES_FALLBACK, gallery: MOCK_GALLERY }
   return mapAbout(data)
 }

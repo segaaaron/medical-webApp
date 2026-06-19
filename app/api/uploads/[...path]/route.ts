@@ -55,15 +55,19 @@ export async function GET(
     return new NextResponse("Unsupported Media Type", { status: 415 })
   }
 
-  const buffer = await res.arrayBuffer()
+  // Stream del cuerpo (sin bufferear en memoria) → evita presión de memoria
+  // con muchas imágenes/usuarios concurrentes. Cae a buffer si no hay stream.
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Cache-Control": "public, max-age=86400, stale-while-revalidate=3600",
+    "Cross-Origin-Resource-Policy": "cross-origin",
+    "X-Content-Type-Options": "nosniff",
+  }
+  const contentLength = res.headers.get("content-length")
+  if (contentLength) headers["Content-Length"] = contentLength
 
-  return new NextResponse(buffer, {
-    status: 200,
-    headers: {
-      "Content-Type": contentType,
-      "Cache-Control": "public, max-age=86400, stale-while-revalidate=3600",
-      "Cross-Origin-Resource-Policy": "cross-origin",
-      "X-Content-Type-Options": "nosniff",
-    },
-  })
+  if (res.body) {
+    return new NextResponse(res.body, { status: 200, headers })
+  }
+  return new NextResponse(await res.arrayBuffer(), { status: 200, headers })
 }

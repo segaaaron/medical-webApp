@@ -57,6 +57,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
         style={{
           backgroundColor: "var(--primary-darkest, #3a0f20)",
           minHeight: "min(78vh, 600px)",
+          outline: "none", // anula el focus-visible dorado global al enfocar el modal
           transform: shown ? "scale(1)" : "scale(0.94)",
           opacity: shown ? 1 : 0,
           transition: "transform 0.4s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease",

@@ -6,6 +6,7 @@ import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { AboutSection } from "@/components/sections/AboutSection"
+import { GallerySection } from "@/components/sections/GallerySection"
 import { PageHero } from "@/components/ui/PageHero"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
 import { TestimonialsSection, type PublicReview, type ReviewAggregate } from "@/components/sections/TestimonialsSection"
@@ -169,6 +170,7 @@ export default async function NosotrosPage() {
           subtitle="Dedicados a realzar tu belleza natural con los más altos estándares médicos y un trato completamente personalizado."
         />
         <AboutSection bio={aboutData.bio} />
+        <GallerySection images={aboutData.gallery} />
         <ValuePropositionSection features={aboutData.features} />
         <TestimonialsSection
           reviews={approvedReviews.length > 0 ? approvedReviews : undefined}

@@ -12,6 +12,15 @@ export async function GET() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const d = data as any
     d.imageUrl = resolveImageUrl(d.imageUrl ?? d.image_url ?? d.image ?? null)
+    const rawGallery = d.gallery ?? d.galleryImages ?? d.gallery_images
+    if (Array.isArray(rawGallery)) {
+      d.gallery = rawGallery
+        .map((it: unknown) => {
+          const url = typeof it === "string" ? it : (it as { url?: string; imageUrl?: string })?.url ?? (it as { imageUrl?: string })?.imageUrl
+          return url ? resolveImageUrl(url) : ""
+        })
+        .filter(Boolean)
+    }
   }
   return NextResponse.json(data)
 }
@@ -35,14 +44,13 @@ export async function PUT(req: NextRequest) {
     const incoming = await req.formData()
     const formData = new FormData()
 
+    // Reenviar campos string y archivos (incluye image + galleryImage{N}); descartar files vacíos.
     for (const [key, val] of incoming.entries()) {
-      if (key === "image") continue
-      formData.append(key, val as string)
-    }
-
-    const imageEntry = incoming.get("image")
-    if (imageEntry && imageEntry instanceof File && imageEntry.size > 0) {
-      formData.append("image", imageEntry)
+      if (val instanceof File) {
+        if (val.size > 0) formData.append(key, val)
+      } else {
+        formData.append(key, val)
+      }
     }
 
     const { data, error, status } = await backendFetch("/about", { method: "PUT", formData, auth: true })

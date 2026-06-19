@@ -103,12 +103,42 @@ function fromBackend(raw: any): AboutForm {
   }
 }
 
+const GALLERY_SLOTS = 10
+interface GallerySlot {
+  file: File | null
+  url: string
+  preview: string
+}
+
 export default function AcercaDeDashboardPage() {
   const showToast = useToast()
   const [loading, setLoading] = useState(true)
   const [saved, setSaved] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  // Galería: 10 slots, cada uno con archivo nuevo (file) o URL existente (url).
+  const [gallery, setGallery] = useState<GallerySlot[]>(() =>
+    Array.from({ length: GALLERY_SLOTS }, () => ({ file: null, url: "", preview: "" }))
+  )
+
+  function setGallerySlotFile(i: number, file: File) {
+    setGallery((prev) => prev.map((s, idx) => (idx === i ? { file, url: "", preview: URL.createObjectURL(file) } : s)))
+  }
+  function clearGallerySlot(i: number) {
+    setGallery((prev) => prev.map((s, idx) => (idx === i ? { file: null, url: "", preview: "" } : s)))
+  }
+  function hydrateGallery(list: unknown) {
+    const urls: string[] = Array.isArray(list)
+      ? list
+          .map((it) => (typeof it === "string" ? it : (it as { url?: string; imageUrl?: string })?.url ?? (it as { imageUrl?: string })?.imageUrl ?? ""))
+          .filter(Boolean)
+      : []
+    setGallery(
+      Array.from({ length: GALLERY_SLOTS }, (_, i) =>
+        urls[i] ? { file: null, url: urls[i], preview: urls[i] } : { file: null, url: "", preview: "" }
+      )
+    )
+  }
 
   const formik = useFormik<AboutForm>({
     initialValues: EMPTY,
@@ -116,29 +146,27 @@ export default function AcercaDeDashboardPage() {
     validateOnMount: true,
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        let res: Response
+        // Siempre multipart: soporta imagen del doctor + archivos de galería + campos string.
+        const fd = new FormData()
+        if (imageFile) fd.append("image", imageFile)
+        Object.entries(values).forEach(([key, val]) => {
+          if (key === "imageUrl") return
+          fd.append(key, val)
+        })
+        // Galería por posición: archivo nuevo (galleryImage{i}) o URL existente a conservar (galleryUrl{i}).
+        gallery.forEach((slot, i) => {
+          if (slot.file) fd.append(`galleryImage${i}`, slot.file)
+          else if (slot.url) fd.append(`galleryUrl${i}`, slot.url)
+        })
 
-        if (imageFile) {
-          const fd = new FormData()
-          fd.append("image", imageFile)
-          Object.entries(values).forEach(([key, val]) => {
-            if (key === "imageUrl") return
-            fd.append(key, val)
-          })
-          res = await guardedFetch("/api/about", { method: "PUT", body: fd })
-        } else {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { imageUrl: _imageUrl, ...rest } = values
-          res = await guardedFetch("/api/about", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(rest),
-          })
-        }
+        const res = await guardedFetch("/api/about", { method: "PUT", body: fd })
 
         if (!res.ok) throw new Error()
         const updated = await res.json()
-        if (updated && !updated.error) formik.resetForm({ values: fromBackend(updated) })
+        if (updated && !updated.error) {
+          formik.resetForm({ values: fromBackend(updated) })
+          hydrateGallery(updated.gallery)
+        }
         setImageFile(null)
         setSaved(true)
         setTimeout(() => setSaved(false), 3000)
@@ -157,6 +185,7 @@ export default function AcercaDeDashboardPage() {
       .then((data) => {
         if (data && !data.error) formik.resetForm({ values: fromBackend(data) })
         if (data.imageUrl) setImagePreview(data.imageUrl)
+        hydrateGallery(data.gallery)
       })
       .catch(() => {
          showToast("error", "No se pudo conectar al servidor.")
@@ -240,6 +269,29 @@ export default function AcercaDeDashboardPage() {
               previewClassName="w-32 h-32 rounded-lg object-cover border border-gray-200"
             />
             {imageFile && <p className="text-xs text-gray-500">{imageFile.name}</p>}
+          </div>
+        </EditorCard>
+
+        {/* Galería de fotos */}
+        <EditorCard title="Galería de fotos (hasta 10)">
+          <div className="flex items-center gap-2 mb-4">
+            <ImageIcon size={16} className="text-blue-500" />
+            <span className="text-sm text-gray-500">Colage que aparece en la página Nosotros. Arrastra o selecciona cada foto.</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {gallery.map((slot, i) => (
+              <div key={i} className="flex flex-col gap-1">
+                <ImageDropzone
+                  id={`gallery-${i}`}
+                  preview={slot.preview}
+                  onFile={(file) => setGallerySlotFile(i, file)}
+                  onRemove={() => clearGallerySlot(i)}
+                  hint=""
+                  previewClassName="w-full aspect-[4/5] rounded-lg object-cover border border-gray-200"
+                />
+                <span className="text-[10px] text-gray-400 text-center">Foto {i + 1}</span>
+              </div>
+            ))}
           </div>
         </EditorCard>
 
