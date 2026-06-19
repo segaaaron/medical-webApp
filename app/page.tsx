@@ -13,6 +13,7 @@ import { Footer } from "@/components/layout/Footer"
 
 // ─── Above-fold sections (eager) ──────────────────────────────────────────────
 import { HeroSectionFallback } from "@/components/sections/HeroSection"
+import { FadeIn } from "@/components/ui/FadeIn"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { HomeSection } from "@/components/sections/HomeSection"
 import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
@@ -195,12 +196,15 @@ export default async function HomePage() {
 
   return (
     <>
+      {/* Precarga del poster del hero → pinta de inmediato (sin "imagen cargando") */}
+      <link rel="preload" as="image" href="/images/hero-poster.jpg" fetchPriority="high" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(testimonialsJsonLd) }} />
       <PromoBanner data={promoData} />
       <Navbar links={homeData.navLinks} />
+      <FadeIn>
       <main>
         { homeServiceData.id === null ?
         <HeroSectionFallback
@@ -226,6 +230,7 @@ export default async function HomePage() {
         <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate} />
         <FAQSection faqs={homeData.faqs} />
       </main>
+      </FadeIn>
       <Footer data={footerData} />
     </>
   )

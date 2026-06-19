@@ -179,8 +179,8 @@ function PosterCard({
         </div>
 
         {/* Title */}
-        <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(15px, 1.6vw, 20px)", fontWeight: 500, color: "#ffffff", lineHeight: 1.25, marginBottom: "10px", letterSpacing: "-0.01em", textTransform: "capitalize", textShadow: "0 2px 12px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.7)" }}>
-          {treatment.name.toLowerCase()}
+        <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(15px, 1.6vw, 20px)", fontWeight: 500, color: "#ffffff", lineHeight: 1.25, marginBottom: "10px", letterSpacing: "-0.01em", textTransform: "uppercase", textShadow: "0 2px 12px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.7)" }}>
+          {treatment.name}
         </h4>
 
         {/* Description reveal — solo home */}

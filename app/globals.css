@@ -571,3 +571,29 @@ a:focus-visible,
 @media (hover: none) {
   .hover-overlay { display: none !important; }
 }
+/* Shimmer interno para imágenes mientras cargan (reemplaza el blur) */
+@keyframes img-shimmer {
+  0%   { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+.img-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    rgba(237,229,213,0.55) 0%,
+    rgba(248,240,227,0.95) 45%,
+    rgba(237,229,213,0.55) 90%
+  );
+  background-size: 200% 100%;
+  animation: img-shimmer 1.4s ease-in-out infinite;
+}
+.img-shimmer--dark {
+  background-image: linear-gradient(
+    100deg,
+    rgba(30,8,18,0.6) 0%,
+    rgba(58,15,32,0.85) 45%,
+    rgba(30,8,18,0.6) 90%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .img-shimmer { animation: none; }
+}

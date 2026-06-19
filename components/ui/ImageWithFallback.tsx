@@ -4,10 +4,6 @@ import { useState, useEffect } from "react"
 import { m } from "framer-motion"
 import Image from "next/image"
 
-// Tiny 8x8 brand-colored blur placeholder (cream #F8F0E3) — avoids layout shift on image load
-const BLUR_PLACEHOLDER =
-  "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAgDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQQCAgMBAAAAAAAAAAAAAQIDBAUREiFBUWH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AoOq6fPqF1HQWGU5sZ2TkI2d0cZXAyHMcbdaIIOiDseCD7K3w9LHQW0ddbR1ltJWW0lZbSVltJWW0lZbSVltJWX/2Q=="
-
 interface ImageWithFallbackProps {
   src: string
   alt: string
@@ -139,72 +135,63 @@ export function ImageWithFallback({
   sizes,
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(!src)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetea el estado de error cuando cambia src
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetea estado al cambiar src
     setFailed(!src)
+    setLoaded(false)
   }, [src])
 
   if (failed) {
     return variant === "dark" ? <DarkFallback /> : <LightFallback />
   }
 
-  // URLs externas absolutas (ej. imágenes de WordPress/CMS) NO están en next.config
-  // images.remotePatterns → next/image lanzaría "hostname not configured" y rompería la página.
-  // Para esos hosts usamos <img> nativo (sin optimizar, sin crash). Las rutas locales/proxy
-  // (`/api/uploads/...`) sí pasan por next/image.
+  // URLs externas absolutas (CMS) → <img> nativo (next/image rompería por host no configurado).
+  // Rutas locales/proxy (`/api/uploads/...`) → next/image optimizado.
   const isRemote = /^https?:\/\//i.test(src)
+  const sizesAttr = sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
 
-  if (isRemote) {
-    const remoteImg = (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={src}
-        alt={alt}
-        loading={loading}
-        decoding={decoding}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition }}
-        onError={() => setFailed(true)}
-      />
-    )
-    return useFill ? (
-      <div className={className} style={{ position: "absolute", inset: 0, ...style }}>{remoteImg}</div>
-    ) : (
-      <div className={className} style={{ position: "relative", overflow: "hidden", ...style }}>{remoteImg}</div>
-    )
-  }
+  // Shimmer interno: cubre la imagen mientras carga y se desvanece al terminar (sin blur).
+  const shimmer = (
+    <div
+      className={`absolute inset-0 pointer-events-none ${variant === "dark" ? "img-shimmer img-shimmer--dark" : "img-shimmer"}`}
+      style={{ opacity: loaded ? 0 : 1, transition: "opacity 0.45s ease" }}
+      aria-hidden="true"
+    />
+  )
 
-  if (useFill) {
-    return (
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
-        className={className}
-        style={{ objectFit: "cover", objectPosition, ...style }}
-        priority={loading === "eager"}
-        placeholder="blur"
-        blurDataURL={BLUR_PLACEHOLDER}
-        onError={() => setFailed(true)}
-      />
-    )
-  }
+  const inner = isRemote ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      loading={loading}
+      decoding={decoding}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition }}
+      onLoad={() => setLoaded(true)}
+      onError={() => setFailed(true)}
+    />
+  ) : (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      sizes={sizesAttr}
+      style={{ objectFit: "cover", objectPosition }}
+      priority={loading === "eager"}
+      onLoad={() => setLoaded(true)}
+      onError={() => setFailed(true)}
+    />
+  )
 
-  // Non-fill: wrap in relative container so next/image fill can optimize it
   return (
-    <div className={className} style={{ position: "relative", overflow: "hidden", ...style }}>
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes={sizes ?? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
-        style={{ objectFit: "cover", objectPosition }}
-        priority={loading === "eager"}
-        placeholder="blur"
-        blurDataURL={BLUR_PLACEHOLDER}
-        onError={() => setFailed(true)}
-      />
+    <div
+      className={className}
+      style={useFill ? { position: "absolute", inset: 0, ...style } : { position: "relative", overflow: "hidden", ...style }}
+    >
+      {inner}
+      {shimmer}
     </div>
   )
 }
