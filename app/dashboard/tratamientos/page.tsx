@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
-import { Plus, Trash2, Pencil, GripVertical, ArrowUpDown, Save, X } from "lucide-react"
+import { Plus, Trash2, Pencil, GripVertical, Grip, ArrowUpDown, Save, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react"
 import {
   DndContext,
   closestCenter,
@@ -17,7 +17,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
@@ -30,11 +30,25 @@ interface Treatment {
   id: string
   name: string
   description: string | null
-  category: string
+  tag: string | null
   price: string | null
   imageUrl: string | null
   active: boolean
   order?: number
+}
+
+/** Convierte HTML enriquecido del editor en texto plano para el preview de la lista. */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim()
 }
 
 // ─── Sortable row ────────────────────────────────────────────────────────────
@@ -55,84 +69,167 @@ function SortableRow({
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    // Sin transición en la card arrastrada → sigue al cursor 1:1 (evita el lag).
+    // Las demás cards conservan la transición de dnd-kit para reacomodarse suave.
+    transition: isDragging ? "none" : transition,
+    opacity: isDragging ? 0.92 : 1,
     zIndex: isDragging ? 50 : undefined,
   }
+
+  const plainDescription = treatment.description ? stripHtml(treatment.description) : ""
+
+  // En modo reordenar la card COMPLETA es el área de arrastre (más fácil que un handle chico).
+  const dragHandleProps = reorderMode ? { ...attributes, ...listeners } : {}
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex gap-0"
+      {...dragHandleProps}
+      className={`group relative flex flex-col bg-white rounded-2xl overflow-hidden border transition-all duration-300 ${
+        reorderMode ? "cursor-grab active:cursor-grabbing select-none touch-none" : ""
+      } ${
+        isDragging
+          ? "border-[var(--vintage-gold)] shadow-2xl"
+          : "border-[rgba(184,151,59,0.18)] shadow-sm hover:shadow-xl hover:-translate-y-1"
+      }`}
     >
-      {/* Drag handle — only in reorder mode */}
-      {reorderMode && (
-        <button
-          {...attributes}
-          {...listeners}
-          className="flex items-center justify-center w-10 shrink-0 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing transition-colors touch-none"
-          aria-label="Arrastrar para reordenar"
-          tabIndex={0}
-        >
-          <GripVertical size={18} />
-        </button>
-      )}
-
-      {/* Thumbnail */}
-      <div className="w-28 shrink-0 bg-gray-100">
+      {/* Banner: imagen con gradiente + título superpuesto */}
+      <div className="relative aspect-[16/10] overflow-hidden">
         {treatment.imageUrl ? (
           <img
             src={treatment.imageUrl}
             alt={treatment.name}
-            width={112}
-            height={80}
-            className="w-full h-full object-cover"
+            draggable={false}
+            className={`absolute inset-0 w-full h-full object-cover ${
+              reorderMode ? "" : "transition-transform duration-[600ms] ease-out group-hover:scale-105"
+            }`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center min-h-[80px]">
-            <span className="text-gray-300 text-xs">Sin imagen</span>
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ background: "linear-gradient(150deg, var(--primary-darker, #5c1f35) 0%, var(--primary-darkest, #3a0f20) 100%)" }}
+          >
+            <ImageOff size={26} style={{ color: "rgba(184,151,59,0.5)" }} />
           </div>
         )}
-      </div>
 
-      {/* Content */}
-      <div className="flex flex-1 items-center gap-4 px-5 py-4 min-w-0">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="font-semibold text-gray-800 text-sm">{treatment.name}</span>
-            {treatment.category && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-gray-300 text-gray-500 tracking-wide">
-                {treatment.category}
-              </span>
-            )}
-            <span className={`text-xs px-2 py-0.5 rounded-full ${treatment.active ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
-              {treatment.active ? "Publicado" : "Borrador"}
+        {/* Gradiente para legibilidad del texto inferior */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: "linear-gradient(to top, rgba(58,15,32,0.92) 0%, rgba(58,15,32,0.35) 38%, rgba(58,15,32,0) 65%)" }}
+          aria-hidden="true"
+        />
+
+        {/* Tag + estado — pills arriba-izquierda */}
+        <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5">
+          {treatment.tag && (
+            <span
+              className="inline-flex items-center text-[10px] font-bold uppercase px-2.5 py-1 rounded-full text-white"
+              style={{
+                backgroundColor: "var(--vintage-gold)",
+                letterSpacing: "0.1em",
+                boxShadow: "0 2px 8px rgba(58,15,32,0.3)",
+              }}
+            >
+              {treatment.tag}
             </span>
-          </div>
-          {treatment.description && (
-            <p className="text-xs text-gray-500 truncate">{treatment.description}</p>
           )}
+          <span
+            className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.9)",
+              color: treatment.active ? "#2f7a4f" : "#8a7d70",
+              letterSpacing: "0.08em",
+              backdropFilter: "blur(6px)",
+              boxShadow: "0 2px 8px rgba(58,15,32,0.2)",
+            }}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${treatment.active ? "bg-[#37a866]" : "bg-gray-400"}`} />
+            {treatment.active ? "Publicado" : "Borrador"}
+          </span>
         </div>
 
-        {/* Actions — hidden in reorder mode */}
+        {/* Acciones — pills con texto, resaltadas al hover (ocultas en reordenar) */}
         {!reorderMode && (
-          <div className="flex gap-2 shrink-0">
+          <div className="absolute top-3 right-3 flex gap-2">
             <button
               onClick={onEdit}
-              className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
-              aria-label="Editar"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-full text-xs font-bold text-white hover:scale-105 transition-transform"
+              style={{ backgroundColor: "var(--vintage-gold)", boxShadow: "0 4px 14px rgba(58,15,32,0.35)" }}
+              aria-label={`Editar ${treatment.name}`}
             >
               <Pencil size={14} />
+              Editar
             </button>
             <button
               onClick={onDelete}
-              className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
-              aria-label="Eliminar"
+              className="flex items-center justify-center w-9 h-9 rounded-full text-white hover:scale-105 transition-transform"
+              style={{ backgroundColor: "#d1455f", boxShadow: "0 4px 14px rgba(58,15,32,0.35)" }}
+              aria-label={`Eliminar ${treatment.name}`}
             >
-              <Trash2 size={14} />
+              <Trash2 size={15} />
             </button>
           </div>
+        )}
+
+        {/* Indicador de arrastre — visual, la card completa es el área de drag */}
+        {reorderMode && (
+          <>
+            {/* Pill superior: "Arrastra" */}
+            <div
+              className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 h-8 rounded-full text-[10px] font-bold uppercase pointer-events-none"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.92)",
+                color: "var(--vintage-gold-dark, #9A7C2E)",
+                letterSpacing: "0.08em",
+                backdropFilter: "blur(6px)",
+                boxShadow: "0 2px 10px rgba(58,15,32,0.25)",
+              }}
+              aria-hidden="true"
+            >
+              <Grip size={14} style={{ color: "var(--vintage-gold)" }} />
+              Arrastra
+            </div>
+            {/* Ícono central de puntos */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div
+                className="flex items-center justify-center w-12 h-12 rounded-full"
+                style={{ backgroundColor: "rgba(255,255,255,0.9)", backdropFilter: "blur(6px)", boxShadow: "0 4px 16px rgba(58,15,32,0.3)" }}
+              >
+                <Grip size={22} style={{ color: "var(--vintage-gold)" }} />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Título + precio superpuestos */}
+        <div className="absolute inset-x-0 bottom-0 p-4 pt-8">
+          <div className="flex items-end justify-between gap-3">
+            <h3
+              className="text-white text-lg leading-tight line-clamp-2 flex-1"
+              style={{ fontFamily: "var(--font-heading, Georgia, serif)", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+            >
+              {treatment.name}
+            </h3>
+            {treatment.price && (
+              <span
+                className="shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap"
+                style={{ backgroundColor: "var(--vintage-gold)", color: "#3a0f20", boxShadow: "0 2px 8px rgba(0,0,0,0.25)" }}
+              >
+                {treatment.price}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Descripción */}
+      <div className="px-5 py-4 flex-1">
+        {plainDescription ? (
+          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{plainDescription}</p>
+        ) : (
+          <p className="text-xs text-gray-300 italic">Sin descripción</p>
         )}
       </div>
     </div>
@@ -143,7 +240,6 @@ function SortableRow({
 
 export default function TratamientosDashboardPage() {
   const showToast = useToast()
-  const router = { push: (url: string) => { window.location.href = url } }
 
   const [treatments, setTreatments] = useState<Treatment[]>([])
   const [loading, setLoading] = useState(true)
@@ -151,6 +247,9 @@ export default function TratamientosDashboardPage() {
   const [reorderMode, setReorderMode] = useState(false)
   const [saving, setSaving] = useState(false)
   const [originalOrder, setOriginalOrder] = useState<Treatment[]>([])
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -158,21 +257,41 @@ export default function TratamientosDashboardPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  async function load() {
+  // Paginación 100% gobernada por el backend (page size, total y totalPages vienen del backend).
+  // Reordenar pide TODA la lista (sin page) para poder arrastrar sobre todos los items.
+  // Si el backend aún no pagina (responde array), se muestra todo en una sola página: sin hardcode.
+  const load = useCallback(async (opts?: { all?: boolean; page?: number }) => {
     setLoading(true)
-    const res = await guardedFetch("/api/treatments")
+    const all = opts?.all ?? false
+    const pageToLoad = opts?.page ?? page
+    const path = all ? "/api/treatments" : `/api/treatments?page=${pageToLoad}`
+    const res = await guardedFetch(path)
     if (res.ok) {
-      const data: Treatment[] = await res.json()
-      const sorted = [...data].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      setTreatments(sorted)
+      const json = await res.json()
+      const isArray = Array.isArray(json)
+      const list: Treatment[] = isArray
+        ? [...json].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        : ((json.data ?? []) as Treatment[])
+      setTreatments(list)
+      setTotalPages(isArray ? 1 : Math.max(1, json.totalPages ?? (json.total && json.limit ? Math.ceil(json.total / json.limit) : 1)))
+      setTotalCount(isArray ? list.length : (json.total ?? list.length))
+      // En reorder cargamos toda la lista → ése es el baseline para "Cancelar".
+      if (all) setOriginalOrder(list)
     }
     setLoading(false)
-  }
+  }, [page])
 
-  useEffect(() => { load() }, [])
+  // Carga inicial + al cambiar de página (solo fuera del modo reordenar).
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de datos en mount/cambio de página
+    if (!reorderMode) load({ page })
+  }, [page, reorderMode, load])
+
+  const currentPage = Math.min(page, totalPages)
+  const visibleTreatments = treatments
 
   function enterReorderMode() {
-    setOriginalOrder([...treatments])
+    load({ all: true })
     setReorderMode(true)
   }
 
@@ -203,9 +322,11 @@ export default function TratamientosDashboardPage() {
 
     if (res.ok) {
       showToast("success", "¡Reordenamiento exitoso! Los tratamientos ahora aparecen en el nuevo orden.")
+      setOriginalOrder([...treatments])
       setReorderMode(false)
     } else {
-      showToast("error", "No se pudo guardar el orden. El backend aún no tiene este endpoint.")
+      const data = await res.json().catch(() => ({}))
+      showToast("error", data.error ?? "No se pudo guardar el orden. Intenta de nuevo.")
     }
   }
 
@@ -226,7 +347,12 @@ export default function TratamientosDashboardPage() {
       />
 
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
-        <p className="text-sm text-gray-500">{treatments.length} tratamiento(s)</p>
+        <p className="text-sm text-gray-500">
+          {totalCount} tratamiento{totalCount === 1 ? "" : "s"}
+          {!reorderMode && totalPages > 1 && (
+            <span className="text-gray-400"> · página {currentPage} de {totalPages}</span>
+          )}
+        </p>
 
         <div className="flex gap-2 flex-wrap">
           {reorderMode ? (
@@ -251,7 +377,7 @@ export default function TratamientosDashboardPage() {
             </>
           ) : (
             <>
-              {treatments.length > 1 && (
+              {totalCount > 1 && (
                 <button
                   onClick={enterReorderMode}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
@@ -288,21 +414,60 @@ export default function TratamientosDashboardPage() {
           <p className="text-gray-400 text-sm">No hay tratamientos. Crea el primero.</p>
         </div>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={treatments.map((t) => t.id)} strategy={verticalListSortingStrategy}>
-            <div className="flex flex-col gap-4">
-              {treatments.map((t) => (
-                <SortableRow
-                  key={t.id}
-                  treatment={t}
-                  reorderMode={reorderMode}
-                  onEdit={() => { window.location.href = `/dashboard/tratamientos/${t.id}/editar` }}
-                  onDelete={() => setDeleteTarget(t)}
-                />
+        <>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={visibleTreatments.map((t) => t.id)} strategy={rectSortingStrategy}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {visibleTreatments.map((t) => (
+                  <SortableRow
+                    key={t.id}
+                    treatment={t}
+                    reorderMode={reorderMode}
+                    onEdit={() => { window.location.href = `/dashboard/tratamientos/${t.id}/editar` }}
+                    onDelete={() => setDeleteTarget(t)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          {/* Paginación — oculta en modo reordenar */}
+          {!reorderMode && totalPages > 1 && (
+            <nav className="flex items-center justify-center gap-1.5 mt-8" aria-label="Paginación de tratamientos">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Página anterior"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPage(p)}
+                  aria-current={p === currentPage ? "page" : undefined}
+                  className={`inline-flex items-center justify-center min-w-[36px] h-9 px-2 rounded-lg text-sm font-semibold transition-colors ${
+                    p === currentPage
+                      ? "text-white"
+                      : "border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)]"
+                  }`}
+                  style={p === currentPage ? { backgroundColor: "var(--vintage-gold)" } : undefined}
+                >
+                  {p}
+                </button>
               ))}
-            </div>
-          </SortableContext>
-        </DndContext>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages}
+                className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Página siguiente"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </nav>
+          )}
+        </>
       )}
 
       <DeleteTreatmentDialog

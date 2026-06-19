@@ -138,7 +138,7 @@ export default async function BlogPage() {
       <Navbar links={c.navLinks} />
       <main>
         {/* Hero */}
-        <section className="py-16 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
+        <section className="py-6 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>
           <p
             className="text-sm uppercase tracking-[0.3em] font-semibold mb-3"
             style={{ color: "var(--meteorite)" }}

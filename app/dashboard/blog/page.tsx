@@ -1,9 +1,9 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
-import { Plus, Trash2, Pencil, X, ImageIcon } from "lucide-react"
+import { Plus, Trash2, Pencil, X, ImageOff, ChevronLeft, ChevronRight } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { DeleteBlogDialog } from "@/components/ui/DialogAlert"
 import { resolveImageUrl } from "@/lib/image-utils"
@@ -20,20 +20,52 @@ interface BlogPost {
   createdAt: string
 }
 
+/** Convierte HTML enriquecido en texto plano para el preview. */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("es-BO", { day: "2-digit", month: "long", year: "numeric" })
+}
+
 export default function BlogDashboardPage() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
-  async function load() {
+  // Paginación gobernada por el backend (page size, total y totalPages vienen del backend).
+  // Si el backend aún no pagina (responde array), se muestra todo en una página: sin hardcode.
+  const load = useCallback(async () => {
     setLoading(true)
     setError("")
     try {
-      const res = await guardedFetch("/api/blog")
+      const res = await guardedFetch(`/api/blog?page=${page}`)
       if (res.ok) {
-        const data = await res.json()
-        setPosts(data)
+        const json = await res.json()
+        if (Array.isArray(json)) {
+          setPosts(json)
+          setTotalPages(1)
+          setTotalCount(json.length)
+        } else {
+          const list = (json.data ?? []) as BlogPost[]
+          setPosts(list)
+          setTotalPages(Math.max(1, json.totalPages ?? (json.total && json.limit ? Math.ceil(json.total / json.limit) : 1)))
+          setTotalCount(json.total ?? list.length)
+        }
       } else {
         setError("Backend no disponible. Mostrando articulos por defecto (solo lectura).")
       }
@@ -41,9 +73,12 @@ export default function BlogDashboardPage() {
       setError("No se pudo conectar al servidor.")
     }
     setLoading(false)
-  }
+  }, [page])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de datos en mount/cambio de página
+    load()
+  }, [load])
 
   async function confirmDelete() {
     if (!deleteTarget) return
@@ -61,6 +96,8 @@ export default function BlogDashboardPage() {
     setDeleteTarget(null)
   }
 
+  const currentPage = Math.min(page, totalPages)
+  const visiblePosts = posts
 
   return (
     <>
@@ -77,9 +114,12 @@ export default function BlogDashboardPage() {
       )}
 
       {/* List */}
-      <div className="mt-6 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">{posts.length} articulo(s)</p>
+      <div className="mt-6">
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
+          <p className="text-sm text-gray-500">
+            {totalCount} artículo{totalCount === 1 ? "" : "s"}
+            {totalPages > 1 && <span className="text-gray-400"> · página {currentPage} de {totalPages}</span>}
+          </p>
           <Link
             href="/dashboard/blog/nuevo"
             aria-label="Crear nuevo articulo"
@@ -87,7 +127,7 @@ export default function BlogDashboardPage() {
             style={{ backgroundColor: "var(--vintage-gold)" }}
           >
             <Plus size={15} aria-hidden="true" />
-            Nuevo articulo
+            Nuevo artículo
           </Link>
         </div>
 
@@ -95,59 +135,141 @@ export default function BlogDashboardPage() {
           <p className="text-gray-400 text-sm" role="status" aria-live="polite">Cargando...</p>
         ) : posts.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 p-10 text-center">
-            <p className="text-gray-400 text-sm">No hay articulos. Crea el primero.</p>
+            <p className="text-gray-400 text-sm">No hay artículos. Crea el primero.</p>
           </div>
         ) : (
-          posts.map((p) => (
-            <div key={p.id} className="bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-4 pr-4 overflow-hidden">
-              {/* Image preview */}
-              <div className="w-24 h-20 shrink-0 bg-gray-100 overflow-hidden">
-                {p.imageUrl ? (
-                  <img
-                    src={resolveImageUrl(p.imageUrl)}
-                    alt={p.title}
-                    width={96}
-                    height={80}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon size={20} className="text-gray-300" />
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {visiblePosts.map((p) => {
+                const preview = p.excerpt?.trim() || (p.content ? stripHtml(p.content) : "")
+                return (
+                  <div
+                    key={p.id}
+                    className="group relative flex flex-col bg-white rounded-2xl overflow-hidden border border-[rgba(184,151,59,0.18)] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  >
+                    {/* Banner */}
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      {p.imageUrl ? (
+                        <img
+                          src={resolveImageUrl(p.imageUrl)}
+                          alt={p.title}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105"
+                        />
+                      ) : (
+                        <div
+                          className="absolute inset-0 flex items-center justify-center"
+                          style={{ background: "linear-gradient(150deg, var(--primary-darker, #5c1f35) 0%, var(--primary-darkest, #3a0f20) 100%)" }}
+                        >
+                          <ImageOff size={26} style={{ color: "rgba(184,151,59,0.5)" }} />
+                        </div>
+                      )}
+
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ background: "linear-gradient(to top, rgba(58,15,32,0.92) 0%, rgba(58,15,32,0.35) 38%, rgba(58,15,32,0) 65%)" }}
+                        aria-hidden="true"
+                      />
+
+                      {/* Estado */}
+                      <span
+                        className="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full"
+                        style={{
+                          backgroundColor: "rgba(255,255,255,0.9)",
+                          color: p.published ? "#2f7a4f" : "#8a7d70",
+                          letterSpacing: "0.08em",
+                          backdropFilter: "blur(6px)",
+                          boxShadow: "0 2px 8px rgba(58,15,32,0.2)",
+                        }}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${p.published ? "bg-[#37a866]" : "bg-gray-400"}`} />
+                        {p.published ? "Publicado" : "Borrador"}
+                      </span>
+
+                      {/* Acciones */}
+                      <div className="absolute top-3 right-3 flex gap-2">
+                        <Link
+                          href={`/dashboard/blog/${p.id}/editar`}
+                          aria-label={`Editar "${p.title}"`}
+                          className="flex items-center gap-1.5 h-9 px-3 rounded-full text-xs font-bold text-white hover:scale-105 transition-transform"
+                          style={{ backgroundColor: "var(--vintage-gold)", boxShadow: "0 4px 14px rgba(58,15,32,0.35)" }}
+                        >
+                          <Pencil size={14} aria-hidden="true" />
+                          Editar
+                        </Link>
+                        <button
+                          onClick={() => setDeleteTarget(p)}
+                          aria-label={`Eliminar "${p.title}"`}
+                          className="flex items-center justify-center w-9 h-9 rounded-full text-white hover:scale-105 transition-transform"
+                          style={{ backgroundColor: "#d1455f", boxShadow: "0 4px 14px rgba(58,15,32,0.35)" }}
+                        >
+                          <Trash2 size={15} aria-hidden="true" />
+                        </button>
+                      </div>
+
+                      {/* Título */}
+                      <div className="absolute inset-x-0 bottom-0 p-4 pt-8">
+                        <h3
+                          className="text-white text-lg leading-tight line-clamp-2"
+                          style={{ fontFamily: "var(--font-heading, Georgia, serif)", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+                        >
+                          {p.title}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Cuerpo */}
+                    <div className="px-5 py-4 flex-1 flex flex-col">
+                      {preview ? (
+                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{preview}</p>
+                      ) : (
+                        <p className="text-xs text-gray-300 italic">Sin extracto</p>
+                      )}
+                      <p className="text-[11px] text-gray-400 mt-3" style={{ fontFamily: "var(--font-mono, ui-monospace, monospace)" }}>
+                        {formatDate(p.createdAt)}
+                      </p>
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0 py-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-gray-800 text-sm truncate">{p.title}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${p.published ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-400"}`}>
-                    {p.published ? "Publicado" : "Borrador"}
-                  </span>
-                </div>
-                {p.excerpt && <p className="text-xs text-gray-500 truncate">{p.excerpt}</p>}
-                <p className="text-xs text-gray-400 mt-0.5">{new Date(p.createdAt).toLocaleDateString("es-BO")}</p>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 shrink-0">
-                <Link
-                  href={`/dashboard/blog/${p.id}/editar`}
-                  aria-label={`Editar "${p.title}"`}
-                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)]/50 hover:text-[var(--vintage-gold)] transition-colors"
-                >
-                  <Pencil size={14} aria-hidden="true" />
-                </Link>
-                <button
-                  onClick={() => setDeleteTarget(p)}
-                  aria-label={`Eliminar "${p.title}"`}
-                  className="p-2 rounded-lg border border-gray-200 text-gray-500 hover:border-red-300 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 size={14} aria-hidden="true" />
-                </button>
-              </div>
+                )
+              })}
             </div>
-          ))
+
+            {/* Paginación */}
+            {totalPages > 1 && (
+              <nav className="flex items-center justify-center gap-1.5 mt-8" aria-label="Paginación de artículos">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
+                  <button
+                    key={pg}
+                    onClick={() => setPage(pg)}
+                    aria-current={pg === currentPage ? "page" : undefined}
+                    className={`inline-flex items-center justify-center min-w-[36px] h-9 px-2 rounded-lg text-sm font-semibold transition-colors ${
+                      pg === currentPage
+                        ? "text-white"
+                        : "border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)]"
+                    }`}
+                    style={pg === currentPage ? { backgroundColor: "var(--vintage-gold)" } : undefined}
+                  >
+                    {pg}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Página siguiente"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </nav>
+            )}
+          </>
         )}
       </div>
 

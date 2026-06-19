@@ -5,7 +5,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
 import { DEFAULTS, readContent } from "@/lib/store/content-store"
-import { ArrowLeft, MessageCircle } from "lucide-react"
+import { ArrowLeft, MessageCircle, ImageIcon } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -36,15 +36,23 @@ interface BackendTreatment {
   tag: string | null
   imageUrl: string | null
   image_url: string | null
+  beforeImageUrl: string | null
+  before_image_url: string | null
+  afterImageUrl: string | null
+  after_image_url: string | null
   active: boolean
 }
 
 async function getTreatment(id: string): Promise<BackendTreatment | null> {
   const { data, error } = await backendFetch<BackendTreatment>(`/treatments/${id}`, { revalidate: 300 })
   if (error || !data) return null
+  const before = (data.beforeImageUrl ?? data.before_image_url) as string | null
+  const after = (data.afterImageUrl ?? data.after_image_url) as string | null
   return {
     ...data,
     imageUrl: resolveImageUrl((data.imageUrl ?? data.image_url) as string | null),
+    beforeImageUrl: before ? resolveImageUrl(before) : null,
+    afterImageUrl: after ? resolveImageUrl(after) : null,
   }
 }
 
@@ -139,13 +147,15 @@ export default async function TratamientoDetallePage({ params }: Props) {
     ],
   }
 
+  const procedureImages = [treatment.imageUrl, treatment.beforeImageUrl, treatment.afterImageUrl].filter(Boolean)
+
   const procedureLd = {
     "@context": "https://schema.org",
     "@type": "MedicalProcedure",
     name: treatment.name,
     description: (treatment.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300),
     url: `${BASE_URL}/tratamientos/${id}`,
-    ...(treatment.imageUrl ? { image: treatment.imageUrl } : {}),
+    ...(procedureImages.length ? { image: procedureImages } : {}),
     provider: {
       "@type": "Physician",
       name: "Dra. Yasmin Medrano Avila",
@@ -180,7 +190,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
         {/* Dark hero band */}
         <div
           className="relative overflow-hidden"
-          style={{ backgroundColor: "var(--primary-darkest)", paddingTop: "80px", paddingBottom: "64px" }}
+          style={{ backgroundColor: "var(--primary-darkest)", paddingTop: "30px", paddingBottom: "30px" }}
         >
           {/* Hero image as blurred bg when available */}
           {treatment.imageUrl && (
@@ -205,7 +215,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
             {/* Back link */}
             <Link
               href="/tratamientos"
-              className="inline-flex items-center gap-2 text-xs font-medium hover:opacity-80 transition-opacity mb-6 py-2 -my-2"
+              className="flex w-fit items-center gap-2 text-xs font-medium hover:opacity-80 transition-opacity mb-6 py-2 -my-2"
               style={{ color: "rgba(184,151,59,0.8)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.1em" }}
             >
               <ArrowLeft size={14} aria-hidden="true" /> VOLVER A TRATAMIENTOS
@@ -260,6 +270,106 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(treatment.description) }}
               />
             )}
+
+            {/* Antes y Después — DEMO con imágenes de prueba */}
+            <section className="mt-14" aria-labelledby="antes-despues-heading">
+              <div className="text-center mb-8">
+                <p
+                  className="text-xs uppercase mb-3"
+                  style={{ color: "var(--vintage-gold)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.22em" }}
+                >
+                  Resultados
+                </p>
+                <h2
+                  id="antes-despues-heading"
+                  className="text-3xl md:text-4xl font-light"
+                  style={{ fontFamily: "var(--font-heading, Georgia, serif)", color: "var(--primary-darkest)", letterSpacing: "-0.02em" }}
+                >
+                  Antes y Después
+                </h2>
+                <div className="mt-5 mx-auto w-16 h-px" style={{ backgroundColor: "var(--vintage-gold)" }} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+                {[
+                  { label: "Antes", src: treatment.beforeImageUrl, gold: false },
+                  { label: "Después", src: treatment.afterImageUrl, gold: true },
+                ].map((side) => (
+                  <figure
+                    key={side.label}
+                    className="group rounded-2xl overflow-hidden transition-all duration-500"
+                    style={{
+                      backgroundColor: "#FDF8F2",
+                      border: side.gold ? "1px solid rgba(184,151,59,0.5)" : "1px solid rgba(184,151,59,0.2)",
+                      boxShadow: side.gold ? "0 14px 40px rgba(58,15,32,0.16)" : "0 8px 28px rgba(58,15,32,0.1)",
+                    }}
+                  >
+                    <div className="relative aspect-[4/5] overflow-hidden">
+                      {side.src ? (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={side.src}
+                            alt={`${side.label} — ${treatment.name}`}
+                            loading="lazy"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                          />
+                          {/* gradient para legibilidad de la etiqueta */}
+                          <div
+                            className="absolute inset-x-0 top-0 h-24 pointer-events-none"
+                            style={{ background: "linear-gradient(to bottom, rgba(58,15,32,0.55), transparent)" }}
+                            aria-hidden="true"
+                          />
+                        </>
+                      ) : (
+                        /* Placeholder elegante mientras no haya foto */
+                        <div
+                          className="absolute inset-0 flex flex-col items-center justify-center gap-3"
+                          style={{
+                            background:
+                              "linear-gradient(155deg, var(--vintage-parchment, #FAF6EE) 0%, var(--vintage-cream-dark, #EDE5D5) 100%)",
+                          }}
+                        >
+                          <div
+                            className="flex items-center justify-center w-14 h-14 rounded-full"
+                            style={{ backgroundColor: "rgba(184,151,59,0.12)", border: "1px solid rgba(184,151,59,0.3)" }}
+                          >
+                            <ImageIcon size={22} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
+                          </div>
+                          <span
+                            className="text-[11px] uppercase"
+                            style={{
+                              color: "rgba(58,15,32,0.45)",
+                              fontFamily: "var(--font-mono, ui-monospace, monospace)",
+                              letterSpacing: "0.16em",
+                            }}
+                          >
+                            Foto próximamente
+                          </span>
+                        </div>
+                      )}
+                      <figcaption
+                        className="absolute top-4 left-4 inline-flex items-center gap-2 text-[11px] font-bold uppercase px-3.5 py-1.5 rounded-full"
+                        style={{
+                          backgroundColor: side.gold ? "var(--vintage-gold)" : "rgba(255,255,255,0.92)",
+                          color: side.gold ? "#3a0f20" : "var(--primary-darkest, #3a0f20)",
+                          letterSpacing: "0.14em",
+                          fontFamily: "var(--font-mono, ui-monospace, monospace)",
+                          backdropFilter: "blur(4px)",
+                          boxShadow: "0 2px 10px rgba(58,15,32,0.25)",
+                        }}
+                      >
+                        {side.label}
+                      </figcaption>
+                    </div>
+                  </figure>
+                ))}
+              </div>
+
+              <p className="mt-5 text-center text-xs" style={{ color: "rgba(58,15,32,0.45)" }}>
+                * Imágenes referenciales. Los resultados varían según cada paciente.
+              </p>
+            </section>
 
             {/* CTA bottom */}
             <div

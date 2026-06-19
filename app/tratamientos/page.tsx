@@ -8,51 +8,66 @@ import { PresetsSection } from "@/components/sections/PresetsSection"
 import { TreatmentsGrid } from "@/components/sections/TreatmentsGrid"
 import { getFooterData } from "@/lib/data/footer"
 import { PageHero } from "@/components/ui/PageHero"
+import { Pagination } from "@/components/ui/Pagination"
 import type { Metadata } from "next"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
-export const metadata: Metadata = {
-  title: "Tratamientos Estéticos Cochabamba — Botox, Rellenos & Más | Dra. Yasmin Medrano",
-  description:
-    "Botox, rellenos, armonización facial, depilación láser y mesoterapia en Cochabamba. Especialista certificada en Bolivia. +5.000 pacientes. ¡Consulta GRATIS!",
-  keywords: [
-    "tratamientos medicina estética Cochabamba",
-    "botox Cochabamba precio",
-    "botox natural Bolivia",
-    "ácido hialurónico Cochabamba",
-    "armonización facial Bolivia precio",
-    "depilación láser definitiva Cochabamba",
-    "mesoterapia facial Bolivia",
-    "rejuvenecimiento facial Cochabamba",
-    "radiofrecuencia facial Bolivia",
-    "bioestimulación polinucleótidos Cochabamba",
-    "tratamientos antiedad Bolivia",
-    "eliminar manchas piel Cochabamba",
-    "reducción medidas Bolivia",
-    "peeling químico Cochabamba",
-    "tratamiento estrías Bolivia",
-    "mejores tratamientos estéticos Bolivia",
-  ],
-  alternates: {
-    canonical: `${BASE_URL}/tratamientos`,
-  },
-  openGraph: {
-    title: "Tratamientos Estéticos en Cochabamba — Botox, Rellenos & Rejuvenecimiento",
-    description:
-      "✨ Los mejores tratamientos estéticos en Bolivia. Botox natural, rellenos ácido hialurónico, armonización facial, depilación láser y más. +5.000 pacientes satisfechos. ¡Consulta GRATIS ahora!",
-    url: `${BASE_URL}/tratamientos`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Mejores tratamientos estéticos Cochabamba Bolivia — Dra. Yasmin Medrano Avila" }],
-    type: "website",
-    locale: "es_BO",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Botox, Rellenos & Rejuvenecimiento en Cochabamba ✨ | Dra. Yasmin Medrano",
-    description:
-      "Tratamientos estéticos de calidad internacional en Bolivia. Botox natural, armonización facial, depilación láser. +5.000 pacientes felices. ¡Agenda GRATIS!",
-    images: ["/og-image.jpg"],
-  },
+const BASE_TITLE = "Tratamientos Estéticos Cochabamba — Botox, Rellenos & Más | Dra. Yasmin Medrano"
+const BASE_DESCRIPTION =
+  "Botox, rellenos, armonización facial, depilación láser y mesoterapia en Cochabamba. Especialista certificada en Bolivia. +5.000 pacientes. ¡Consulta GRATIS!"
+
+/** Normaliza el query param de página a un entero ≥ 1. */
+function parsePage(raw: string | undefined): number {
+  return Math.max(1, Number.parseInt(raw ?? "1", 10) || 1)
+}
+
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ page?: string }> }): Promise<Metadata> {
+  const { page } = await searchParams
+  const pageNum = parsePage(page)
+  // Canonical autorreferenciado por página → evita contenido duplicado entre ?page=N
+  const canonical = pageNum > 1 ? `${BASE_URL}/tratamientos?page=${pageNum}` : `${BASE_URL}/tratamientos`
+  const title = pageNum > 1 ? `${BASE_TITLE} — Página ${pageNum}` : BASE_TITLE
+
+  return {
+    title,
+    description: BASE_DESCRIPTION,
+    keywords: [
+      "tratamientos medicina estética Cochabamba",
+      "botox Cochabamba precio",
+      "botox natural Bolivia",
+      "ácido hialurónico Cochabamba",
+      "armonización facial Bolivia precio",
+      "depilación láser definitiva Cochabamba",
+      "mesoterapia facial Bolivia",
+      "rejuvenecimiento facial Cochabamba",
+      "radiofrecuencia facial Bolivia",
+      "bioestimulación polinucleótidos Cochabamba",
+      "tratamientos antiedad Bolivia",
+      "eliminar manchas piel Cochabamba",
+      "reducción medidas Bolivia",
+      "peeling químico Cochabamba",
+      "tratamiento estrías Bolivia",
+      "mejores tratamientos estéticos Bolivia",
+    ],
+    alternates: { canonical },
+    openGraph: {
+      title: "Tratamientos Estéticos en Cochabamba — Botox, Rellenos & Rejuvenecimiento",
+      description:
+        "✨ Los mejores tratamientos estéticos en Bolivia. Botox natural, rellenos ácido hialurónico, armonización facial, depilación láser y más. +5.000 pacientes satisfechos. ¡Consulta GRATIS ahora!",
+      url: canonical,
+      images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Mejores tratamientos estéticos Cochabamba Bolivia — Dra. Yasmin Medrano Avila" }],
+      type: "website",
+      locale: "es_BO",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Botox, Rellenos & Rejuvenecimiento en Cochabamba ✨ | Dra. Yasmin Medrano",
+      description:
+        "Tratamientos estéticos de calidad internacional en Bolivia. Botox natural, armonización facial, depilación láser. +5.000 pacientes felices. ¡Agenda GRATIS!",
+      images: ["/og-image.jpg"],
+    },
+  }
 }
 
 interface SiteContentTreatmentsPage {
@@ -68,6 +83,23 @@ interface BackendTreatment {
   tag: string
   imageUrl: string | null
   active: boolean
+}
+
+/** Metadata de paginación que envía el backend (incluido el tamaño de página). */
+interface PaginatedMeta {
+  total?: number
+  totalPages?: number
+  page?: number
+  limit?: number
+}
+
+/** Lee la metadata de paginación si la respuesta es un objeto {data, total, ...}. */
+function readPaginationMeta(raw: unknown): PaginatedMeta | null {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    const o = raw as PaginatedMeta
+    if (typeof o.total === "number" || typeof o.totalPages === "number") return o
+  }
+  return null
 }
 
 const breadcrumbLd = {
@@ -104,13 +136,24 @@ const treatmentsJsonLd = {
   },
 }
 
-export default async function TratamientosPage() {
-  const [c, footerData, backendResult, infoResult] = await Promise.all([
+interface PageProps {
+  searchParams: Promise<{ page?: string }>
+}
+
+export default async function TratamientosPage({ searchParams }: PageProps) {
+  const { page: pageParam } = await searchParams
+  const requestedPage = parsePage(pageParam)
+
+  const [c, footerData, gridResult, allResult, infoResult] = await Promise.all([
     readContent(),
     getFooterData(),
-    backendFetch<BackendTreatment[]>("/treatments", { revalidate: 300 }),
+    // Página actual del grid (el backend define el tamaño de página)
+    backendFetch<BackendTreatment[]>(`/treatments?active=true&page=${requestedPage}`, { revalidate: 300 }),
+    // Lista completa de activos — alimenta "Tratamientos Disponibles" del ServiceSection
+    backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 }),
     backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 300 }),
   ])
+  const backendResult = gridResult
 
   // Use site-content info only when the service responds correctly; otherwise undefined = fallback to hardcoded
   const pageInfo: TreatmentsPageInfo | undefined =
@@ -124,17 +167,36 @@ export default async function TratamientosPage() {
       : undefined
 
   const backendError = backendResult.error !== null
-  const backendTreatments = backendError
-    ? []
-    : extractList<BackendTreatment>(backendResult.data).map((t) => ({
-        ...t,
-        imageUrl: resolveImageUrl(t.imageUrl),
-      }))
 
-  const handleFilterList = backendTreatments.filter(x => x.active)
+  // Lista completa de activos (para el sidebar "Tratamientos Disponibles" y como fallback de paginación)
+  const allActive = backendError
+    ? []
+    : extractList<BackendTreatment>(allResult.data).filter((t) => t.active)
+
+  // Paginación gobernada por el backend (él define el tamaño de página).
+  // Si el backend aún no pagina (responde array suelto), se muestra todo en una sola página.
+  const meta = readPaginationMeta(gridResult.data)
+  const totalPages = meta
+    ? Math.max(
+        1,
+        meta.totalPages ??
+          (meta.total && meta.limit ? Math.ceil(meta.total / meta.limit) : 1)
+      )
+    : 1
+  const currentPage = Math.min(requestedPage, totalPages)
+
+  const pageItemsRaw = meta
+    ? extractList<BackendTreatment>(gridResult.data).filter((t) => t.active)
+    : allActive
+
+  const backendTreatments = pageItemsRaw.map((t) => ({
+    ...t,
+    imageUrl: resolveImageUrl(t.imageUrl),
+  }))
+
   const liveModules =
-    handleFilterList.length > 0
-      ? handleFilterList.map((t) => ({ title: t.name }))
+    allActive.length > 0
+      ? allActive.map((t) => ({ title: t.name }))
       : c.courseModules
 
   return (
@@ -163,7 +225,12 @@ export default async function TratamientosPage() {
 
         {backendError
           ? <PresetsSection presets={c.presets} />
-          : <TreatmentsGrid treatments={backendTreatments} isHome={false}  />
+          : (
+            <>
+              <TreatmentsGrid treatments={backendTreatments} isHome={false} />
+              <Pagination currentPage={currentPage} totalPages={totalPages} basePath="/tratamientos" />
+            </>
+          )
         }
       </main>
       <Footer data={footerData} />

@@ -22,9 +22,12 @@ export async function GET(req: NextRequest) {
   const { data, error, status } = await backendFetch<unknown>(path)
   if (error) return proxyError(error, status)
 
+  const isPaginated =
+    !!data && typeof data === "object" && !Array.isArray(data) &&
+    Array.isArray((data as Record<string, unknown>).data)
   const rawList: unknown[] = Array.isArray(data)
     ? data
-    : Array.isArray((data as Record<string, unknown>)?.data)
+    : isPaginated
       ? (data as Record<string, unknown>).data as unknown[]
       : []
 
@@ -38,6 +41,11 @@ export async function GET(req: NextRequest) {
     }
   })
 
+  // Si el backend pagina ({data,total,page,limit,totalPages}), conservar la metadata
+  // para que el cliente la use; si devuelve un array suelto, mantener el contrato actual.
+  if (isPaginated) {
+    return NextResponse.json({ ...(data as Record<string, unknown>), data: treatments })
+  }
   return NextResponse.json(treatments)
 }
 

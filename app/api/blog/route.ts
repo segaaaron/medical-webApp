@@ -41,9 +41,12 @@ export async function GET(req: NextRequest) {
     )
   }
 
+  const isPaginated =
+    !!data && typeof data === "object" && !Array.isArray(data) &&
+    Array.isArray((data as Record<string, unknown>).data)
   const rawList: unknown[] = Array.isArray(data)
     ? data
-    : Array.isArray((data as Record<string, unknown>)?.data)
+    : isPaginated
       ? (data as Record<string, unknown>).data as unknown[]
       : []
 
@@ -56,6 +59,10 @@ export async function GET(req: NextRequest) {
     }
   })
 
+  // Conservar metadata de paginación del backend si la envía; si no, array suelto.
+  if (isPaginated) {
+    return NextResponse.json({ ...(data as Record<string, unknown>), data: posts })
+  }
   return NextResponse.json(posts)
 }
 

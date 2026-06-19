@@ -141,11 +141,37 @@ export function ImageWithFallback({
   const [failed, setFailed] = useState(!src)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- resetea el estado de error cuando cambia src
     setFailed(!src)
   }, [src])
 
   if (failed) {
     return variant === "dark" ? <DarkFallback /> : <LightFallback />
+  }
+
+  // URLs externas absolutas (ej. imágenes de WordPress/CMS) NO están en next.config
+  // images.remotePatterns → next/image lanzaría "hostname not configured" y rompería la página.
+  // Para esos hosts usamos <img> nativo (sin optimizar, sin crash). Las rutas locales/proxy
+  // (`/api/uploads/...`) sí pasan por next/image.
+  const isRemote = /^https?:\/\//i.test(src)
+
+  if (isRemote) {
+    const remoteImg = (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={alt}
+        loading={loading}
+        decoding={decoding}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition }}
+        onError={() => setFailed(true)}
+      />
+    )
+    return useFill ? (
+      <div className={className} style={{ position: "absolute", inset: 0, ...style }}>{remoteImg}</div>
+    ) : (
+      <div className={className} style={{ position: "relative", overflow: "hidden", ...style }}>{remoteImg}</div>
+    )
   }
 
   if (useFill) {

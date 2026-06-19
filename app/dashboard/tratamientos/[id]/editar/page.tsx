@@ -35,7 +35,13 @@ export default function EditarTratamientoPage() {
           description: treatment.description ?? "",
           price: treatment.price ?? "",
           active: treatment.active ?? false,
-          imagePreview: treatment.imageUrl ?? "",
+          imagePreview: treatment.imageUrl ? resolveImageUrl(treatment.imageUrl) : "",
+          beforeImagePreview: (treatment.beforeImageUrl ?? treatment.before_image_url)
+            ? resolveImageUrl(treatment.beforeImageUrl ?? treatment.before_image_url)
+            : "",
+          afterImagePreview: (treatment.afterImageUrl ?? treatment.after_image_url)
+            ? resolveImageUrl(treatment.afterImageUrl ?? treatment.after_image_url)
+            : "",
         })
       } catch {
         showToast("error", "No se pudo conectar al servidor.")

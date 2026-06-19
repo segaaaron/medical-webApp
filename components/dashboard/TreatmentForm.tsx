@@ -34,17 +34,12 @@ export interface TreatmentFormValues extends TreatmentSchemaValues {
   imageFile: File | null
   imagePreview: string
   imageRemoved: boolean
-}
-
-const INITIAL_VALUES: TreatmentFormValues = {
-  name: "",
-  tag: "",
-  description: "",
-  price: "",
-  active: false,
-  imageFile: null,
-  imagePreview: "",
-  imageRemoved: false,
+  beforeImageFile: File | null
+  beforeImagePreview: string
+  beforeImageRemoved: boolean
+  afterImageFile: File | null
+  afterImagePreview: string
+  afterImageRemoved: boolean
 }
 
 interface TreatmentFormProps {
@@ -54,6 +49,82 @@ interface TreatmentFormProps {
   onSubmit: (values: TreatmentFormValues) => Promise<void>
 }
 
+/** Estado controlado de un selector de imagen (archivo + preview + flag de borrado). */
+function useImagePicker(initialPreview?: string) {
+  const [file, setFile] = useState<File | null>(null)
+  const [preview, setPreview] = useState(initialPreview ?? "")
+  const [removed, setRemoved] = useState(false)
+
+  useEffect(() => {
+    return () => { if (preview.startsWith("blob:")) URL.revokeObjectURL(preview) }
+  }, [preview])
+
+  function select(f: File) {
+    setFile(f)
+    setPreview(URL.createObjectURL(f))
+    setRemoved(false)
+  }
+  function remove() {
+    setFile(null)
+    setPreview("")
+    setRemoved(true)
+  }
+  return { file, preview, removed, select, remove }
+}
+
+interface ImagePickerFieldProps {
+  id: string
+  label: string
+  hint?: string
+  preview: string
+  onSelect: (file: File) => void
+  onRemove: () => void
+  previewClassName?: string
+}
+
+function ImagePickerField({ id, label, hint, preview, onSelect, onRemove, previewClassName }: ImagePickerFieldProps) {
+  return (
+    <FormField label={label} htmlFor={id}>
+      <div className="space-y-2">
+        <label
+          htmlFor={id}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
+        >
+          <Upload size={15} />
+          {preview ? "Cambiar imagen" : "Seleccionar imagen"} {hint ?? "(JPG, PNG, WebP)"}
+          <input
+            id={id}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) onSelect(file)
+            }}
+          />
+        </label>
+        {preview && (
+          <div className="relative w-fit">
+            <img
+              src={preview}
+              alt="Vista previa"
+              className={previewClassName ?? "h-32 rounded-lg object-cover border border-gray-200"}
+            />
+            <button
+              type="button"
+              onClick={onRemove}
+              className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-200 p-0.5 hover:bg-red-50"
+              aria-label="Eliminar imagen"
+            >
+              <X size={12} className="text-gray-500" />
+            </button>
+          </div>
+        )}
+      </div>
+    </FormField>
+  )
+}
+
 export function TreatmentForm({
   initialValues,
   submitLabel,
@@ -61,9 +132,9 @@ export function TreatmentForm({
   onSubmit,
 }: TreatmentFormProps) {
   const [saving, setSaving] = useState(false)
-  const [imageFile, setImageFile] = useState<File | null>(initialValues?.imageFile ?? null)
-  const [imagePreview, setImagePreview] = useState(initialValues?.imagePreview ?? "")
-  const [imageRemoved, setImageRemoved] = useState(false)
+  const cover = useImagePicker(initialValues?.imagePreview)
+  const before = useImagePicker(initialValues?.beforeImagePreview)
+  const after = useImagePicker(initialValues?.afterImagePreview)
 
   const formik = useFormik<TreatmentSchemaValues>({
     initialValues: {
@@ -83,31 +154,21 @@ export function TreatmentForm({
           ...data,
           tag: data.tag ?? "",
           price: data.price ?? "",
-          imageFile,
-          imagePreview,
-          imageRemoved,
+          imageFile: cover.file,
+          imagePreview: cover.preview,
+          imageRemoved: cover.removed,
+          beforeImageFile: before.file,
+          beforeImagePreview: before.preview,
+          beforeImageRemoved: before.removed,
+          afterImageFile: after.file,
+          afterImagePreview: after.preview,
+          afterImageRemoved: after.removed,
         })
       } finally {
         setSaving(false)
       }
     },
   })
-
-  useEffect(() => {
-    return () => { if (imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview) }
-  }, [imagePreview])
-
-  function handleImageSelect(file: File) {
-    setImageFile(file)
-    setImagePreview(URL.createObjectURL(file))
-    setImageRemoved(false)
-  }
-
-  function handleImageRemove() {
-    setImageFile(null)
-    setImagePreview("")
-    setImageRemoved(true)
-  }
 
   return (
     <form onSubmit={formik.handleSubmit} noValidate>
@@ -153,46 +214,35 @@ export function TreatmentForm({
           </div>
         </FormField>
 
-        <FormField label="Imagen de portada" htmlFor="t-image">
-          <div className="space-y-2">
-            <label
-              htmlFor="t-image"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-gray-300 text-sm text-gray-500 cursor-pointer hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
-            >
-              <Upload size={15} />
-              {imagePreview ? "Cambiar imagen" : "Seleccionar imagen"} (JPG, PNG, WebP)
-              <input
-                id="t-image"
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) handleImageSelect(file)
-                }}
-              />
-            </label>
-            {imagePreview && (
-              <div className="relative w-fit">
-                <img
-                  src={imagePreview}
-                  alt="Vista previa"
-                  className="h-32 rounded-lg object-cover border border-gray-200"
-                  width={200}
-                  height={128}
-                />
-                <button
-                  type="button"
-                  onClick={handleImageRemove}
-                  className="absolute -top-2 -right-2 bg-white rounded-full border border-gray-200 p-0.5 hover:bg-red-50"
-                  aria-label="Eliminar imagen"
-                >
-                  <X size={12} className="text-gray-500" />
-                </button>
-              </div>
-            )}
-          </div>
-        </FormField>
+        <ImagePickerField
+          id="t-image"
+          label="Imagen de portada"
+          preview={cover.preview}
+          onSelect={cover.select}
+          onRemove={cover.remove}
+        />
+
+        {/* Antes y Después — se muestran en la página de detalle del tratamiento */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <ImagePickerField
+            id="t-before-image"
+            label="Foto Antes"
+            hint="(opcional)"
+            preview={before.preview}
+            onSelect={before.select}
+            onRemove={before.remove}
+            previewClassName="h-40 w-32 rounded-lg object-cover border border-gray-200"
+          />
+          <ImagePickerField
+            id="t-after-image"
+            label="Foto Después"
+            hint="(opcional)"
+            preview={after.preview}
+            onSelect={after.select}
+            onRemove={after.remove}
+            previewClassName="h-40 w-32 rounded-lg object-cover border border-gray-200"
+          />
+        </div>
 
         <FormField label="Descripción del tratamiento" htmlFor="t-desc">
           <RichTextEditor
@@ -260,5 +310,9 @@ export function buildTreatmentFormData(values: TreatmentFormValues): FormData {
   fd.append("active", String(values.active))
   if (values.imageFile) fd.append("image", values.imageFile)
   else if (values.imageRemoved) fd.append("image", "")
+  if (values.beforeImageFile) fd.append("beforeImage", values.beforeImageFile)
+  else if (values.beforeImageRemoved) fd.append("beforeImage", "")
+  if (values.afterImageFile) fd.append("afterImage", values.afterImageFile)
+  else if (values.afterImageRemoved) fd.append("afterImage", "")
   return fd
 }
