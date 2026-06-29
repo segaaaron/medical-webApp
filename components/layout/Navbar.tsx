@@ -1,6 +1,7 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useSyncExternalStore } from "react"
 import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { Menu, X, Phone } from "lucide-react"
 import { m, AnimatePresence } from "framer-motion"
 import Image from "next/image"
@@ -12,19 +13,25 @@ interface NavbarProps {
   links: NavLink[]
 }
 
+// External-store subscription for scroll position — avoids setState-in-effect.
+function subscribeScroll(callback: () => void) {
+  window.addEventListener("scroll", callback, { passive: true })
+  return () => window.removeEventListener("scroll", callback)
+}
+const getScrolledSnapshot = () => window.scrollY > 56
+const getScrolledServerSnapshot = () => false
+
 export function Navbar({ links }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const isHome = pathname === "/"
-
-  useEffect(() => {
-    // Reset scroll state on page change
-    setScrolled(window.scrollY > 56)
-    const onScroll = () => setScrolled(window.scrollY > 56)
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [pathname])
+  // Derived directly from the scroll position (re-read on each render, e.g. on
+  // pathname change, which resets scroll to top on navigation).
+  const scrolled = useSyncExternalStore(
+    subscribeScroll,
+    getScrolledSnapshot,
+    getScrolledServerSnapshot,
+  )
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/"
@@ -48,7 +55,7 @@ export function Navbar({ links }: NavbarProps) {
     >
       <div className="container-xl flex items-center justify-between" style={{ height: "70px" }}>
         {/* Logo */}
-        <a href="/" className="flex items-center shrink-0" onClick={(e) => { if (isHome) e.preventDefault() }}>
+        <Link href="/" className="flex items-center shrink-0" onClick={(e) => { if (isHome) e.preventDefault() }}>
           <Image
             src="/images/logo_ym_transparent.png"
             alt="Dra. Yasmin Medrano Avila — Medicina Estética"
@@ -57,7 +64,7 @@ export function Navbar({ links }: NavbarProps) {
             className="object-contain"
             priority
           />
-        </a>
+        </Link>
 
         {/* Desktop nav */}
         <ul className="hidden lg:flex items-center gap-1 xl:gap-2">

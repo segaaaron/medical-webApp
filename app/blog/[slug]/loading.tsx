@@ -1,3 +1,7 @@
+// Deterministic skeleton line widths (avoid impure Math.random during render)
+const PARAGRAPH_WIDTHS = ["96%", "88%", "92%", "78%", "95%", "83%", "90%", "74%"]
+const SECONDARY_WIDTHS = ["86%", "72%", "94%", "68%", "90%"]
+
 export default function BlogPostLoading() {
   return (
     <main aria-busy="true" aria-label="Cargando artículo">
@@ -20,12 +24,12 @@ export default function BlogPostLoading() {
             <div className="h-4 w-32 rounded bg-gray-200" />
             <div className="h-4 w-24 rounded bg-gray-200" />
           </div>
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-4 rounded bg-gray-200" style={{ width: `${70 + Math.random() * 30}%` }} />
+          {PARAGRAPH_WIDTHS.map((w, i) => (
+            <div key={i} className="h-4 rounded bg-gray-200" style={{ width: w }} />
           ))}
           <div className="h-6 w-1/3 rounded bg-gray-200 mt-8" />
-          {[...Array(5)].map((_, i) => (
-            <div key={`b${i}`} className="h-4 rounded bg-gray-200" style={{ width: `${60 + Math.random() * 40}%` }} />
+          {SECONDARY_WIDTHS.map((w, i) => (
+            <div key={`b${i}`} className="h-4 rounded bg-gray-200" style={{ width: w }} />
           ))}
         </div>
       </article>

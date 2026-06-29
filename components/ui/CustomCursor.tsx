@@ -1,11 +1,22 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useSyncExternalStore } from "react"
 import { usePathname } from "next/navigation"
 import { motion, useSpring, useReducedMotion } from "framer-motion"
 
 const VINTAGE_GOLD = "var(--vintage-gold)"
 const ROSE = "var(--meteorite)"
+
+// External-store subscription for pointer-device capability — avoids
+// setState-in-effect and is SSR-safe (server snapshot = false).
+const POINTER_MQ = "(hover: hover) and (pointer: fine)"
+function subscribePointer(callback: () => void) {
+  const mq = window.matchMedia(POINTER_MQ)
+  mq.addEventListener("change", callback)
+  return () => mq.removeEventListener("change", callback)
+}
+const getPointerSnapshot = () => window.matchMedia(POINTER_MQ).matches
+const getPointerServerSnapshot = () => false
 
 function SyringeSVG({ color, scale }: { color: string; scale: number }) {
   return (
@@ -65,11 +76,11 @@ export function CustomCursor() {
   const [visible, setVisible] = useState(false)
   const [clicked, setClicked] = useState(false)
   const [hovering, setHovering] = useState(false)
-  const [isPointerDevice, setIsPointerDevice] = useState(false)
-
-  useEffect(() => {
-    setIsPointerDevice(window.matchMedia("(hover: hover) and (pointer: fine)").matches)
-  }, [])
+  const isPointerDevice = useSyncExternalStore(
+    subscribePointer,
+    getPointerSnapshot,
+    getPointerServerSnapshot,
+  )
 
   // Syringe snaps sharply to cursor (tip precision)
   const syringeX = useSpring(0, { stiffness: 800, damping: 50 })

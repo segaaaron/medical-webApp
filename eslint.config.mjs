@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Build output — minified bundles are not source and must not be linted.
+    "dist/**",
   ]),
 ]);
 

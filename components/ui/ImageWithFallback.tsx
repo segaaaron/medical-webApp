@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { m } from "framer-motion"
 import Image from "next/image"
 
@@ -139,12 +139,44 @@ export function ImageWithFallback({
 }: ImageWithFallbackProps) {
   const [failed, setFailed] = useState(!src)
   const [loaded, setLoaded] = useState(false)
+  const imgRef = useRef<HTMLImageElement | null>(null)
+
+  // Deriva el estado real del <img> montado. Cubre imágenes ya cacheadas por el
+  // navegador, cuyo evento `load`/`error` se dispara ANTES de que React monte
+  // `onLoad`/`onError`, por lo que esos handlers nunca llegan a ejecutarse.
+  const syncFromElement = useCallback(() => {
+    const img = imgRef.current
+    if (!img || !img.complete) return false // aún cargando → mantener shimmer
+    if (img.naturalWidth > 0) {
+      setLoaded(true)
+    } else if (img.currentSrc) {
+      // Cargó pero sin dimensiones → error cacheado.
+      setFailed(true)
+    }
+    return true
+  }, [])
+
+  // Callback ref estable: guarda el nodo y, si ya está completo al montar,
+  // resuelve el estado sin esperar al evento (caso de imagen cacheada).
+  const handleImgRef = useCallback(
+    (img: HTMLImageElement | null) => {
+      imgRef.current = img
+      syncFromElement()
+    },
+    [syncFromElement],
+  )
 
   useEffect(() => {
+    // Reset al cambiar `src`: en vez de forzar siempre `loaded=false` (lo que
+    // dejaría el shimmer en loop sobre una imagen cacheada que no dispara
+    // `onLoad`), derivamos del elemento real. Si la nueva imagen ya está
+    // completa la marcamos cargada; si no, volvemos a estado de carga.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- resetea estado al cambiar src
     setFailed(!src)
-    setLoaded(false)
-  }, [src])
+    if (!src || !syncFromElement()) {
+      setLoaded(false)
+    }
+  }, [src, syncFromElement])
 
   if (failed) {
     return variant === "dark" ? <DarkFallback /> : <LightFallback />
@@ -167,6 +199,7 @@ export function ImageWithFallback({
   const inner = isRemote ? (
     // eslint-disable-next-line @next/next/no-img-element
     <img
+      ref={handleImgRef}
       src={src}
       alt={alt}
       loading={loading}
@@ -178,6 +211,7 @@ export function ImageWithFallback({
     />
   ) : (
     <Image
+      ref={handleImgRef}
       src={src}
       alt={alt}
       fill

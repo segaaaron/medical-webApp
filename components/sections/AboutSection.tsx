@@ -14,15 +14,14 @@ function useCountUp(target: string, duration = 2000, prefersReduced = false) {
   const rafId = useRef<number>(0)
   const inView = useInView(ref, { once: true, margin: "-50px" })
 
-  useEffect(() => {
-    if (!inView) return
-    if (prefersReduced) { setDisplay(target); return }
-    const numMatch = target.match(/^(\d+)(.*)$/)
-    if (!numMatch) { setDisplay(target); return }
-    const num = parseInt(numMatch[1], 10)
-    const suffix = numMatch[2] ?? ""
-    if (isNaN(num)) { setDisplay(target); return }
+  // Parse the numeric target once; only purely numeric values animate.
+  const numMatch = target.match(/^(\d+)(.*)$/)
+  const num = numMatch ? parseInt(numMatch[1], 10) : NaN
+  const suffix = numMatch?.[2] ?? ""
+  const willAnimate = !prefersReduced && numMatch != null && !isNaN(num)
 
+  useEffect(() => {
+    if (!willAnimate || !inView) return
     const start = Date.now()
     const tick = () => {
       const elapsed = Date.now() - start
@@ -34,9 +33,11 @@ function useCountUp(target: string, duration = 2000, prefersReduced = false) {
     }
     rafId.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId.current)
-  }, [inView, target, duration, prefersReduced])
+  }, [willAnimate, inView, num, suffix, duration])
 
-  return { ref, display }
+  // Non-animated targets (reduced motion / non-numeric) are derived directly,
+  // so no synchronous setState happens inside the effect.
+  return { ref, display: willAnimate ? display : target }
 }
 
 interface CredProps {

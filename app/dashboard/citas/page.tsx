@@ -153,7 +153,7 @@ export default function CitasDashboardPage() {
                       <span>📅 {new Date(a.scheduledAt).toLocaleDateString("es-BO", { day: "2-digit", month: "short", year: "numeric" })}</span>
                     )}
                   </div>
-                  {a.notes && <p className="text-xs text-gray-400 mt-2 italic">"{a.notes}"</p>}
+                  {a.notes && <p className="text-xs text-gray-400 mt-2 italic">&ldquo;{a.notes}&rdquo;</p>}
                   <p className="text-xs text-gray-300 mt-1">Solicitada: {new Date(a.createdAt).toLocaleDateString("es-BO")}</p>
                 </div>
 

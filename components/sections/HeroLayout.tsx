@@ -1,7 +1,7 @@
 "use client"
 
 import { m, useReducedMotion, useScroll, useTransform } from "framer-motion"
-import { useState, useEffect } from "react"
+import { useSyncExternalStore } from "react"
 import { LinkButton } from "@/components/ui/Button"
 import { StatCard } from "@/components/ui/StatCard"
 import { trackHeroCTA } from "@/lib/analytics"
@@ -9,6 +9,17 @@ import type { HeroStat, HeroCTA } from "@/types"
 
 const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]
 const VINTAGE_GOLD = "var(--vintage-gold)"
+
+// External-store subscription for the desktop media query — avoids
+// setState-in-effect while staying SSR-safe (server snapshot = false).
+const DESKTOP_MQ = "(min-width: 1024px)"
+function subscribeDesktop(callback: () => void) {
+  const mq = window.matchMedia(DESKTOP_MQ)
+  mq.addEventListener("change", callback)
+  return () => mq.removeEventListener("change", callback)
+}
+const getDesktopSnapshot = () => window.matchMedia(DESKTOP_MQ).matches
+const getDesktopServerSnapshot = () => false
 
 export interface HeroLayoutProps {
   tagline: string         // top eyebrow text
@@ -31,14 +42,11 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
 
   const { scrollY } = useScroll()
   const videoY = useTransform(scrollY, [0, 600], ["0%", "30%"])
-  const [isDesktop, setIsDesktop] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)")
-    setIsDesktop(mq.matches)
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [])
+  const isDesktop = useSyncExternalStore(
+    subscribeDesktop,
+    getDesktopSnapshot,
+    getDesktopServerSnapshot,
+  )
 
   return (
     <section className="gradient-hero relative flex flex-col items-center justify-center overflow-hidden" style={{ minHeight: "100svh", marginTop: "-70px", paddingTop: "70px" }}>
