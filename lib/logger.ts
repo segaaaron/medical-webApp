@@ -45,7 +45,6 @@ function write(level: LogLevel, entry: Omit<LogEntry, "level" | "timestamp"> & {
     const extras = Object.keys(rest).length
       ? " " + JSON.stringify(rest)
       : ""
-    // eslint-disable-next-line no-console
     console.log(`${timestamp} ${tag}${extras}`)
   }
 }

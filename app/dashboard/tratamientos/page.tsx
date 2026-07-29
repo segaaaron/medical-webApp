@@ -98,6 +98,7 @@ function SortableRow({
       {/* Banner: imagen con gradiente + título superpuesto */}
       <div className="relative aspect-[16/10] overflow-hidden">
         {treatment.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- imagen subida desde CMS (host arbitrario, admin-only) + draggable=false para dnd-kit: next/image no aplica
           <img
             src={treatment.imageUrl}
             alt={treatment.name}
@@ -251,7 +252,6 @@ export default function TratamientosDashboardPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
-  const [pageSize, setPageSize] = useState(0)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -277,8 +277,6 @@ export default function TratamientosDashboardPage() {
       setTreatments(list)
       setTotalPages(isArray ? 1 : Math.max(1, json.totalPages ?? (json.total && json.limit ? Math.ceil(json.total / json.limit) : 1)))
       setTotalCount(isArray ? list.length : (json.total ?? list.length))
-      // pageSize solo desde una carga paginada (no en modo "all", que trae toda la lista).
-      if (!all) setPageSize(isArray ? list.length : (json.limit ?? list.length))
       // En reorder cargamos toda la lista → ése es el baseline para "Cancelar".
       if (all) setOriginalOrder(list)
     }
@@ -293,8 +291,6 @@ export default function TratamientosDashboardPage() {
 
   const currentPage = Math.min(page, totalPages)
   const visibleTreatments = treatments
-  // Celdas fantasma para conservar la altura del grid en la última página (fuera de reordenar).
-  const ghostCount = !reorderMode && totalPages > 1 ? Math.max(0, pageSize - treatments.length) : 0
 
   function enterReorderMode() {
     load({ all: true })
@@ -436,17 +432,6 @@ export default function TratamientosDashboardPage() {
                     onEdit={() => { window.location.href = `/dashboard/tratamientos/${t.id}/editar` }}
                     onDelete={() => setDeleteTarget(t)}
                   />
-                ))}
-                {/* Celdas fantasma: replican la altura de una card (banner + cuerpo) para
-                    mantener el grid constante en la última página. Auto-escalan por breakpoint. */}
-                {Array.from({ length: ghostCount }).map((_, i) => (
-                  <div key={`ghost-${i}`} aria-hidden="true" className="flex flex-col rounded-2xl" style={{ visibility: "hidden" }}>
-                    <div className="aspect-[16/10]" />
-                    <div className="px-5 py-4 flex-1">
-                      <p className="text-xs leading-relaxed">&nbsp;</p>
-                      <p className="text-xs leading-relaxed">&nbsp;</p>
-                    </div>
-                  </div>
                 ))}
               </div>
             </SortableContext>

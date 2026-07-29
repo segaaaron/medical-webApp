@@ -161,7 +161,6 @@ export default function RichTextEditor({
     if (editor.getHTML() !== value && value !== undefined) {
       editor.commands.setContent(value || "")
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor])
 
   const setLink = useCallback(() => {

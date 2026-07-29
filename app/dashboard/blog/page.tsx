@@ -46,7 +46,6 @@ export default function BlogDashboardPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
-  const [pageSize, setPageSize] = useState(0)
 
   // Paginación gobernada por el backend (page size, total y totalPages vienen del backend).
   // Si el backend aún no pagina (responde array), se muestra todo en una página: sin hardcode.
@@ -61,13 +60,11 @@ export default function BlogDashboardPage() {
           setPosts(json)
           setTotalPages(1)
           setTotalCount(json.length)
-          setPageSize(json.length)
         } else {
           const list = (json.data ?? []) as BlogPost[]
           setPosts(list)
           setTotalPages(Math.max(1, json.totalPages ?? (json.total && json.limit ? Math.ceil(json.total / json.limit) : 1)))
           setTotalCount(json.total ?? list.length)
-          setPageSize(json.limit ?? list.length)
         }
       } else {
         setError("Backend no disponible. Mostrando articulos por defecto (solo lectura).")
@@ -101,8 +98,6 @@ export default function BlogDashboardPage() {
 
   const currentPage = Math.min(page, totalPages)
   const visiblePosts = posts
-  // Celdas fantasma para que la última página (más corta) conserve la altura del grid.
-  const ghostCount = totalPages > 1 ? Math.max(0, pageSize - posts.length) : 0
 
   return (
     <>
@@ -159,6 +154,7 @@ export default function BlogDashboardPage() {
                     {/* Banner */}
                     <div className="relative aspect-[16/10] overflow-hidden">
                       {p.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- imagen subida desde CMS (host arbitrario, admin-only): next/image rompería por remotePattern no configurado
                         <img
                           src={resolveImageUrl(p.imageUrl)}
                           alt={p.title}
@@ -240,18 +236,6 @@ export default function BlogDashboardPage() {
                   </div>
                 )
               })}
-              {/* Celdas fantasma: replican la altura de una card (banner + cuerpo) para
-                  mantener el grid constante en la última página. Auto-escalan por breakpoint. */}
-              {Array.from({ length: ghostCount }).map((_, i) => (
-                <div key={`ghost-${i}`} aria-hidden="true" className="flex flex-col rounded-2xl" style={{ visibility: "hidden" }}>
-                  <div className="aspect-[16/10]" />
-                  <div className="px-5 py-4 flex-1">
-                    <p className="text-xs leading-relaxed">&nbsp;</p>
-                    <p className="text-xs leading-relaxed">&nbsp;</p>
-                    <p className="text-[11px] mt-3">&nbsp;</p>
-                  </div>
-                </div>
-              ))}
             </div>
 
             {/* Paginación */}

@@ -70,14 +70,6 @@ interface BlogPost {
   createdAt: string
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("es-BO", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  })
-}
-
 /**
  * Fetch blog posts: tries backend with auth, falls back to static defaults.
  * Uses the same resilient pattern as /api/blog route.

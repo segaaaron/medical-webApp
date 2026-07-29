@@ -49,7 +49,6 @@ export function NavLinksSection({ data, setData }: SectionProps) {
   return (
     <>
       {data.navLinks.map((link, i) => {
-        const hasChildren = (link.children ?? []).length > 0
         const isExpanded = expandedLink === i
 
         return (

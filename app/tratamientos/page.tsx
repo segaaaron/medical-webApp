@@ -193,12 +193,6 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
     imageUrl: resolveImageUrl(t.imageUrl),
   }))
 
-  // Tamaño de página del backend: sirve para rellenar la última página (más corta)
-  // con celdas fantasma y así mantener la altura del grid constante entre páginas.
-  const pageSize =
-    meta?.limit ??
-    (meta?.total ? Math.ceil(meta.total / totalPages) : backendTreatments.length)
-
   const liveModules =
     allActive.length > 0
       ? allActive.map((t) => ({ title: t.name }))
@@ -235,7 +229,6 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
               initialTreatments={backendTreatments}
               initialPage={currentPage}
               totalPages={totalPages}
-              pageSize={pageSize}
             />
           )
         }

@@ -8,8 +8,6 @@ interface Props {
   initialTreatments: Treatment[]
   initialPage: number
   totalPages: number
-  /** Tamaño de página del backend; rellena la última página con celdas fantasma. */
-  pageSize: number
 }
 
 const baseItem =
@@ -47,7 +45,7 @@ function pageWindow(current: number, total: number): number[] {
  * las cards (fetch al proxy), sin re-renderizar Navbar/hero/footer ni saltar el scroll.
  * Sembrado con la página 1 renderizada en el servidor (SSR/SEO).
  */
-export function TreatmentsPaginated({ initialTreatments, initialPage, totalPages, pageSize }: Props) {
+export function TreatmentsPaginated({ initialTreatments, initialPage, totalPages }: Props) {
   const [treatments, setTreatments] = useState<Treatment[]>(initialTreatments)
   const [page, setPage] = useState(initialPage)
   const [pending, startTransition] = useTransition()
@@ -123,7 +121,6 @@ export function TreatmentsPaginated({ initialTreatments, initialPage, totalPages
         treatments={treatments}
         isHome={false}
         pager={pager}
-        fillTo={totalPages > 1 ? pageSize : undefined}
       />
     </div>
   )

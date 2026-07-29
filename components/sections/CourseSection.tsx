@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { WHATSAPP_URL } from "@/lib/constants"
-import type { CourseIncluded, CourseModule, CoursePricing, CourseItemIcon } from "@/types"
+import type { CourseIncluded, CourseModule, CourseItemIcon } from "@/types"
 
 // Icon map — resolved client-side, not serialized across the boundary
 const ICON_MAP: Record<CourseItemIcon, React.ElementType> = {

@@ -26,9 +26,6 @@ interface TreatmentsGridProps {
   pager?: React.ReactNode
   /** Total de tratamientos disponibles (para decidir si mostrar "Ver más" en home). */
   totalCount?: number
-  /** Nº de celdas a completar: rellena la última página con celdas fantasma
-   *  (mismo aspect-ratio) para que la altura del grid sea constante entre páginas. */
-  fillTo?: number
 }
 
 const GOLD = "var(--vintage-gold)"
@@ -295,13 +292,11 @@ function PosterCard({
   )
 }
 
-export function TreatmentsGrid({ treatments, isHome, pager, totalCount, fillTo }: TreatmentsGridProps) {
+export function TreatmentsGrid({ treatments, isHome, pager, totalCount }: TreatmentsGridProps) {
   if (treatments.length === 0) return null
 
   const activeTreatments = treatments.filter((x) => x.active)
   const showViewMore = isHome && (totalCount ?? activeTreatments.length) > 4
-  // Celdas fantasma para igualar la altura del grid en la última página (más corta).
-  const ghostCount = fillTo ? Math.max(0, fillTo - activeTreatments.length) : 0
 
   return (
     <section
@@ -335,9 +330,6 @@ export function TreatmentsGrid({ treatments, isHome, pager, totalCount, fillTo }
               index={i}
               isHome={isHome}
             />
-          ))}
-          {Array.from({ length: ghostCount }).map((_, i) => (
-            <div key={`ghost-${i}`} aria-hidden="true" style={{ aspectRatio: "3/4", visibility: "hidden", pointerEvents: "none" }} />
           ))}
         </div>
 

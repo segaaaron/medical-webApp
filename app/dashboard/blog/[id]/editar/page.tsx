@@ -170,6 +170,7 @@ export default function EditarBlogPage() {
               >
                 {imagePreview ? (
                   <div className="relative group">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- preview de blob local (URL.createObjectURL): next/image no optimiza blobs */}
                     <img
                       src={imagePreview}
                       alt="Vista previa"
