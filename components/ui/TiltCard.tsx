@@ -88,7 +88,6 @@ export function TiltCard({
           ? `0 0 24px 2px ${glowColor}40, 0 0 48px 8px ${glowColor}20, inset 0 0 0 1px ${glowColor}60`
           : "none",
       }}
-      whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3 }}
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}

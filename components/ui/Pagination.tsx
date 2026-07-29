@@ -58,6 +58,7 @@ export function Pagination({ currentPage, totalPages, basePath, pageParam = "pag
       ) : (
         <Link
           href={pageHref(basePath, pageParam, currentPage - 1)}
+          scroll={false}
           rel="prev"
           aria-label="Página anterior"
           className={`${baseItem} hover:bg-[var(--vintage-gold)] hover:text-white`}
@@ -86,6 +87,7 @@ export function Pagination({ currentPage, totalPages, basePath, pageParam = "pag
           <Link
             key={p}
             href={pageHref(basePath, pageParam, p)}
+            scroll={false}
             aria-label={`Ir a la página ${p}`}
             className={`${baseItem} hover:bg-[var(--vintage-gold)] hover:text-white`}
             style={{ color: "var(--vintage-gold)", border: "1px solid rgba(184,151,59,0.3)" }}
@@ -108,6 +110,7 @@ export function Pagination({ currentPage, totalPages, basePath, pageParam = "pag
       ) : (
         <Link
           href={pageHref(basePath, pageParam, currentPage + 1)}
+          scroll={false}
           rel="next"
           aria-label="Página siguiente"
           className={`${baseItem} hover:bg-[var(--vintage-gold)] hover:text-white`}

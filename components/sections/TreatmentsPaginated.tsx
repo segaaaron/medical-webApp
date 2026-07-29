@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useState, useTransition } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { TreatmentsGrid, type Treatment } from "@/components/sections/TreatmentsGrid"
 
@@ -8,6 +8,8 @@ interface Props {
   initialTreatments: Treatment[]
   initialPage: number
   totalPages: number
+  /** Tamaño de página del backend; rellena la última página con celdas fantasma. */
+  pageSize: number
 }
 
 const baseItem =
@@ -45,11 +47,10 @@ function pageWindow(current: number, total: number): number[] {
  * las cards (fetch al proxy), sin re-renderizar Navbar/hero/footer ni saltar el scroll.
  * Sembrado con la página 1 renderizada en el servidor (SSR/SEO).
  */
-export function TreatmentsPaginated({ initialTreatments, initialPage, totalPages }: Props) {
+export function TreatmentsPaginated({ initialTreatments, initialPage, totalPages, pageSize }: Props) {
   const [treatments, setTreatments] = useState<Treatment[]>(initialTreatments)
   const [page, setPage] = useState(initialPage)
   const [pending, startTransition] = useTransition()
-  const topRef = useRef<HTMLDivElement>(null)
 
   async function goTo(next: number) {
     if (next === page || next < 1 || next > totalPages || pending) return
@@ -64,7 +65,8 @@ export function TreatmentsPaginated({ initialTreatments, initialPage, totalPages
       })
       // URL compartible/SEO sin navegación de ruta (no re-renderiza el resto de la página)
       window.history.replaceState(null, "", next > 1 ? `/tratamientos?page=${next}` : "/tratamientos")
-      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+      // Sin scroll automático: el paginador está a la vista, cambiar de página en el
+      // sitio mantiene el cursor sobre el botón (mejor UX que saltar al top).
     } catch {
       /* sin cambios si falla la red */
     }
@@ -116,10 +118,13 @@ export function TreatmentsPaginated({ initialTreatments, initialPage, totalPages
     ) : null
 
   return (
-    <div ref={topRef} style={{ scrollMarginTop: "96px" }}>
-      <div style={{ opacity: pending ? 0.6 : 1, transition: "opacity 0.2s ease" }} aria-busy={pending}>
-        <TreatmentsGrid treatments={treatments} isHome={false} pager={pager} />
-      </div>
+    <div style={{ opacity: pending ? 0.6 : 1, transition: "opacity 0.2s ease" }} aria-busy={pending}>
+      <TreatmentsGrid
+        treatments={treatments}
+        isHome={false}
+        pager={pager}
+        fillTo={totalPages > 1 ? pageSize : undefined}
+      />
     </div>
   )
 }

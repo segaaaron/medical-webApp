@@ -252,7 +252,7 @@ export default async function HomePage() {
         <AboutSection bio={aboutData.bio} />
         <ServiceSection included={homeData.courseIncluded} modules={liveModules} info={pageInfo} />
         <ValuePropositionSection features={aboutData.features} />
-        <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} />
+        <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} totalCount={backendTreatments.length} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
         <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate} />
         <FAQSection faqs={homeData.faqs} />

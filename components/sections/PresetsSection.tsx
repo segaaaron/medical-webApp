@@ -49,7 +49,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="rounded-xl overflow-hidden hover:scale-105 transition-transform cursor-pointer"
+              className="group rounded-xl overflow-hidden cursor-pointer"
               style={{ backgroundColor: "var(--primary-darkest)" }}
             >
               <div className="relative w-full h-44 overflow-hidden">
@@ -58,7 +58,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
                   alt={`${preset.name} - Tratamiento de medicina estetica con la Dra. Yasmin Medrano Avila`}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
               </div>

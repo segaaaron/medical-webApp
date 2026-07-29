@@ -155,6 +155,20 @@ export function Footer({ data }: { data: FooterData }) {
             {data.copyrightText}
           </p>
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+            Desarrollado por{" "}
+            <a
+              href="https://www.ms-tech-stack.cloud"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors"
+              style={{ color: "var(--vintage-gold)", textDecoration: "none", fontWeight: 600, letterSpacing: "0.1em" }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = "var(--vintage-gold-light)" }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = "var(--vintage-gold)" }}
+            >
+              MS-Tech-Stack
+            </a>
+          </p>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
             {data.designedByText}
           </p>
         </div>
