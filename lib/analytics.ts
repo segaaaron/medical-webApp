@@ -1,21 +1,28 @@
 /**
- * Client-safe conversion tracking helpers — Umami + optional Meta Pixel.
+ * Client-safe conversion tracking helpers — Umami + optional Meta / TikTok Pixel.
  * No-ops when scripts are not loaded (missing env vars, ad-blockers).
  */
 
 type UmamiTrackFn = (eventName: string, data?: Record<string, unknown>) => void
 type FbqFn = (...args: unknown[]) => void
+type TtqFn = {
+  track: (event: string, params?: Record<string, unknown>) => void
+  page: () => void
+  identify: (params: Record<string, unknown>) => void
+}
 
 declare global {
   interface Window {
     umami?: { track: UmamiTrackFn }
     fbq?: FbqFn
+    ttq?: TtqFn
   }
 }
 
 export const UMAMI_URL = process.env.NEXT_PUBLIC_UMAMI_URL ?? ""
 export const UMAMI_WEBSITE_ID = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID ?? ""
 export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID ?? ""
+export const TIKTOK_PIXEL_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID ?? ""
 
 function umami(eventName: string, data?: Record<string, unknown>) {
   if (typeof window !== "undefined" && typeof window.umami?.track === "function") {
@@ -29,6 +36,12 @@ function fbq(...args: unknown[]) {
   }
 }
 
+function ttq(event: string, params?: Record<string, unknown>) {
+  if (typeof window !== "undefined" && typeof window.ttq?.track === "function") {
+    window.ttq.track(event, params)
+  }
+}
+
 /** Lead captured via contact form. */
 export function trackLead(params: { treatment?: string; source: string }) {
   umami("lead", {
@@ -36,12 +49,14 @@ export function trackLead(params: { treatment?: string; source: string }) {
     source: params.source,
   })
   fbq("track", "Lead", { content_category: params.treatment || undefined })
+  ttq("SubmitForm", { content_name: params.treatment || "(sin especificar)" })
 }
 
 /** WhatsApp CTA clicked — pass source label (navbar, footer, hero, treatment-card, etc). */
 export function trackWhatsAppClick(source: string, treatment?: string) {
   umami("whatsapp_click", { source, ...(treatment ? { treatment } : {}) })
   fbq("track", "Contact")
+  ttq("Contact", { content_name: treatment || source })
 }
 
 /** Treatment detail page viewed. */
