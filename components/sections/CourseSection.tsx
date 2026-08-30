@@ -7,7 +7,6 @@ import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { WHATSAPP_URL } from "@/lib/constants"
 import type { CourseIncluded, CourseModule, CourseItemIcon } from "@/types"
 import Link from "next/link"
-import { useEffect } from "react"
 
 // Icon map — resolved client-side, not serialized across the boundary
 const ICON_MAP: Record<CourseItemIcon, React.ElementType> = {
@@ -56,10 +55,6 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
 
   // Use site-content consultationItems (strings) if provided, otherwise fall back to static included[]
   const hasInfoItems = Array.isArray(info?.consultationItems) && info.consultationItems.length > 0
-
-  useEffect(() => {
-    console.log("CourseSection info:", modules)
-  }, [])
 
   return (
     <section id="tratamientos" className="py-20 px-6" style={{ backgroundColor: "var(--primary-darkest)" }}>
