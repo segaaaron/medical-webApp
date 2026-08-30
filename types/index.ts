@@ -65,6 +65,7 @@ export interface CourseIncluded {
 
 export interface CourseModule {
   title: string
+  treatmentId: string
 }
 
 export interface CoursePricing {

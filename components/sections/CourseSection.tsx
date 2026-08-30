@@ -6,6 +6,8 @@ import { LinkButton } from "@/components/ui/Button"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { WHATSAPP_URL } from "@/lib/constants"
 import type { CourseIncluded, CourseModule, CourseItemIcon } from "@/types"
+import Link from "next/link"
+import { useEffect } from "react"
 
 // Icon map — resolved client-side, not serialized across the boundary
 const ICON_MAP: Record<CourseItemIcon, React.ElementType> = {
@@ -54,6 +56,10 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
 
   // Use site-content consultationItems (strings) if provided, otherwise fall back to static included[]
   const hasInfoItems = Array.isArray(info?.consultationItems) && info.consultationItems.length > 0
+
+  useEffect(() => {
+    console.log("CourseSection info:", modules)
+  }, [])
 
   return (
     <section id="tratamientos" className="py-20 px-6" style={{ backgroundColor: "var(--primary-darkest)" }}>
@@ -109,9 +115,13 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
               </p>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {modules.map((mod) => (
-                  <li key={mod.title} className="flex items-start gap-2 text-sm" style={{ color: "#fce4ec" }}>
+                  <li key={mod.treatmentId} className="flex items-start gap-2 text-sm" style={{ color: "#fce4ec" }}>
                     <span style={{ color: "var(--vintage-gold)" }}>›</span>
-                    {mod.title}
+                      <Link href={`/tratamientos/${mod.treatmentId}`}
+                      className="inline-flex items-center gap-4 text-xs font-medium hover:opacity-80 transition-opacity py-2 -my-2"
+                      >
+                        {mod.title}
+                      </Link>
                   </li>
                 ))}
               </ul>
