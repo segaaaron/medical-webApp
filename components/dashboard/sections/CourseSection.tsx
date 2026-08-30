@@ -8,14 +8,14 @@ export function CourseSection({ data, setData }: SectionProps) {
     setData({ ...data, coursePricing: { ...data.coursePricing, [field]: value } })
   }
 
-  function updateModule(i: number, title: string) {
+  function updateModule(i: number, title: string, treatmentId?: string) {
     const mods = [...data.courseModules]
-    mods[i] = { title }
+    mods[i] = { title, treatmentId: treatmentId || mods[i].treatmentId }
     setData({ ...data, courseModules: mods })
   }
 
   function addModule() {
-    setData({ ...data, courseModules: [...data.courseModules, { title: "" }] })
+    setData({ ...data, courseModules: [...data.courseModules, { title: "", treatmentId: "" }] })
   }
 
   function removeModule(i: number) {

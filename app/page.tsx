@@ -18,7 +18,7 @@ import { AboutSection } from "@/components/sections/AboutSection"
 import { HomeSection } from "@/components/sections/HomeSection"
 import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import type { PublicReview, ReviewAggregate } from "@/components/sections/TestimonialsSection"
-import { HeroCTA } from "@/types"
+import { CourseModule, HeroCTA } from "@/types"
 
 // ─── Below-fold sections (lazy — split JS chunk, still SSR'd) ─────────────────
 const ServiceSection = dynamic(() => import("@/components/sections/CourseSection").then(m => ({ default: m.ServiceSection })))
@@ -210,7 +210,7 @@ export default async function HomePage() {
       }
     : undefined
 
-  const liveModules =
+  const liveModules: CourseModule[] =
     backendTreatments.length > 0
       ? backendTreatments.map((t) => ({ title: t.name, treatmentId: t.id }))
       : homeData.courseModules

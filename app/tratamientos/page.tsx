@@ -195,7 +195,7 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
 
   const liveModules =
     allActive.length > 0
-      ? allActive.map((t) => ({ title: t.name }))
+      ? allActive.map((t) => ({ title: t.name, treatmentId: t.id }))
       : c.courseModules
 
   return (

@@ -11,18 +11,18 @@ export const courseIncluded: CourseIncluded[] = [
 ]
 
 export const courseModules: CourseModule[] = [
-  { title: "Toxina Botulínica (Botox)" },
-  { title: "Rellenos de Ácido Hialurónico" },
-  { title: "Bioestimulación con Polinucleótidos" },
-  { title: "Mesoterapia Facial" },
-  { title: "Radiofrecuencia Facial" },
-  { title: "Peeling Químico" },
-  { title: "Tratamiento de Manchas" },
-  { title: "Hidratación Profunda" },
-  { title: "Reducción de Medidas" },
-  { title: "Tratamiento de Celulitis" },
-  { title: "Depilación Láser" },
-  { title: "Tratamiento de Estrías" },
+  { title: "Toxina Botulínica (Botox)", treatmentId: "botox" },
+  { title: "Rellenos de Ácido Hialurónico", treatmentId: "rellenos" },
+  { title: "Bioestimulación con Polinucleótidos", treatmentId: "bioestimulación" },
+  { title: "Mesoterapia Facial", treatmentId: "mesoterapia" },
+  { title: "Radiofrecuencia Facial", treatmentId: "radiofrecuencia" },
+  { title: "Peeling Químico", treatmentId: "peeling" },
+  { title: "Tratamiento de Manchas", treatmentId: "manchas" },
+  { title: "Hidratación Profunda", treatmentId: "hidratacion" },
+  { title: "Reducción de Medidas", treatmentId: "reduccion" },
+  { title: "Tratamiento de Celulitis", treatmentId: "celulitis" },
+  { title: "Depilación Láser", treatmentId: "depilacion" },
+  { title: "Tratamiento de Estrías", treatmentId: "estrias" },
 ]
 
 export const coursePricing: CoursePricing = {
