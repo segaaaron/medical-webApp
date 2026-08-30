@@ -1,9 +1,10 @@
 "use client"
 import { m } from "framer-motion"
-import { CheckCircle, Play, FileText, Download, Sparkles } from "lucide-react"
+import { CheckCircle, Play, FileText, Download } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
+import { FaqPrompt } from "@/components/ui/FaqPrompt"
 import { WHATSAPP_URL } from "@/lib/constants"
 import type { CourseIncluded, CourseModule, CourseItemIcon } from "@/types"
 import Link from "next/link"
@@ -22,12 +23,9 @@ export interface TreatmentsPageInfo {
   subtitle?: string
   consultationTitle?: string
   consultationItems?: string[]
-  sidebarBadge?: string
   doctorImage?: string
   ctaTitle?: string
   ctaSubtitle?: string
-  priceLabel?: string
-  priceDescription?: string
   buttonText?: string
   disclaimer?: string
 }
@@ -44,12 +42,9 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
   const subtitle = info?.subtitle ||
     "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:var(--vintage-gold);font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
   const consultationTitle = info?.consultationTitle || "Lo Que Incluye Cada Consulta"
-  const sidebarBadge = info?.sidebarBadge || "Consulta de Valoración GRATIS"
   const doctorImage = info?.doctorImage || "/images/draMedrano2.jpeg"
   const ctaTitle = info?.ctaTitle || "Agenda tu Cita"
   const ctaSubtitle = info?.ctaSubtitle || "Consulta personalizada con la Dra. Yasmin"
-  const priceLabel = info?.priceLabel || "GRATIS"
-  const priceDescription = info?.priceDescription || "Valoración inicial sin costo — oferta de este mes"
   const buttonText = info?.buttonText || "RESERVAR MI CONSULTA"
   const disclaimer = info?.disclaimer || "Sin compromiso · Atención personalizada garantizada"
 
@@ -135,13 +130,6 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
               className="rounded-2xl overflow-hidden shadow-2xl max-w-sm w-full"
               style={{ backgroundColor: "var(--primary-darker)" }}
             >
-              <div
-                className="text-center py-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2"
-                style={{ backgroundColor: "var(--vintage-gold)", color: "white" }}
-              >
-                <Sparkles size={14} aria-hidden="true" />
-                {sidebarBadge}
-              </div>
               <div className="p-8 text-center">
                 <div className="relative w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "var(--primary-darkest)" }}>
                   <ImageWithFallback
@@ -159,14 +147,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                 <p className="text-sm mb-6" style={{ color: "var(--meteorite)" }}>
                   {ctaSubtitle}
                 </p>
-                <div className="mb-2">
-                  <span className="text-3xl font-bold" style={{ color: "var(--vintage-gold)" }}>
-                    {priceLabel}
-                  </span>
-                </div>
-                <p className="text-xs mb-8" style={{ color: "var(--meteorite)" }}>
-                  {priceDescription}
-                </p>
+                <FaqPrompt className="mb-8" />
                 <LinkButton href={WHATSAPP_URL} variant="primary" className="w-full justify-center py-4">
                   {buttonText}
                 </LinkButton>

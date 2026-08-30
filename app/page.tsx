@@ -254,8 +254,8 @@ export default async function HomePage() {
         <ValuePropositionSection features={aboutData.features} />
         <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} totalCount={backendTreatments.length} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
-        <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate} />
         <FAQSection faqs={homeData.faqs} />
+        <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate} />
       </main>
       </FadeIn>
       <Footer data={footerData} />

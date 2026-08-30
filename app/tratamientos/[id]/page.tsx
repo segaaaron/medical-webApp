@@ -15,6 +15,7 @@ import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { EcgHero } from "@/components/ui/EcgHero"
 import { BeforeAfter } from "@/components/sections/BeforeAfter"
+import { FaqPrompt } from "@/components/ui/FaqPrompt"
 
 export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el tratamiento
 
@@ -334,6 +335,9 @@ export default async function TratamientoDetallePage({ params }: Props) {
               <p className="text-xs mt-4" style={{ color: "rgba(255,255,255,0.35)" }}>
                 Sin compromiso · Atención personalizada garantizada
               </p>
+              <div className="mt-6 pt-6" style={{ borderTop: "1px solid rgba(184,151,59,0.2)" }}>
+                <FaqPrompt size="sm" />
+              </div>
             </div>
           </div>
         </article>

@@ -27,12 +27,9 @@ const infoSchema = Yup.object({
   descriptionHighlight: Yup.string().default(""),
   consultationTitle: Yup.string().default(""),
   consultationItems: Yup.array().of(Yup.string().defined()).default([]),
-  sidebarBadge: Yup.string().default(""),
   doctorImage: Yup.string().default(""),
   ctaTitle: Yup.string().default(""),
   ctaSubtitle: Yup.string().default(""),
-  priceLabel: Yup.string().default(""),
-  priceDescription: Yup.string().default(""),
   buttonText: Yup.string().default(""),
   disclaimer: Yup.string().default(""),
 })
@@ -54,12 +51,9 @@ const DEFAULT: InfoValues = {
     "Productos de calidad certificada",
     "Atención médica especializada",
   ],
-  sidebarBadge: "✨ CONSULTA DE VALORACIÓN GRATIS",
   doctorImage: "",
   ctaTitle: "Agenda tu Cita",
   ctaSubtitle: "Consulta personalizada con la Dra. Yasmin",
-  priceLabel: "GRATIS",
-  priceDescription: "Valoración inicial sin costo — oferta de este mes",
   buttonText: "RESERVAR MI CONSULTA",
   disclaimer: "Sin compromiso · Atención personalizada garantizada",
 }
@@ -83,7 +77,6 @@ export default function TratamientosInfoPage() {
         responseData.append("descriptionHighlight", values.descriptionHighlight)
         responseData.append("consultationTitle", values.consultationTitle)
         responseData.append("consultationItems", JSON.stringify(values.consultationItems))
-        responseData.append("sidebarBadge", values.sidebarBadge)
         if (imageFile) {
           responseData.append("doctorImage", imageFile)
         } else {
@@ -91,8 +84,6 @@ export default function TratamientosInfoPage() {
         }
         responseData.append("ctaTitle", values.ctaTitle)
         responseData.append("ctaSubtitle", values.ctaSubtitle)
-        responseData.append("priceLabel", values.priceLabel)
-        responseData.append("priceDescription", values.priceDescription)
         responseData.append("buttonText", values.buttonText)
         responseData.append("disclaimer", values.disclaimer)
 
@@ -223,14 +214,6 @@ export default function TratamientosInfoPage() {
 
         {/* Card lateral */}
         <EditorCard title="Tarjeta de cita (lateral)">
-          <FormField label="Badge superior" htmlFor="info-sidebar-badge">
-            <input
-              id="info-sidebar-badge"
-              className={INPUT_CLS}
-              {...formik.getFieldProps("sidebarBadge")}
-            />
-          </FormField>
-
           <FormField label="Imagen del doctor" htmlFor="info-doctor-image">
             <ImageDropzone
               id="info-doctor-image"
@@ -254,22 +237,6 @@ export default function TratamientosInfoPage() {
               {...formik.getFieldProps("ctaSubtitle")}
             />
           </FormField>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <FormField label="Precio destacado (priceLabel)" htmlFor="info-price-label">
-              <input
-                id="info-price-label"
-                className={INPUT_CLS}
-                {...formik.getFieldProps("priceLabel")}
-              />
-            </FormField>
-            <FormField label="Descripción del precio" htmlFor="info-price-desc">
-              <input
-                id="info-price-desc"
-                className={INPUT_CLS}
-                {...formik.getFieldProps("priceDescription")}
-              />
-            </FormField>
-          </div>
           <FormField label="Texto del botón" htmlFor="info-button-text">
             <input
               id="info-button-text"
