@@ -1,5 +1,29 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  /**
+   * Direcciones que dejaron de existir. Se declaran aquí y no en el código de
+   * cada página para que se resuelvan antes de renderizar nada: un 308 seco,
+   * sin coste, y sin que nadie llegue a ver un 404.
+   */
+  async redirects() {
+    return [
+      {
+        // El panel de Citas se retiró: no existía backend que lo alimentara.
+        // Lo más cercano en propósito —quién escribió pidiendo hora— son los
+        // contactos del formulario web.
+        source: "/dashboard/citas",
+        destination: "/dashboard/contactos",
+        permanent: true,
+      },
+      {
+        // El editor del home vivía en /dashboard, que ahora es el Resumen.
+        source: "/dashboard/home",
+        destination: "/dashboard/inicio",
+        permanent: true,
+      },
+    ]
+  },
+
   output: "standalone",
   async headers() {
     const securityHeaders = [

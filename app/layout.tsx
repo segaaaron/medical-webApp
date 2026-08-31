@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     template: "%s | Dra. Yasmin Medrano Avila",
   },
   description:
-    "Medicina estética en Cochabamba: botox, rellenos y armonización facial con 10+ años de experiencia. Consulta de valoración gratuita.",
+    "Medicina estética en Cochabamba: botox, rellenos y armonización facial con 10+ años de experiencia. Consulta de valoración personalizada.",
   keywords: [
     // Geo-transaccionales Bolivia/Cochabamba — alta intención de compra
     "médico estético Cochabamba Bolivia",
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     "tratamiento manchas faciales médico Bolivia",
     "rejuvenecimiento facial sin cirugía Cochabamba",
     "mesoterapia corporal Bolivia",
-    "consulta gratis medicina estética cerca de mí",
+    "consulta medicina estética cerca de mí",
     "estética médica Bolivia",
     // Marca + autoridad
     "Dra. Yasmin Medrano Avila",
@@ -114,9 +114,9 @@ export const metadata: Metadata = {
     locale: "es_BO",
     url: BASE_URL,
     siteName: "Dra. Yasmin Medrano Avila — Medicina Estética Cochabamba",
-    title: "Medicina Estética Cochabamba | Dra. Yasmin Medrano Avila — Consulta Gratis",
+    title: "Medicina Estética Cochabamba | Dra. Yasmin Medrano Avila",
     description:
-      "⭐ Más de 5.000 pacientes satisfechos en Cochabamba. Botox, rellenos, armonización facial y bioestimulación. Resultados naturales, seguros y duraderos. ¡Agenda tu consulta GRATIS ahora!",
+      "⭐ Más de 5.000 pacientes satisfechos en Cochabamba. Botox, rellenos, armonización facial y bioestimulación. Resultados naturales, seguros y duraderos. Agenda tu consulta hoy.",
     images: [
       {
         url: "/og-image.jpg",
@@ -130,7 +130,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
     description:
-      "✨ +5.000 pacientes felices en Bolivia. Botox natural, rellenos, armonización facial. 10+ años de experiencia. ¡Consulta GRATIS este mes — reserva ahora!",
+      "✨ +5.000 pacientes felices en Bolivia. Botox natural, rellenos, armonización facial. 10+ años de experiencia. Agenda tu consulta este mes.",
     images: ["/og-image.jpg"],
   },
   alternates: {

@@ -39,7 +39,7 @@ export const faqs: FAQ[] = [
   {
     question: "¿La consulta de valoración tiene algún costo?",
     answer:
-      "Durante este mes especial, la consulta inicial de valoración es completamente gratuita. Agenda tu cita hoy y recibe una evaluación personalizada con la Dra. Yasmin Medrano Avila, donde podrás conocer todos los tratamientos disponibles y el plan más adecuado para tus necesidades.",
+      "Escríbenos por WhatsApp para agendar tu consulta de valoración. En ella la Dra. Yasmin Medrano Avila evalúa tu caso, resuelve tus dudas y te propone el plan de tratamiento más adecuado para ti.",
   },
   {
     question: "¿Cuál es la formación y experiencia de la Dra. Yasmin Medrano Avila?",

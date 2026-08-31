@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   // Absoluto: el template añadiría el nombre de la doctora por segunda vez.
   title: { absolute: "Dra. Yasmin Medrano Avila — Medicina Estética Cochabamba" },
   description:
-    "Dra. Yasmin Medrano Avila, médica especialista en medicina estética en Cochabamba. Botox, rellenos y armonización facial. Consulta gratuita.",
+    "Dra. Yasmin Medrano Avila, médica especialista en medicina estética en Cochabamba. Botox, rellenos y armonización facial en Cochabamba.",
   keywords: [
     "Dra. Yasmin Medrano Avila Cochabamba",
     "médica estética Bolivia especialista",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Dra. Yasmin Medrano Avila | +5.000 Pacientes en Bolivia ⭐",
     description:
-      "10+ años de experiencia en Cochabamba. Botox natural, rellenos y rejuvenecimiento facial con resultados reales. ¡Agenda tu consulta GRATIS hoy!",
+      "10+ años de experiencia en Cochabamba. Botox natural, rellenos y rejuvenecimiento facial con resultados reales. Agenda tu consulta hoy.",
     images: ["/og-image.jpg"],
   },
 }

@@ -15,12 +15,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   // La marca la pone el template del layout: llevarla aquí la repetía dos veces.
-  title: "Agenda tu Consulta Gratuita en Cochabamba",
+  title: "Agenda tu Consulta en Cochabamba",
   description:
-    "Agenda tu consulta GRATIS con la Dra. Yasmin Medrano en Cochabamba. Atención vía WhatsApp e Instagram. Cupos limitados — ¡reserva el tuyo hoy!",
+    "Agenda tu consulta con la Dra. Yasmin Medrano en Cochabamba: horarios, ubicación y atención por WhatsApp e Instagram.",
   keywords: [
     "agendar cita medicina estética Cochabamba",
-    "consulta gratuita estética Bolivia",
+    "consulta medicina estética Bolivia",
     "whatsapp Dra Yasmin Medrano Cochabamba",
     "consultorio estético Cochabamba Bolivia",
     "contacto médico estético Bolivia",
@@ -33,19 +33,19 @@ export const metadata: Metadata = {
     canonical: `${BASE_URL}/contacto`,
   },
   openGraph: {
-    title: "¡Agenda tu Consulta GRATIS en Cochabamba! | Dra. Yasmin Medrano Avila",
+    title: "Agenda tu Consulta en Cochabamba | Dra. Yasmin Medrano Avila",
     description:
-      "📲 Cupos limitados disponibles. Consulta de valoración GRATUITA con la Dra. Yasmin Medrano en Cochabamba. WhatsApp, Instagram y más. ¡No esperes más para transformarte!",
+      "📲 Consulta de valoración con la Dra. Yasmin Medrano en Cochabamba. Escríbenos por WhatsApp o Instagram.",
     url: `${BASE_URL}/contacto`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Agenda consulta gratis medicina estética Cochabamba — Dra. Yasmin Medrano Avila" }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Agenda tu consulta de medicina estética en Cochabamba — Dra. Yasmin Medrano Avila" }],
     type: "website",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Consulta GRATIS en Cochabamba 📲 | Dra. Yasmin Medrano Avila",
+    title: "Agenda tu Consulta en Cochabamba 📲 | Dra. Yasmin Medrano Avila",
     description:
-      "¡Cupos limitados! Agenda tu consulta de valoración gratuita en Cochabamba. Especialista en botox, rellenos y rejuvenecimiento facial te espera.",
+      "Agenda tu consulta de valoración en Cochabamba. Especialista en botox, rellenos y rejuvenecimiento facial.",
     images: ["/og-image.jpg"],
   },
 }
@@ -131,7 +131,7 @@ export default async function ContactoPage() {
         <PageHero
           eyebrow="Estamos para ti"
           title="Contacto"
-          subtitle="Agenda tu consulta de valoración gratuita y da el primer paso hacia tu transformación."
+          subtitle="Agenda tu consulta de valoración y da el primer paso hacia tu transformación."
         />
 
         {/* Contact section */}

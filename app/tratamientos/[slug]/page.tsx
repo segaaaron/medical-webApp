@@ -64,16 +64,19 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * conserva el posicionamiento ganado.
  */
 async function findBySlug(slug: string): Promise<BackendTreatment | null> {
-  const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 })
-  const list = extractList<BackendTreatment>(data)
-  const bySlug = list.find((t) => t.slug === slug)
-  if (bySlug) return bySlug
-
+  // Un UUID solo puede venir de un enlace antiguo (anuncios, mensajes ya
+  // enviados, resultados de Google todavía sin reindexar). Se pregunta por él
+  // directamente en vez de buscarlo en la lista de activos: así el 301 también
+  // funciona para un tratamiento que hoy esté desactivado, que es justo cuando
+  // un 404 dolería más.
   if (UUID_RE.test(slug)) {
-    const byId = list.find((t) => t.id === slug)
-    if (byId?.slug) permanentRedirect(`/tratamientos/${byId.slug}`)
+    const { data } = await backendFetch<BackendTreatment>(`/treatments/${slug}`, { revalidate: 300 })
+    if (data?.slug) permanentRedirect(`/tratamientos/${data.slug}`)
+    return null
   }
-  return null
+
+  const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 })
+  return extractList<BackendTreatment>(data).find((t) => t.slug === slug) ?? null
 }
 
 async function getTreatment(slug: string): Promise<BackendTreatment | null> {
@@ -115,7 +118,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "medicina estética Cochabamba",
       "tratamiento estético Bolivia",
       "Dra. Yasmin Medrano Avila",
-      "consulta gratis medicina estética",
+      "consulta medicina estética Cochabamba",
     ],
     alternates: { canonical: `${BASE_URL}/tratamientos/${slug}` },
     openGraph: {
@@ -162,8 +165,8 @@ export default async function TratamientoDetallePage({ params }: Props) {
         acceptedAnswer: {
           "@type": "Answer",
           text: treatment.price > 0
-            ? `El precio de ${treatment.name} en nuestro consultorio es Bs. ${treatment.price.toLocaleString("es-BO")}. Agenda una consulta gratuita para un presupuesto personalizado.`
-            : `El precio de ${treatment.name} varía según cada paciente. Agenda una consulta de valoración gratuita con la Dra. Yasmin Medrano para un presupuesto personalizado.`,
+            ? `El precio de ${treatment.name} en nuestro consultorio es Bs. ${treatment.price.toLocaleString("es-BO")}. Agenda una consulta para un presupuesto personalizado.`
+            : `El precio de ${treatment.name} varía según cada paciente. Agenda una consulta de valoración con la Dra. Yasmin Medrano para un presupuesto personalizado.`,
         },
       },
       {
@@ -179,7 +182,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
         name: `¿Dónde puedo realizarme ${treatment.name} en Cochabamba?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Puedes realizarte ${treatment.name} en el consultorio de la Dra. Yasmin Medrano Avila, ubicado en Cochabamba, Bolivia. Contáctanos por WhatsApp para agendar tu consulta gratuita.`,
+          text: `Puedes realizarte ${treatment.name} en el consultorio de la Dra. Yasmin Medrano Avila, ubicado en Cochabamba, Bolivia. Contáctanos por WhatsApp para agendar tu consulta.`,
         },
       },
     ],
@@ -351,7 +354,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 Consulta de Valoración
               </p>
               <p className="text-base font-medium mb-4 text-white">
-                ¿Te interesa este tratamiento? Agenda una consulta gratuita con la Dra. Yasmin Medrano Avila.
+                ¿Te interesa este tratamiento? Agenda una consulta con la Dra. Yasmin Medrano Avila.
               </p>
               {treatment.price > 0 && (
                 <p className="text-3xl font-bold mb-6" style={{ color: "var(--vintage-gold)" }}>
@@ -366,7 +369,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 style={{ backgroundColor: "var(--vintage-gold)" }}
               >
                 <MessageCircle size={16} aria-hidden="true" />
-                {treatment.price > 0 ? "Agendar consulta gratuita" : "Consultar por WhatsApp"}
+                {treatment.price > 0 ? "Agendar consulta" : "Consultar por WhatsApp"}
               </TrackWhatsAppLink>
               <p className="text-xs mt-4" style={{ color: "rgba(255,255,255,0.35)" }}>
                 Sin compromiso · Atención personalizada garantizada

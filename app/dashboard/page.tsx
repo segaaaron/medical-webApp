@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import {
+  Home,
+  Newspaper as NewspaperIcon,
+  Megaphone,
+  Users,
   Star,
   Link2,
   Newspaper,
@@ -40,6 +44,19 @@ async function count(url: string, match: (item: Record<string, unknown>) => bool
   const list = Array.isArray(data) ? data : ((data as { data?: unknown[] })?.data ?? [])
   return list.filter((item) => match(item as Record<string, unknown>)).length
 }
+
+/**
+ * Lo que se edita a diario. El editor de la portada vivía en `/dashboard` y
+ * ahora está en `/dashboard/inicio`: este bloque evita que quien llegue por
+ * costumbre tenga que buscarlo en el menú.
+ */
+const SHORTCUTS: { label: string; href: string; icon: LucideIcon }[] = [
+  { label: "Página de inicio", href: "/dashboard/inicio", icon: Home },
+  { label: "Tratamientos", href: "/dashboard/tratamientos", icon: Stethoscope },
+  { label: "Blog", href: "/dashboard/blog", icon: NewspaperIcon },
+  { label: "Promociones", href: "/dashboard/promociones", icon: Megaphone },
+  { label: "Acerca de", href: "/dashboard/acerca-de", icon: Users },
+]
 
 export default function DashboardOverviewPage() {
   const [counts, setCounts] = useState(EMPTY_COUNTS)
@@ -192,6 +209,20 @@ export default function DashboardOverviewPage() {
               )
             })}
           </div>
+
+          <section className="mt-8" aria-labelledby="accesos-rapidos">
+            <h2 id="accesos-rapidos" className="prem-eyebrow prem-eyebrow--inline mb-3" style={{ color: "var(--prem-muted)" }}>
+              Editar el sitio
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {SHORTCUTS.map(({ label, href, icon: Icon }) => (
+                <Link key={href} href={href} className="dash-btn dash-btn--ghost">
+                  <Icon size={15} aria-hidden="true" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </section>
         </>
       )}
     </>

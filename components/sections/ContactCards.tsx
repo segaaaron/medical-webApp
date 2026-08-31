@@ -33,7 +33,7 @@ export function ContactCards({ ct }: ContactCardsProps) {
       icon: <MessageCircle size={22} style={{ color: "var(--vintage-gold)" }} />,
       label: "WhatsApp",
       value: ct.whatsappNumber,
-      sub: "Respuesta rápida · Consulta gratuita",
+      sub: "Respuesta rápida · Atención personalizada",
     },
     {
       href: `tel:${ct.phone}`,

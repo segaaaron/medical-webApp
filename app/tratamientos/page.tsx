@@ -16,7 +16,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 // Con el sufijo el title queda en 64 caracteres; Google corta cerca de 60.
 const BASE_TITLE = "Tratamientos Estéticos en Cochabamba"
 const BASE_DESCRIPTION =
-  "Botox, rellenos, armonización facial, depilación láser y mesoterapia en Cochabamba. Especialista certificada en Bolivia. +5.000 pacientes. ¡Consulta GRATIS!"
+  "Botox, rellenos, armonización facial, depilación láser y mesoterapia en Cochabamba. Especialista certificada en Bolivia. +5.000 pacientes."
 
 /** Normaliza el query param de página a un entero ≥ 1. */
 function parsePage(raw: string | undefined): number {
@@ -57,7 +57,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       // Google corta el title a ~60 caracteres; con el sufijo esto queda en 64.
       title: "Tratamientos Estéticos en Cochabamba",
       description:
-        "✨ Los mejores tratamientos estéticos en Bolivia. Botox natural, rellenos ácido hialurónico, armonización facial, depilación láser y más. +5.000 pacientes satisfechos. ¡Consulta GRATIS ahora!",
+        "✨ Los mejores tratamientos estéticos en Bolivia. Botox natural, rellenos ácido hialurónico, armonización facial, depilación láser y más. +5.000 pacientes satisfechos.",
       url: canonical,
       images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Mejores tratamientos estéticos Cochabamba Bolivia — Dra. Yasmin Medrano Avila" }],
       type: "website",
@@ -67,7 +67,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
       card: "summary_large_image",
       title: "Botox, Rellenos & Rejuvenecimiento en Cochabamba ✨ | Dra. Yasmin Medrano",
       description:
-        "Tratamientos estéticos de calidad internacional en Bolivia. Botox natural, armonización facial, depilación láser. +5.000 pacientes felices. ¡Agenda GRATIS!",
+        "Tratamientos estéticos de calidad internacional en Bolivia. Botox natural, armonización facial, depilación láser. +5.000 pacientes felices. Agenda tu consulta.",
       images: ["/og-image.jpg"],
     },
   }

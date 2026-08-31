@@ -6,7 +6,7 @@ import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import { trackWhatsAppClick } from "@/lib/analytics"
 import { useWhatsAppLink } from "@/components/providers/WhatsAppProvider"
 
-const WA_MESSAGE = "Hola, me gustaría agendar una consulta de valoración gratuita."
+const WA_MESSAGE = "Hola, me gustaría más información sobre sus tratamientos."
 /** Aparece pasado el hero: sobre la primera pantalla estorbaría el mensaje principal. */
 const SHOW_AFTER_PX = 300
 /** La etiqueta se despliega sola una vez, lo justo para que se lea qué es. */
@@ -91,7 +91,7 @@ export function WhatsAppFAB() {
 
           <span className="wa-fab__label" aria-hidden="true">
             <span className="wa-fab__label-title">Escríbenos</span>
-            <span className="wa-fab__label-sub">Consulta gratuita</span>
+            <span className="wa-fab__label-sub">Consulta tratamientos</span>
           </span>
         </m.a>
       )}

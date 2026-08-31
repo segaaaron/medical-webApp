@@ -213,7 +213,7 @@ export default async function HomePage() {
 
   const liveModules: CourseModule[] =
     backendTreatments.length > 0
-      ? backendTreatments.map((t) => ({ title: t.name, treatmentId: t.id }))
+      ? backendTreatments.map((t) => ({ title: t.name, treatmentId: t.id, treatmentSlug: t.slug }))
       : homeData.courseModules
 
   const heroCTAsSection: HeroCTA[] = [

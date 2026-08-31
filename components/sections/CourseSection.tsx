@@ -107,12 +107,20 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {modules.map((mod) => (
                   <li key={mod.treatmentId} className="flex items-start gap-2 text-sm" style={{ color: "#fce4ec" }}>
-                    <span style={{ color: "var(--vintage-gold)" }}>›</span>
-                      <Link href={`/tratamientos/${mod.treatmentSlug ?? ""}`}
-                      className="inline-flex items-center gap-4 text-xs font-medium hover:opacity-80 transition-opacity py-2 -my-2"
+                    <span style={{ color: "var(--vintage-gold)" }} aria-hidden="true">›</span>
+                    {/* Sin slug no hay tratamiento al que llevar —pasa con los
+                        módulos de respaldo del contenido—, y un enlace a
+                        `/tratamientos/` deja al visitante donde ya estaba. */}
+                    {mod.treatmentSlug ? (
+                      <Link
+                        href={`/tratamientos/${mod.treatmentSlug}`}
+                        className="inline-flex items-center gap-4 text-xs font-medium hover:opacity-80 transition-opacity py-2 -my-2"
                       >
                         {mod.title}
                       </Link>
+                    ) : (
+                      <span className="text-xs font-medium py-2 -my-2">{mod.title}</span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -135,7 +143,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                 <div className="relative w-24 h-24 rounded-full mx-auto mb-6 overflow-hidden" style={{ backgroundColor: "var(--primary-darkest)" }}>
                   <ImageWithFallback
                     src={doctorImage}
-                    alt="Dra. Yasmin Medrano Avila - Agenda tu consulta de valoracion gratuita de medicina estetica"
+                    alt="Dra. Yasmin Medrano Avila - Agenda tu consulta de valoracion de medicina estetica"
                     variant="dark"
                     className="object-cover"
                     objectPosition="top"
