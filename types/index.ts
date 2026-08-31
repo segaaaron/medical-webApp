@@ -65,7 +65,10 @@ export interface CourseIncluded {
 
 export interface CourseModule {
   title: string
+  /** Id del tratamiento — para analítica, no para la URL. */
   treatmentId: string
+  /** Dirección pública del tratamiento (ver app/tratamientos/[slug]). */
+  treatmentSlug?: string
 }
 
 export interface CoursePricing {

@@ -210,7 +210,7 @@ export default function NuevoBlogPage() {
               style={{ backgroundColor: "var(--vintage-gold)" }}
             >
               <Check size={15} aria-hidden="true" />
-              {formik.isSubmitting ? "Guardando..." : "Crear articulo"}
+              Crear articulo
             </button>
             <Link
               href="/dashboard/blog"

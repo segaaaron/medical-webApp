@@ -5,7 +5,7 @@ import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
-import { WHATSAPP_TREATMENT_URL, WHATSAPP_URL } from "@/lib/constants"
+import { useWhatsApp } from "@/components/providers/WhatsAppProvider"
 import { trackWhatsAppClick, trackTreatmentClick } from "@/lib/analytics"
 import { TAG_LABELS, TAG_COLORS, DEFAULT_TAG_COLOR } from "@/lib/treatment-tags"
 
@@ -17,6 +17,8 @@ export interface Treatment {
   tag: string
   imageUrl: string | null
   active: boolean
+  /** Dirección pública del tratamiento — ver app/tratamientos/[slug]. */
+  slug: string
 }
 
 interface TreatmentsGridProps {
@@ -43,6 +45,7 @@ function PosterCard({
   index: number
   isHome: boolean
 }) {
+  const { url: whatsappUrl } = useWhatsApp()
   const [hovered, setHovered] = useState(false)
   const [tilt, setTilt] = useState({ rx: 0, ry: 0 })
   const hasImage = !!treatment.imageUrl
@@ -246,7 +249,7 @@ function PosterCard({
             </span>
             <div style={{ display: "flex", gap: "8px" }}>
               <a
-                href={WHATSAPP_TREATMENT_URL(treatment.name)}
+                href={`${whatsappUrl}?text=${encodeURIComponent(`Hola, me interesa el tratamiento de ${treatment.name}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => { e.stopPropagation(); trackWhatsAppClick("treatment-card", treatment.name) }}
@@ -264,7 +267,7 @@ function PosterCard({
   if (!isHome) {
     return (
       <m.div id={`treatment-${treatment.id}`} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.55, delay: index * 0.08 }}>
-        <Link href={`/tratamientos/${treatment.id}`} style={cardStyle} onMouseEnter={handleEnter} onMouseMove={handleMove} onMouseLeave={handleLeave} onClick={() => trackTreatmentClick({ id: treatment.id, name: treatment.name })}>
+        <Link href={`/tratamientos/${treatment.slug}`} style={cardStyle} onMouseEnter={handleEnter} onMouseMove={handleMove} onMouseLeave={handleLeave} onClick={() => trackTreatmentClick({ id: treatment.id, name: treatment.name })}>
           {inner}
         </Link>
       </m.div>
@@ -357,17 +360,6 @@ export function TreatmentsGrid({ treatments, isHome, pager, totalCount }: Treatm
 
         {pager}
 
-        <m.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mt-12"
-        >
-          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12" onClick={() => trackWhatsAppClick("treatments-grid-bottom")}>
-            AGENDA TU CONSULTA GRATUITA
-          </LinkButton>
-        </m.div>
       </div>
     </section>
   )

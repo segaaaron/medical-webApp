@@ -4,7 +4,7 @@ import { m } from "framer-motion"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { Badge } from "@/components/ui/Badge"
 import { LinkButton } from "@/components/ui/Button"
-import { WHATSAPP_URL } from "@/lib/constants"
+import { useWhatsApp } from "@/components/providers/WhatsAppProvider"
 import { trackWhatsAppClick } from "@/lib/analytics"
 import type { PresetCategory } from "@/types"
 
@@ -23,6 +23,7 @@ interface PresetsSectionProps {
 }
 
 export function PresetsSection({ presets }: PresetsSectionProps) {
+  const { url: whatsappUrl } = useWhatsApp()
 
   return (
     <section id="servicios" className="py-20 px-6" style={{ backgroundColor: "var(--primary-darker)" }}>
@@ -82,7 +83,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <LinkButton href={WHATSAPP_URL} variant="primary" className="px-12" onClick={() => trackWhatsAppClick("presets-section")}>
+          <LinkButton href={whatsappUrl} variant="primary" className="px-12" onClick={() => trackWhatsAppClick("presets-section")}>
             CONSULTAR TRATAMIENTO
           </LinkButton>
         </m.div>

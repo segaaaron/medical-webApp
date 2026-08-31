@@ -4,8 +4,9 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
-import { Check, User, Image as ImageIcon, Award, BarChart2, Star } from "lucide-react"
+import { User, Image as ImageIcon, Award, BarChart2, Star, Check } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
+import { SaveBar } from "@/components/dashboard/SaveBar"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { ImageDropzone } from "@/components/ui/ImageDropzone"
@@ -206,19 +207,11 @@ export default function AcercaDeDashboardPage() {
       <PageHeader
         title="Acerca de Nosotros"
         description="Edita el contenido de la sección About Us del sitio web."
-        saving={formik.isSubmitting}
-        saved={saved}
-        onSave={() => formik.submitForm()}
-        saveDisabled={!formik.isValid || formik.isSubmitting}
       />
 
       <div className="flex flex-col gap-6">
         {/* Hero / Banner */}
-        <EditorCard title="Hero / Presentación">
-          <div className="flex items-center gap-2 mb-4">
-            <User size={16} className="text-pink-500" />
-            <span className="text-sm text-gray-500">Información principal del doctor</span>
-          </div>
+        <EditorCard title="Hero / Presentación" icon={User} hint="Información principal del doctor">
           <div className="flex flex-col gap-4">
             <FormField label="Etiqueta de sección (ej: About Us)" htmlFor="sectionLabel">
               <input
@@ -257,11 +250,7 @@ export default function AcercaDeDashboardPage() {
         </EditorCard>
 
         {/* Imagen */}
-        <EditorCard title="Imagen del Doctor">
-          <div className="flex items-center gap-2 mb-4">
-            <ImageIcon size={16} className="text-blue-500" />
-            <span className="text-sm text-gray-500">Foto que aparece en la sección About Us</span>
-          </div>
+        <EditorCard title="Imagen del Doctor" icon={ImageIcon} hint="Foto que aparece en la sección About Us">
           <div className="flex flex-col gap-2">
             <ImageDropzone
               preview={imagePreview ?? ""}
@@ -273,11 +262,7 @@ export default function AcercaDeDashboardPage() {
         </EditorCard>
 
         {/* Galería de fotos */}
-        <EditorCard title="Galería de fotos (hasta 10)">
-          <div className="flex items-center gap-2 mb-4">
-            <ImageIcon size={16} className="text-blue-500" />
-            <span className="text-sm text-gray-500">Colage que aparece en la página Nosotros. Arrastra o selecciona cada foto.</span>
-          </div>
+        <EditorCard title="Galería de fotos (hasta 10)" icon={ImageIcon} hint="Colage que aparece en la página Nosotros. Arrastra o selecciona cada foto.">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {gallery.map((slot, i) => (
               <div key={i} className="flex flex-col gap-1">
@@ -296,11 +281,7 @@ export default function AcercaDeDashboardPage() {
         </EditorCard>
 
         {/* Badge de experiencia */}
-        <EditorCard title="Badge de Experiencia">
-          <div className="flex items-center gap-2 mb-4">
-            <Award size={16} className="text-amber-500" />
-            <span className="text-sm text-gray-500">Insignia que muestra años de experiencia</span>
-          </div>
+        <EditorCard title="Badge de Experiencia" icon={Award} hint="Insignia que muestra años de experiencia">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Valor (ej: 15+)" htmlFor="experienceBadgeValue">
               <input
@@ -322,11 +303,7 @@ export default function AcercaDeDashboardPage() {
         </EditorCard>
 
         {/* Estadísticas */}
-        <EditorCard title="Estadísticas">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart2 size={16} className="text-green-600" />
-            <span className="text-sm text-gray-500">Números destacados (pacientes, procedimientos, etc.)</span>
-          </div>
+        <EditorCard title="Estadísticas" icon={BarChart2} hint="Números destacados (pacientes, procedimientos, etc.)">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {([1, 2, 3] as const).map((n) => (
               <div key={n} className="flex flex-col gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50">
@@ -353,11 +330,7 @@ export default function AcercaDeDashboardPage() {
         </EditorCard>
 
         {/* Why Choose Us */}
-        <EditorCard title="Why Choose Us">
-          <div className="flex items-center gap-2 mb-4">
-            <Star size={16} className="text-rose-500" />
-            <span className="text-sm text-gray-500">Subsección de razones para elegir a la doctora</span>
-          </div>
+        <EditorCard title="Why Choose Us" icon={Star} hint="Subsección de razones para elegir a la doctora">
           <div className="flex flex-col gap-4">
             <FormField label="Etiqueta (ej: Why Choose Us)" htmlFor="whyChooseUsLabel">
               <input
@@ -388,11 +361,7 @@ export default function AcercaDeDashboardPage() {
         </EditorCard>
 
         {/* Features */}
-        <EditorCard title="Features (Tarjetas de características)">
-          <div className="flex items-center gap-2 mb-4">
-            <Check size={16} className="text-purple-500" />
-            <span className="text-sm text-gray-500">4 tarjetas con características destacadas</span>
-          </div>
+        <EditorCard title="Features (Tarjetas de características)" icon={Check} hint="4 tarjetas con características destacadas">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {([1, 2, 3, 4] as const).map((n) => (
               <div key={n} className="flex flex-col gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50">
@@ -419,18 +388,13 @@ export default function AcercaDeDashboardPage() {
           </div>
         </EditorCard>
 
-        {/* Save button bottom */}
-        <div className="flex justify-end pb-4">
-          <button
-            type="submit"
-            disabled={!formik.isValid || formik.isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
-            style={{ backgroundColor: "var(--vintage-gold)" }}
-          >
-            <Check size={15} />
-            {formik.isSubmitting ? "Guardando..." : "Guardar cambios"}
-          </button>
-        </div>
+        <SaveBar
+          dirty={formik.dirty}
+          saving={formik.isSubmitting}
+          saved={saved}
+          onSave={() => formik.submitForm()}
+          onReset={() => formik.resetForm()}
+        />
       </div>
     </form>
   )

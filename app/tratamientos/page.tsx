@@ -12,7 +12,9 @@ import type { Metadata } from "next"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
-const BASE_TITLE = "Tratamientos Estéticos Cochabamba — Botox, Rellenos & Más | Dra. Yasmin Medrano"
+// Sin marca: el template del layout añade "| Dra. Yasmin Medrano Avila".
+// Con el sufijo el title queda en 64 caracteres; Google corta cerca de 60.
+const BASE_TITLE = "Tratamientos Estéticos en Cochabamba"
 const BASE_DESCRIPTION =
   "Botox, rellenos, armonización facial, depilación láser y mesoterapia en Cochabamba. Especialista certificada en Bolivia. +5.000 pacientes. ¡Consulta GRATIS!"
 
@@ -51,7 +53,9 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     ],
     alternates: { canonical },
     openGraph: {
-      title: "Tratamientos Estéticos en Cochabamba — Botox, Rellenos & Rejuvenecimiento",
+      // Sin marca: el template del layout añade "| Dra. Yasmin Medrano Avila".
+      // Google corta el title a ~60 caracteres; con el sufijo esto queda en 64.
+      title: "Tratamientos Estéticos en Cochabamba",
       description:
         "✨ Los mejores tratamientos estéticos en Bolivia. Botox natural, rellenos ácido hialurónico, armonización facial, depilación láser y más. +5.000 pacientes satisfechos. ¡Consulta GRATIS ahora!",
       url: canonical,
@@ -76,6 +80,7 @@ interface SiteContentTreatmentsPage {
 
 interface BackendTreatment {
   id: string
+  slug: string
   name: string
   description: string | null
   price: number
@@ -195,7 +200,7 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
 
   const liveModules =
     allActive.length > 0
-      ? allActive.map((t) => ({ title: t.name, treatmentId: t.id }))
+      ? allActive.map((t) => ({ title: t.name, treatmentId: t.id, treatmentSlug: t.slug }))
       : c.courseModules
 
   return (

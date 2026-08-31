@@ -4,8 +4,9 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useState } from "react"
 import { useFormik } from "formik"
 import * as Yup from "yup"
-import { Check, Tag, Image as ImageIcon, MessageCircle, ToggleLeft, ToggleRight } from "lucide-react"
+import { Tag, Image as ImageIcon, MessageCircle, ToggleLeft, ToggleRight } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
+import { SaveBar } from "@/components/dashboard/SaveBar"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { ImageDropzone } from "@/components/ui/ImageDropzone"
@@ -135,19 +136,11 @@ export default function PromocionesPage() {
       <PageHeader
         title="Promociones"
         description="Edita el banner de promoción que aparece en el sitio web."
-        saving={formik.isSubmitting}
-        saved={saved}
-        onSave={() => formik.submitForm()}
-        saveDisabled={!formik.isValid || formik.isSubmitting}
       />
 
       <div className="flex flex-col gap-6">
         {/* Identificación */}
-        <EditorCard title="Nombre de la Promoción">
-          <div className="flex items-center gap-2 mb-4">
-            <Tag size={16} className="text-pink-500" />
-            <span className="text-sm text-gray-500">Etiqueta principal que identifica la promoción</span>
-          </div>
+        <EditorCard title="Nombre de la Promoción" icon={Tag} hint="Etiqueta principal que identifica la promoción">
           <div className="flex flex-col gap-4">
             <FormField label={<>Nombre / Etiqueta <span className="text-red-500">*</span></>} htmlFor="tag">
               <input
@@ -252,11 +245,7 @@ export default function PromocionesPage() {
         </EditorCard>
 
         {/* WhatsApp y cierre */}
-        <EditorCard title="Botones">
-          <div className="flex items-center gap-2 mb-4">
-            <MessageCircle size={16} className="text-green-500" />
-            <span className="text-sm text-gray-500">Configuración de los botones del banner</span>
-          </div>
+        <EditorCard title="Botones" icon={MessageCircle} hint="Configuración de los botones del banner">
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Texto botón WhatsApp" htmlFor="whatsappText">
@@ -288,11 +277,7 @@ export default function PromocionesPage() {
         </EditorCard>
 
         {/* Imagen */}
-        <EditorCard title="Imagen del Banner">
-          <div className="flex items-center gap-2 mb-4">
-            <ImageIcon size={16} className="text-blue-500" />
-            <span className="text-sm text-gray-500">Imagen que acompaña la promoción (opcional)</span>
-          </div>
+        <EditorCard title="Imagen del Banner" icon={ImageIcon} hint="Imagen que acompaña la promoción (opcional)">
           <div className="flex flex-col gap-2">
             <ImageDropzone
               preview={imagePreview ?? ""}
@@ -307,18 +292,13 @@ export default function PromocionesPage() {
           </div>
         </EditorCard>
 
-        {/* Save bottom */}
-        <div className="flex justify-end pb-4">
-          <button
-            type="submit"
-            disabled={!formik.isValid || formik.isSubmitting}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
-            style={{ backgroundColor: "var(--vintage-gold)" }}
-          >
-            <Check size={15} />
-            {formik.isSubmitting ? "Guardando..." : "Guardar promoción"}
-          </button>
-        </div>
+        <SaveBar
+          dirty={formik.dirty}
+          saving={formik.isSubmitting}
+          saved={saved}
+          onSave={() => formik.submitForm()}
+          onReset={() => formik.resetForm()}
+        />
       </div>
     </form>
   )

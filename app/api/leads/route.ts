@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
-import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
-import { insertLead, listLeads } from "@/lib/store/leads-store"
+import { backendFetch } from "@/lib/backend-client"
+import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 import { logger } from "@/lib/logger"
 
 async function getSession() {
@@ -12,7 +12,7 @@ async function getSession() {
   return verifyToken(token)
 }
 
-const MAX = { name: 120, phone: 32, treatment: 120, message: 1000, source: 40 }
+const MAX = { name: 120, phone: 30, treatment: 150, message: 2000, source: 60 }
 
 function cleanField(value: unknown, max: number): string | null {
   if (typeof value !== "string") return null
@@ -21,7 +21,15 @@ function cleanField(value: unknown, max: number): string | null {
   return trimmed.slice(0, max)
 }
 
-// POST /api/leads — public: persist a contact-form lead before WhatsApp redirect
+/**
+ * POST /api/leads — público: guarda el contacto del formulario antes de saltar
+ * a WhatsApp.
+ *
+ * Antes esto escribía en Postgres directamente con `pg`, contra una tabla que
+ * el propio frontend intentaba crear al vuelo. El contenedor web nunca tuvo
+ * `DATABASE_URL`, así que la escritura fallaba siempre y cada contacto quedaba
+ * únicamente en un log. Ahora va al backend, que es el dueño de la base.
+ */
 export async function POST(req: NextRequest) {
   const csrfErr = checkCsrfOrigin(req)
   if (csrfErr) return csrfErr
@@ -35,7 +43,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 })
   }
 
-  // Honeypot: hidden field real users never fill. Pretend success for bots.
+  // Honeypot: campo oculto que una persona real nunca rellena. Al bot se le
+  // responde que todo fue bien para que no reintente.
   if (typeof body.website === "string" && body.website.trim() !== "") {
     return NextResponse.json({ ok: true })
   }
@@ -45,7 +54,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "El nombre es requerido." }, { status: 400 })
   }
 
-  // Preferred appointment date — accept only YYYY-MM-DD
+  // Fecha preferida — solo YYYY-MM-DD
   const rawDate = cleanField(body.preferredDate, 10)
   const preferredDate = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : null
 
@@ -58,32 +67,31 @@ export async function POST(req: NextRequest) {
     source: cleanField(body.source, MAX.source) ?? "contact-form",
   }
 
-  try {
-    const id = await insertLead(lead)
-    logger.info("lead.created", { detail: `id=${id} source=${lead.source}` })
-    return NextResponse.json({ ok: true, id })
-  } catch (err) {
-    // DB down must not break the WhatsApp flow — log the lead so it is recoverable
+  const { data, error } = await backendFetch<{ id: string }>("/leads", { method: "POST", body: lead })
+
+  if (error) {
+    // Que el backend falle no puede romper el salto a WhatsApp: la conversación
+    // con la paciente vale más que el registro. Se deja trazado para recuperarlo.
     logger.error("lead.store_failed", {
-      detail: `${lead.name} | ${lead.phone ?? "-"} | ${lead.treatment ?? "-"} | ${err instanceof Error ? err.message : String(err)}`,
+      detail: `${lead.name} | ${lead.phone ?? "-"} | ${lead.treatment ?? "-"} | ${error}`,
     })
     return NextResponse.json({ ok: true, stored: false })
   }
+
+  logger.info("lead.created", { detail: `id=${data?.id} source=${lead.source}` })
+  return NextResponse.json({ ok: true, id: data?.id })
 }
 
-// GET /api/leads — admin only: latest leads for the dashboard
+/** GET /api/leads — solo ADMIN: últimos contactos para el panel. */
 export async function GET(req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const limitParam = Number(req.nextUrl.searchParams.get("limit") ?? "100")
-  const limit = Number.isFinite(limitParam) ? limitParam : 100
+  const limit = Number.isFinite(limitParam) ? Math.min(Math.max(limitParam, 1), 500) : 100
 
-  try {
-    const leads = await listLeads(limit)
-    return NextResponse.json({ leads })
-  } catch (err) {
-    logger.error("lead.list_failed", { detail: err instanceof Error ? err.message : String(err) })
-    return NextResponse.json({ error: "No se pudieron obtener los leads." }, { status: 500 })
-  }
+  const { data, error, status } = await backendFetch<unknown[]>(`/leads?limit=${limit}`, { auth: true })
+  if (error) return proxyError(error, status)
+
+  return NextResponse.json({ leads: Array.isArray(data) ? data : [] })
 }

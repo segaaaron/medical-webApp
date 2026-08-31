@@ -7,18 +7,19 @@ export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
 
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }
 
 export default async function Image({ params }: Props) {
-  const { id } = await params
+  const { slug } = await params
 
   let name = "Tratamiento"
   let tag: string | null = null
   try {
-    const { data } = await backendFetch<{ name?: string; tag?: string | null }>(`/treatments/${id}`)
-    if (data?.name) name = data.name
-    if (data?.tag) tag = data.tag
+    const { data } = await backendFetch<{ name?: string; tag?: string | null; slug?: string }[]>("/treatments?active=true")
+    const found = Array.isArray(data) ? data.find((t) => t.slug === slug) : null
+    if (found?.name) name = found.name
+    if (found?.tag) tag = found.tag
   } catch {
     // fallback to generic name
   }

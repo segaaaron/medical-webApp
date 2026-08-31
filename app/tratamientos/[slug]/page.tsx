@@ -1,4 +1,5 @@
 import DOMPurify from "isomorphic-dompurify"
+import { permanentRedirect } from "next/navigation"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
@@ -9,7 +10,7 @@ import { ArrowLeft, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { WHATSAPP_TREATMENT_URL } from "@/lib/constants"
+import { getWhatsAppConfig } from "@/lib/data/whatsapp"
 import { TreatmentPageTracker } from "@/components/analytics/TreatmentPageTracker"
 import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
@@ -22,7 +23,9 @@ export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin 
 export async function generateStaticParams() {
   try {
     const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 3600 })
-    return extractList<BackendTreatment>(data).map((t) => ({ id: t.id }))
+    return extractList<BackendTreatment>(data)
+      .filter((t) => t.slug)
+      .map((t) => ({ slug: t.slug }))
   } catch {
     return []
   }
@@ -32,6 +35,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 interface BackendTreatment {
   id: string
+  slug: string
   name: string
   description: string | null
   price: number
@@ -45,8 +49,37 @@ interface BackendTreatment {
   active: boolean
 }
 
-async function getTreatment(id: string): Promise<BackendTreatment | null> {
-  const { data, error } = await backendFetch<BackendTreatment>(`/treatments/${id}`, { revalidate: 300 })
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Resuelve un tratamiento por su slug.
+ *
+ * Las URLs eran `/tratamientos/<uuid>`: sin una sola palabra clave, ilegibles
+ * al compartirse por WhatsApp y sin valor para buscar "botox cochabamba". El
+ * modelo ya tiene `slug` único, así que la dirección pública ahora lo usa.
+ *
+ * `/treatments?active=true` sin `page` devuelve la lista completa (contrato del
+ * backend), así que el slug se resuelve sin endpoint nuevo. Si llega un UUID
+ * —enlaces antiguos ya indexados— se responde con un 301 al slug, que es lo que
+ * conserva el posicionamiento ganado.
+ */
+async function findBySlug(slug: string): Promise<BackendTreatment | null> {
+  const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 })
+  const list = extractList<BackendTreatment>(data)
+  const bySlug = list.find((t) => t.slug === slug)
+  if (bySlug) return bySlug
+
+  if (UUID_RE.test(slug)) {
+    const byId = list.find((t) => t.id === slug)
+    if (byId?.slug) permanentRedirect(`/tratamientos/${byId.slug}`)
+  }
+  return null
+}
+
+async function getTreatment(slug: string): Promise<BackendTreatment | null> {
+  const found = await findBySlug(slug)
+  if (!found) return null
+  const { data, error } = await backendFetch<BackendTreatment>(`/treatments/${found.id}`, { revalidate: 300 })
   if (error || !data) return null
   const before = (data.beforeImageUrl ?? data.before_image_url) as string | null
   const after = (data.afterImageUrl ?? data.after_image_url) as string | null
@@ -59,19 +92,21 @@ async function getTreatment(id: string): Promise<BackendTreatment | null> {
 }
 
 interface Props {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params
-  const treatment = await getTreatment(id)
+  const { slug } = await params
+  const treatment = await getTreatment(slug)
   if (!treatment) return {}
   const description = treatment.description
     ? treatment.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
     : `Conoce más sobre ${treatment.name} en el consultorio de la Dra. Yasmin Medrano Avila.`
 
   return {
-    title: `${treatment.name} | Dra. Yasmin Medrano Avila`,
+    // Sin sufijo de marca: el template del layout ya añade "| Dra. Yasmin
+    // Medrano Avila" y el título salía con el nombre repetido dos veces.
+    title: `${treatment.name} en Cochabamba`,
     description,
     keywords: [
       treatment.name,
@@ -82,11 +117,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       "Dra. Yasmin Medrano Avila",
       "consulta gratis medicina estética",
     ],
-    alternates: { canonical: `${BASE_URL}/tratamientos/${id}` },
+    alternates: { canonical: `${BASE_URL}/tratamientos/${slug}` },
     openGraph: {
       title: `${treatment.name} en Cochabamba | Dra. Yasmin Medrano Avila`,
       description,
-      url: `${BASE_URL}/tratamientos/${id}`,
+      url: `${BASE_URL}/tratamientos/${slug}`,
       type: "website",
       images: treatment.imageUrl ? [{ url: treatment.imageUrl, width: 1200, height: 630, alt: `${treatment.name} — Dra. Yasmin Medrano Avila Cochabamba` }] : [],
       locale: "es_BO",
@@ -95,11 +130,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function TratamientoDetallePage({ params }: Props) {
-  const { id } = await params
-  const [treatment, footerData, c] = await Promise.all([
-    getTreatment(id),
+  const { slug } = await params
+  const [treatment, footerData, c, whatsapp] = await Promise.all([
+    getTreatment(slug),
     getFooterData(),
     readContent(),
+    getWhatsAppConfig(),
   ])
 
   if (!treatment || !treatment.active) notFound()
@@ -156,7 +192,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
     "@type": "MedicalProcedure",
     name: treatment.name,
     description: (treatment.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300),
-    url: `${BASE_URL}/tratamientos/${id}`,
+    url: `${BASE_URL}/tratamientos/${slug}`,
     ...(procedureImages.length ? { image: procedureImages } : {}),
     provider: {
       "@type": "Physician",
@@ -175,7 +211,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
     <>
       <Navbar links={navLinks} />
       <main style={{ backgroundColor: "#F8F0E3", minHeight: "100vh" }}>
-        <TreatmentPageTracker id={id} name={treatment.name} />
+        <TreatmentPageTracker id={treatment.id} name={treatment.name} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
@@ -323,7 +359,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 </p>
               )}
               <TrackWhatsAppLink
-                href={WHATSAPP_TREATMENT_URL(treatment.name)}
+                href={`${whatsapp.url}?text=${encodeURIComponent(`Hola, me interesa el tratamiento de ${treatment.name}`)}`}
                 source="treatment-detail-cta"
                 treatment={treatment.name}
                 className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-sm font-bold text-white transition-all hover:brightness-110"

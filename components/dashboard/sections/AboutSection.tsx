@@ -48,7 +48,7 @@ export function AboutSection({ data, setData }: SectionProps) {
       ))}
       <button
         onClick={addParagraph}
-        className="flex items-center gap-2 text-sm text-purple-500 hover:text-purple-700 transition-colors"
+        className="flex items-center gap-2 dash-link-action text-sm transition-colors"
       >
         <Plus size={15} />
         Anadir parrafo

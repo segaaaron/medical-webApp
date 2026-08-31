@@ -96,7 +96,7 @@ export function FooterSection({ data, setData }: SectionProps) {
           ))}
           <button
             onClick={() => addLink(gi)}
-            className="flex items-center gap-2 text-sm text-purple-500 hover:text-purple-700 transition-colors"
+            className="flex items-center gap-2 dash-link-action text-sm transition-colors"
           >
             <Plus size={15} />
             Anadir enlace
@@ -105,7 +105,7 @@ export function FooterSection({ data, setData }: SectionProps) {
       ))}
       <button
         onClick={addGroup}
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed text-sm dash-dashed-add transition-colors"
       >
         <Plus size={16} />
         Anadir grupo

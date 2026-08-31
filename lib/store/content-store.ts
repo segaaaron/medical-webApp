@@ -1,8 +1,7 @@
 // Node.js only — runs in Server Components and API routes, never in Edge/browser.
 
-import { unstable_cache, revalidateTag } from "next/cache"
 import type { ContentStore, ContentOverride } from "@/types/content"
-import { getPool } from "@/lib/db"
+import { backendFetch } from "@/lib/backend-client"
 
 // Default data (compiled from lib/data/*)
 import { promoBanner, heroStats, heroCTAs, valueFeatures, aboutStats, freePDFs } from "@/lib/data/homepage"
@@ -113,55 +112,34 @@ export const DEFAULTS: ContentStore = {
   },
 }
 
-const CONTENT_CACHE_TAG = "site-content"
-
-async function _readContentFromDB(): Promise<ContentStore> {
-  try {
-    const pool = getPool()
-    const result = await pool.query(
-      "SELECT value FROM site_content WHERE key = $1",
-      [CONTENT_KEY]
-    )
-    if (result.rows.length === 0) return DEFAULTS
-    const override: ContentOverride = result.rows[0].value
-    return { ...DEFAULTS, ...override } as ContentStore
-  } catch {
-    return DEFAULTS
-  }
+/**
+ * Contenido editable del sitio (FAQs, enlaces de navegación, presets, textos
+ * del curso…), leído del backend.
+ *
+ * Antes esto consultaba Postgres directamente desde el frontend con `pg`:
+ *
+ *   SELECT value FROM site_content WHERE key = 'main'
+ *
+ * La tabla que crea Prisma se llama `"SiteContent"` (PascalCase), así que
+ * Postgres —que sin comillas busca en minúsculas— respondía
+ * `relation "site_content" does not exist`. El error caía en un `catch` vacío
+ * y la función devolvía DEFAULTS: el sitio llevaba sirviendo los valores del
+ * código e ignorando lo que la doctora había guardado, sin ningún aviso.
+ * Encima el contenedor web ni siquiera tiene `DATABASE_URL` (`/api/health`
+ * responde `{"db":"error"}`), así que aquella consulta nunca podría funcionar.
+ *
+ * La base es del backend; el frontend la consume por su API, igual que todo
+ * lo demás. Cacheado 60s por `backendFetch`.
+ */
+async function fetchContent(): Promise<ContentStore> {
+  const { data, error } = await backendFetch<{ value?: ContentOverride }>(
+    `/site-content/${CONTENT_KEY}`,
+    { revalidate: 60 }
+  )
+  if (error || !data?.value) return DEFAULTS
+  return { ...DEFAULTS, ...data.value }
 }
 
-/**
- * Reads site content from DB with a 60-second Next.js cache.
- * Works across all server processes — unlike in-memory caches.
- * Call revalidateTag("site-content") to bust the cache immediately after writes.
- */
-export const readContent = unstable_cache(
-  _readContentFromDB,
-  [CONTENT_CACHE_TAG],
-  { revalidate: 60, tags: [CONTENT_CACHE_TAG] }
-)
-
-export async function writeContent(override: ContentOverride): Promise<void> {
-  const pool = getPool()
-
-  // Lee el override existente y mergea encima
-  let existing: ContentOverride = {}
-  try {
-    const result = await pool.query(
-      "SELECT value FROM site_content WHERE key = $1",
-      [CONTENT_KEY]
-    )
-    if (result.rows.length > 0) existing = result.rows[0].value
-  } catch { /* ignore */ }
-
-  const merged = { ...existing, ...override }
-
-  await pool.query(
-    `INSERT INTO site_content (key, value, updated_at)
-     VALUES ($1, $2, now())
-     ON CONFLICT (key) DO UPDATE
-       SET value = $2, updated_at = now()`,
-    [CONTENT_KEY, JSON.stringify(merged)]
-  )
-  revalidateTag(CONTENT_CACHE_TAG, "max")
+export async function readContent(): Promise<ContentStore> {
+  return fetchContent()
 }

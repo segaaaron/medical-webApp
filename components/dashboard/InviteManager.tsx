@@ -1,21 +1,35 @@
 "use client"
 
 import { guardedFetch } from "@/lib/client-fetch"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   UserPlus,
   Copy,
   CheckCheck,
   RefreshCw,
   X,
-  Clock,
   Ban,
   MessageCircle,
   Link2,
+  ChevronDown,
+  Mail,
+  Phone,
 } from "lucide-react"
+import { StatusPill, type StatusTone } from "./ui/StatusPill"
+import { InitialsAvatar } from "./ui/InitialsAvatar"
+import { StatTile } from "./ui/StatTile"
+import { FilterTabs, type FilterOption } from "./ui/FilterTabs"
+import { SearchField } from "./ui/SearchField"
+import { EmptyState } from "./ui/EmptyState"
+import { useConfirm } from "./ConfirmDialog"
 
 const INPUT_CLS =
-  "w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-700 outline-none transition-colors focus:border-[var(--vintage-gold)]"
+  "w-full h-11 px-3 text-sm rounded-xl border bg-white outline-none transition-colors focus:border-[var(--vintage-gold)]"
+
+const INPUT_STYLE = { borderColor: "var(--prem-border)", color: "var(--prem-fg)" } as const
+
+/** Rows rendered before the "ver más" cut — keeps the page scannable. */
+const PAGE_SIZE = 8
 
 interface Invite {
   id: string
@@ -40,19 +54,11 @@ interface CreatedInvite {
   expires_at: string
 }
 
-const FILTERS: { label: string; value: string }[] = [
-  { label: "Todas", value: "" },
-  { label: "Pendientes", value: "pending" },
-  { label: "Usadas", value: "used" },
-  { label: "Expiradas", value: "expired" },
-  { label: "Revocadas", value: "revoked" },
-]
-
-const STATUS_CONFIG: Record<Invite["status"], { label: string; cls: string }> = {
-  pending: { label: "Pendiente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  used: { label: "Usada", cls: "bg-green-50 text-green-700 border-green-200" },
-  expired: { label: "Expirada", cls: "bg-gray-100 text-gray-500 border-gray-200" },
-  revoked: { label: "Revocada", cls: "bg-red-50 text-red-600 border-red-200" },
+const STATUS_CONFIG: Record<Invite["status"], { label: string; tone: StatusTone }> = {
+  pending: { label: "Pendiente", tone: "pending" },
+  used: { label: "Usada", tone: "success" },
+  expired: { label: "Expirada", tone: "neutral" },
+  revoked: { label: "Revocada", tone: "danger" },
 }
 
 function formatDate(iso: string) {
@@ -79,8 +85,13 @@ function inviteUrl(token: string) {
 const WHATSAPP_MSG =
   "¡Hola! La Dra. Yasmin Medrano te invita a compartir tu experiencia. Deja tu reseña aquí:"
 
+function whatsappHref(url: string) {
+  return `https://wa.me/?text=${encodeURIComponent(`${WHATSAPP_MSG} ${url}`)}`
+}
+
 export function InviteManager() {
   // ── Create form ──────────────────────────────────────────────────────────
+  const [formOpen, setFormOpen] = useState(false)
   const [name, setName] = useState("")
   const [lastname, setLastname] = useState("")
   const [email, setEmail] = useState("")
@@ -95,26 +106,33 @@ export function InviteManager() {
   const [loading, setLoading] = useState(true)
   const [listError, setListError] = useState("")
   const [filter, setFilter] = useState("")
+  const [query, setQuery] = useState("")
+  const [limit, setLimit] = useState(PAGE_SIZE)
   const [actionId, setActionId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const confirm = useConfirm()
 
-  async function load(status = filter) {
+  /**
+   * Loads every invite once. Status filtering and search run client-side so the
+   * segmented control can show live counts and respond without a round-trip.
+   */
+  async function load() {
     abortRef.current?.abort()
     const ctrl = new AbortController()
     abortRef.current = ctrl
     setLoading(true)
     setListError("")
-    const url = status ? `/api/reviews/invites?status=${status}` : "/api/reviews/invites"
     try {
-      const res = await guardedFetch(url, { signal: ctrl.signal })
+      const res = await guardedFetch("/api/reviews/invites", { signal: ctrl.signal })
       // A newer load() superseded this one — drop its result silently.
       if (abortRef.current !== ctrl) return
       if (res.ok) {
         const data = await res.json()
         const list = Array.isArray(data) ? data : data?.invites ?? data?.data ?? []
         setInvites(list)
+        setFormOpen((open) => open || list.length === 0)
       } else {
         setListError("No se pudieron cargar las invitaciones.")
       }
@@ -133,7 +151,7 @@ export function InviteManager() {
     return () => {
       if (copyTimer.current) clearTimeout(copyTimer.current)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -176,7 +194,8 @@ export function InviteManager() {
       // Reset al filtro "Todas" para que la nueva invitación pending sea visible
       // aunque el filtro activo fuese used/expired/revoked.
       setFilter("")
-      await load("")
+      setQuery("")
+      await load()
     } catch {
       setCreateError("Error de conexión al crear la invitación.")
     } finally {
@@ -213,7 +232,12 @@ export function InviteManager() {
   }
 
   async function handleRevoke(id: string) {
-    if (!confirm("¿Revocar esta invitación? El link dejará de funcionar.")) return
+    const ok = await confirm({
+      title: "¿Revocar invitación?",
+      description: "El link dejará de funcionar y la paciente no podrá dejar su reseña con él.",
+      confirmLabel: "Revocar invitación",
+    })
+    if (!ok) return
     setActionId(id)
     setListError("")
     try {
@@ -230,274 +254,353 @@ export function InviteManager() {
     }
   }
 
+  const counts = useMemo(() => {
+    const acc = { pending: 0, used: 0, expired: 0, revoked: 0 }
+    for (const i of invites) acc[i.status] += 1
+    return acc
+  }, [invites])
+
+  const filters: FilterOption[] = [
+    { label: "Todas", value: "", count: invites.length },
+    { label: "Pendientes", value: "pending", count: counts.pending },
+    { label: "Usadas", value: "used", count: counts.used },
+    { label: "Expiradas", value: "expired", count: counts.expired },
+    { label: "Revocadas", value: "revoked", count: counts.revoked },
+  ]
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return invites.filter((i) => {
+      if (filter && i.status !== filter) return false
+      if (!q) return true
+      return [i.patient_name, i.patient_lastname, i.email, i.phone]
+        .filter(Boolean)
+        .some((field) => String(field).toLowerCase().includes(q))
+    })
+  }, [invites, filter, query])
+
+  const conversion = invites.length ? Math.round((counts.used / invites.length) * 100) : 0
   const newUrl = created ? inviteUrl(created.token) : ""
-  const waHref = created
-    ? `https://wa.me/?text=${encodeURIComponent(`${WHATSAPP_MSG} ${newUrl}`)}`
-    : "#"
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* ── Create card ──────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
-        <div className="flex items-center gap-2 mb-1">
-          <UserPlus size={15} style={{ color: "var(--vintage-gold)" }} />
-          <span className="text-sm font-semibold text-gray-700">Crear invitación</span>
-        </div>
-        <p className="text-xs text-gray-400 mb-4">
-          Genera un link único para que un paciente deje su reseña.
-        </p>
+    <section className="flex flex-col gap-4" aria-label="Invitaciones a reseñar">
+      {/* ── Metrics ──────────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-3">
+        <StatTile label="Pendientes" value={counts.pending} hint="links sin usar" accent={counts.pending > 0} />
+        <StatTile label="Usadas" value={counts.used} hint="dejaron reseña" />
+        <StatTile label="Conversión" value={`${conversion}%`} hint="usadas / enviadas" />
+      </div>
 
-        <form onSubmit={handleCreate} className="flex flex-col gap-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="inv-name" className="block text-xs font-medium text-gray-500 mb-1">
-                Nombre <span style={{ color: "var(--vintage-gold)" }}>*</span>
-              </label>
-              <input
-                id="inv-name"
-                type="text"
-                value={name}
-                maxLength={100}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="María José"
-                autoComplete="off"
-                className={INPUT_CLS}
-              />
-            </div>
-            <div>
-              <label htmlFor="inv-lastname" className="block text-xs font-medium text-gray-500 mb-1">
-                Apellido <span style={{ color: "var(--vintage-gold)" }}>*</span>
-              </label>
-              <input
-                id="inv-lastname"
-                type="text"
-                value={lastname}
-                maxLength={100}
-                onChange={(e) => setLastname(e.target.value)}
-                placeholder="Rivera"
-                autoComplete="off"
-                className={INPUT_CLS}
-              />
-            </div>
-            <div>
-              <label htmlFor="inv-email" className="block text-xs font-medium text-gray-500 mb-1">
-                Email
-              </label>
-              <input
-                id="inv-email"
-                type="email"
-                value={email}
-                maxLength={150}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="paciente@email.com"
-                autoComplete="off"
-                className={INPUT_CLS}
-              />
-            </div>
-            <div>
-              <label htmlFor="inv-phone" className="block text-xs font-medium text-gray-500 mb-1">
-                Teléfono
-              </label>
-              <input
-                id="inv-phone"
-                type="tel"
-                value={phone}
-                maxLength={20}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+591 70000000"
-                autoComplete="off"
-                className={INPUT_CLS}
-              />
-            </div>
-          </div>
+      {/* ── Create panel (progressive disclosure) ────────────────────────── */}
+      <div
+        className="rounded-2xl border overflow-hidden"
+        style={{ backgroundColor: "var(--prem-surface)", borderColor: "var(--prem-border)" }}
+      >
+        <button
+          type="button"
+          onClick={() => setFormOpen((v) => !v)}
+          aria-expanded={formOpen}
+          aria-controls="invite-create-panel"
+          className="w-full flex items-center gap-2.5 px-5 py-4 text-left transition-colors"
+        >
+          <UserPlus size={16} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
+          <span className="flex-1 min-w-0">
+            <span className="block text-sm font-semibold" style={{ color: "var(--prem-fg)" }}>
+              Nueva invitación
+            </span>
+            <span className="block text-xs mt-0.5" style={{ color: "var(--prem-muted)" }}>
+              Genera un link único para que un paciente deje su reseña.
+            </span>
+          </span>
+          <ChevronDown
+            size={18}
+            aria-hidden="true"
+            className="transition-transform duration-200 flex-shrink-0"
+            style={{ color: "var(--prem-muted)", transform: formOpen ? "rotate(180deg)" : "none" }}
+          />
+        </button>
 
-          {createError && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600">
-              <X size={13} />
-              {createError}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={creating}
-            className="self-start flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-medium text-white transition-opacity disabled:opacity-60"
-            style={{ backgroundColor: "var(--vintage-gold)" }}
-          >
-            {creating ? <RefreshCw size={14} className="animate-spin" /> : <Link2 size={14} />}
-            {creating ? "Creando..." : "Crear link"}
-          </button>
-        </form>
-
-        {/* Created result */}
-        {created && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-500 mb-2">
-              Link para <span className="font-semibold text-gray-700">{created.patient_name} {created.patient_lastname}</span>:
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                readOnly
-                value={newUrl}
-                aria-label="Enlace de invitación generado"
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 bg-gray-50 text-gray-600 outline-none select-all"
-                onFocus={(e) => e.target.select()}
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleCopyNew}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: copiedNew ? "#dcfce7" : "var(--vintage-gold)",
-                    color: copiedNew ? "#16a34a" : "white",
-                  }}
-                >
-                  {copiedNew ? <CheckCheck size={14} /> : <Copy size={14} />}
-                  {copiedNew ? "Copiado" : "Copiar"}
-                </button>
-                <a
-                  href={waHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: "#25D366" }}
-                >
-                  <MessageCircle size={14} />
-                  WhatsApp
-                </a>
+        {formOpen && (
+          <div id="invite-create-panel" className="px-5 pb-5 pt-1">
+            <form onSubmit={handleCreate} className="flex flex-col gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="inv-name" className="block text-xs font-medium mb-1.5" style={{ color: "var(--prem-muted)" }}>
+                    Nombre <span style={{ color: "var(--vintage-gold)" }}>*</span>
+                  </label>
+                  <input
+                    id="inv-name"
+                    type="text"
+                    value={name}
+                    maxLength={100}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="María José"
+                    autoComplete="given-name"
+                    className={INPUT_CLS}
+                    style={INPUT_STYLE}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="inv-lastname" className="block text-xs font-medium mb-1.5" style={{ color: "var(--prem-muted)" }}>
+                    Apellido <span style={{ color: "var(--vintage-gold)" }}>*</span>
+                  </label>
+                  <input
+                    id="inv-lastname"
+                    type="text"
+                    value={lastname}
+                    maxLength={100}
+                    onChange={(e) => setLastname(e.target.value)}
+                    placeholder="Rivera"
+                    autoComplete="family-name"
+                    className={INPUT_CLS}
+                    style={INPUT_STYLE}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="inv-email" className="block text-xs font-medium mb-1.5" style={{ color: "var(--prem-muted)" }}>
+                    Email <span style={{ color: "var(--prem-muted)" }}>(opcional)</span>
+                  </label>
+                  <input
+                    id="inv-email"
+                    type="email"
+                    inputMode="email"
+                    value={email}
+                    maxLength={150}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="paciente@email.com"
+                    autoComplete="email"
+                    className={INPUT_CLS}
+                    style={INPUT_STYLE}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="inv-phone" className="block text-xs font-medium mb-1.5" style={{ color: "var(--prem-muted)" }}>
+                    Teléfono <span style={{ color: "var(--prem-muted)" }}>(opcional)</span>
+                  </label>
+                  <input
+                    id="inv-phone"
+                    type="tel"
+                    inputMode="tel"
+                    value={phone}
+                    maxLength={20}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+591 70000000"
+                    autoComplete="tel"
+                    className={INPUT_CLS}
+                    style={INPUT_STYLE}
+                  />
+                </div>
               </div>
-            </div>
+
+              {createError && (
+                <p role="alert" className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style={{ backgroundColor: "rgba(224,90,122,0.08)", color: "#b03f5c" }}>
+                  <X size={13} aria-hidden="true" />
+                  {createError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={creating}
+                className="self-start flex items-center gap-2 h-11 px-5 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+                style={{ backgroundColor: "var(--vintage-gold)" }}
+              >
+                {/* Loading feedback lives in the global overlay — the button only locks. */}
+                <Link2 size={15} aria-hidden="true" />
+                Generar link
+              </button>
+            </form>
+
+            {/* Created result */}
+            {created && (
+              <div
+                className="mt-4 pt-4 border-t"
+                style={{ borderColor: "var(--prem-border)" }}
+              >
+                <p className="text-xs mb-2" style={{ color: "var(--prem-muted)" }}>
+                  Link para{" "}
+                  <span className="font-semibold" style={{ color: "var(--prem-fg)" }}>
+                    {created.patient_name} {created.patient_lastname}
+                  </span>
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    readOnly
+                    value={newUrl}
+                    aria-label="Enlace de invitación generado"
+                    className="flex-1 h-11 px-3 text-sm rounded-xl border outline-none select-all"
+                    style={{ backgroundColor: "var(--vintage-parchment)", borderColor: "var(--prem-border)", color: "var(--prem-muted)" }}
+                    onFocus={(e) => e.target.select()}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCopyNew}
+                      className="flex items-center gap-1.5 h-11 px-4 rounded-xl text-sm font-semibold transition-colors"
+                      style={{
+                        backgroundColor: copiedNew ? "rgba(74,158,130,0.14)" : "var(--vintage-gold)",
+                        color: copiedNew ? "#2f7563" : "white",
+                      }}
+                    >
+                      {copiedNew ? <CheckCheck size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
+                      {copiedNew ? "Copiado" : "Copiar"}
+                    </button>
+                    <a
+                      href={whatsappHref(newUrl)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 h-11 px-4 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                      style={{ backgroundColor: "#25D366" }}
+                    >
+                      <MessageCircle size={15} aria-hidden="true" />
+                      WhatsApp
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* ── Invites list ─────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2 items-center">
-        {FILTERS.map(({ label, value }) => (
-          <button
-            key={value}
-            onClick={() => {
-              setFilter(value)
-              load(value)
-            }}
-            aria-pressed={filter === value}
-            className="px-4 py-1.5 rounded-full text-sm font-medium border transition-colors"
-            style={{
-              backgroundColor: filter === value ? "var(--vintage-gold)" : "transparent",
-              color: filter === value ? "white" : "#6b7280",
-              borderColor: filter === value ? "var(--vintage-gold)" : "#e5e7eb",
-            }}
-          >
-            {label}
-          </button>
-        ))}
+      {/* ── Toolbar ──────────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-3">
+        <FilterTabs options={filters} value={filter} onChange={(v) => { setFilter(v); setLimit(PAGE_SIZE) }} ariaLabel="Filtrar invitaciones" />
+        <SearchField id="invite-search" value={query} onChange={(v) => { setQuery(v); setLimit(PAGE_SIZE) }} placeholder="Buscar paciente…" />
         <button
           onClick={() => load()}
-          className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-600 transition-colors border border-transparent hover:border-gray-200"
-          title="Recargar"
+          aria-label="Recargar invitaciones"
+          className="ml-auto flex items-center gap-1.5 h-10 px-3 rounded-xl text-xs font-medium border transition-colors"
+          style={{ color: "var(--prem-muted)", borderColor: "var(--prem-border)", backgroundColor: "var(--prem-surface)" }}
         >
-          <RefreshCw size={13} />
+          <RefreshCw size={13} aria-hidden="true" />
           Recargar
         </button>
       </div>
 
       {listError && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-600">
-          <X size={14} />
+        <p role="alert" className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm" style={{ backgroundColor: "rgba(224,90,122,0.08)", color: "#b03f5c" }}>
+          <X size={14} aria-hidden="true" />
           {listError}
-        </div>
+        </p>
       )}
 
       {loading && (
-        <div className="flex items-center gap-2 py-10 justify-center text-sm text-gray-400">
-          <RefreshCw size={15} className="animate-spin" />
-          Cargando invitaciones...
+        <div className="flex flex-col gap-2" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-[68px] rounded-xl img-shimmer" />
+          ))}
         </div>
       )}
 
-      {!loading && !listError && invites.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
-          <Link2 size={28} className="mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No hay invitaciones{filter ? " con este filtro" : ""}.</p>
-        </div>
+      {!loading && !listError && visible.length === 0 && (
+        <EmptyState
+          icon={Link2}
+          title={invites.length === 0 ? "Aún no hay invitaciones" : "Sin resultados"}
+          hint={
+            invites.length === 0
+              ? "Genera un link y compártelo por WhatsApp para pedir la primera reseña."
+              : "Prueba con otro filtro o cambia el término de búsqueda."
+          }
+        />
       )}
 
-      {!loading && invites.length > 0 && (
-        <div className="flex flex-col gap-2">
-          {invites.map((invite) => {
-            const cfg = STATUS_CONFIG[invite.status]
-            const busy = actionId === invite.id
-            const isPending = invite.status === "pending"
-            return (
-              <div
-                key={invite.id}
-                className="bg-white rounded-xl border border-gray-100 p-4 flex items-start justify-between gap-3 flex-wrap shadow-sm"
-              >
-                <div className="flex flex-col gap-1.5 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm text-gray-800">
-                      {invite.patient_name} {invite.patient_lastname}
-                    </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${cfg.cls}`}>
-                      {cfg.label}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-400 flex-wrap">
-                    <span className="flex items-center gap-1">
-                      <Clock size={11} />
-                      {formatDate(invite.created_at)}
-                    </span>
-                    {isPending && (
-                      <span style={{ color: "var(--vintage-gold)" }}>
-                        {expiryCountdown(invite.expires_at)}
-                      </span>
-                    )}
-                    {invite.email && (
-                      <span className="bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full text-gray-500">
-                        {invite.email}
-                      </span>
-                    )}
-                    {invite.phone && (
-                      <span className="bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full text-gray-500">
-                        {invite.phone}
-                      </span>
-                    )}
-                  </div>
-                </div>
+      {!loading && visible.length > 0 && (
+        <>
+          <ul className="flex flex-col gap-2">
+            {visible.slice(0, limit).map((invite) => {
+              const cfg = STATUS_CONFIG[invite.status]
+              const busy = actionId === invite.id
+              const isPending = invite.status === "pending"
+              const fullName = `${invite.patient_name} ${invite.patient_lastname}`.trim()
+              return (
+                <li
+                  key={invite.id}
+                  className="group flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors"
+                  style={{ backgroundColor: "var(--prem-surface)", borderColor: "var(--prem-border)" }}
+                >
+                  <InitialsAvatar name={invite.patient_name} lastname={invite.patient_lastname} />
 
-                {isPending && (
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {invite.token && (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold truncate" style={{ color: "var(--prem-fg)" }}>
+                        {fullName}
+                      </span>
+                      <StatusPill tone={cfg.tone} label={cfg.label} />
+                    </div>
+                    <div className="flex items-center gap-x-3 gap-y-1 flex-wrap mt-1 text-xs" style={{ color: "var(--prem-muted)" }}>
+                      <span className="tabular-nums">{formatDate(invite.created_at)}</span>
+                      {isPending && (
+                        <span style={{ color: "var(--vintage-gold-dark)" }}>{expiryCountdown(invite.expires_at)}</span>
+                      )}
+                      {invite.email && (
+                        <span className="inline-flex items-center gap-1 truncate max-w-[220px]">
+                          <Mail size={11} aria-hidden="true" />
+                          {invite.email}
+                        </span>
+                      )}
+                      {invite.phone && (
+                        <span className="inline-flex items-center gap-1 tabular-nums">
+                          <Phone size={11} aria-hidden="true" />
+                          {invite.phone}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {isPending && invite.token && (
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <a
+                        href={whatsappHref(inviteUrl(invite.token))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Enviar link por WhatsApp a ${fullName}`}
+                        title="Enviar por WhatsApp"
+                        className="dash-iconbtn grid place-items-center w-11 h-11 sm:w-9 sm:h-9 rounded-lg border"
+                        style={{ color: "#1fa855", borderColor: "var(--prem-border)" }}
+                      >
+                        <MessageCircle size={15} aria-hidden="true" />
+                      </a>
                       <button
                         onClick={() => handleCopyRow(invite)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                        aria-label={`Copiar link de ${fullName}`}
+                        title={copiedId === invite.id ? "Copiado" : "Copiar link"}
+                        className="dash-iconbtn grid place-items-center w-11 h-11 sm:w-9 sm:h-9 rounded-lg border"
                         style={{
-                          backgroundColor: copiedId === invite.id ? "#dcfce7" : "#f9fafb",
-                          color: copiedId === invite.id ? "#16a34a" : "#6b7280",
-                          borderColor: copiedId === invite.id ? "#86efac" : "#e5e7eb",
+                          color: copiedId === invite.id ? "#2f7563" : "var(--prem-muted)",
+                          borderColor: copiedId === invite.id ? "rgba(74,158,130,0.32)" : "var(--prem-border)",
                         }}
-                        title="Copiar link"
                       >
-                        {copiedId === invite.id ? <CheckCheck size={13} /> : <Copy size={13} />}
-                        {copiedId === invite.id ? "Copiado" : "Copiar link"}
+                        {copiedId === invite.id ? <CheckCheck size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
                       </button>
-                    )}
-                    <button
-                      onClick={() => handleRevoke(invite.id)}
-                      disabled={busy}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors disabled:opacity-50"
-                      title="Revocar invitación"
-                    >
-                      <Ban size={13} />
-                      Revocar
-                    </button>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+                      <button
+                        onClick={() => handleRevoke(invite.id)}
+                        disabled={busy}
+                        aria-label={`Revocar invitación de ${fullName}`}
+                        title="Revocar invitación"
+                        className="dash-iconbtn grid place-items-center w-11 h-11 sm:w-9 sm:h-9 rounded-lg border disabled:opacity-50"
+                        style={{ color: "#b03f5c", borderColor: "var(--prem-border)" }}
+                      >
+                        <Ban size={15} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+
+          {visible.length > limit && (
+            <button
+              onClick={() => setLimit((n) => n + PAGE_SIZE)}
+              className="self-center flex items-center gap-1.5 h-10 px-5 rounded-xl text-sm font-medium border transition-colors"
+              style={{ color: "var(--prem-muted)", borderColor: "var(--prem-border)", backgroundColor: "var(--prem-surface)" }}
+            >
+              Ver {Math.min(PAGE_SIZE, visible.length - limit)} más
+              <ChevronDown size={15} aria-hidden="true" />
+            </button>
+          )}
+        </>
       )}
-    </div>
+    </section>
   )
 }

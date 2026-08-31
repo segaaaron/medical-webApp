@@ -3,9 +3,10 @@ import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
-import { Plus, Trash2, Pencil, X, ImageOff, ChevronLeft, ChevronRight } from "lucide-react"
+import { Plus, Trash2, Pencil, X, ImageOff } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
-import { DeleteBlogDialog } from "@/components/ui/DialogAlert"
+import { DashboardPagination } from "@/components/dashboard/DashboardPagination"
+import { useConfirm } from "@/components/dashboard/ConfirmDialog"
 import { resolveImageUrl } from "@/lib/image-utils"
 
 interface BlogPost {
@@ -38,66 +39,66 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("es-BO", { day: "2-digit", month: "long", year: "numeric" })
 }
 
+/** Tamaño de página del panel. La lista llega completa; paginar es presentación. */
+const PAGE_SIZE = 20
+
 export default function BlogDashboardPage() {
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null)
+  const confirm = useConfirm()
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
 
-  // Paginación gobernada por el backend (page size, total y totalPages vienen del backend).
-  // Si el backend aún no pagina (responde array), se muestra todo en una página: sin hardcode.
+  /**
+   * Lista completa desde la superficie de administración.
+   *
+   * Antes pedía `/api/blog?page=N`, la misma ruta que sirve al sitio público:
+   * esa ruta no reenvía el token, así que el backend respondía como visitante y
+   * los borradores no aparecían en el panel — sin error, simplemente faltaban.
+   * `/api/admin/blog` exige sesión y devuelve todo; paginar es cosa de la vista.
+   */
   const load = useCallback(async () => {
     setLoading(true)
     setError("")
     try {
-      const res = await guardedFetch(`/api/blog?page=${page}`)
+      const res = await guardedFetch("/api/admin/blog")
       if (res.ok) {
         const json = await res.json()
-        if (Array.isArray(json)) {
-          setPosts(json)
-          setTotalPages(1)
-          setTotalCount(json.length)
-        } else {
-          const list = (json.data ?? []) as BlogPost[]
-          setPosts(list)
-          setTotalPages(Math.max(1, json.totalPages ?? (json.total && json.limit ? Math.ceil(json.total / json.limit) : 1)))
-          setTotalCount(json.total ?? list.length)
-        }
+        setPosts(Array.isArray(json) ? json : [])
       } else {
-        setError("Backend no disponible. Mostrando articulos por defecto (solo lectura).")
+        setError("No se pudieron cargar los articulos.")
       }
     } catch {
       setError("No se pudo conectar al servidor.")
     }
     setLoading(false)
-  }, [page])
+  }, [])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de datos en mount/cambio de página
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de datos en mount
     load()
   }, [load])
 
-  async function confirmDelete() {
-    if (!deleteTarget) return
+  async function handleDelete(post: BlogPost) {
+    const ok = await confirm({
+      title: "¿Eliminar artículo?",
+      description: `Se borrará "${post.title}" de forma permanente. Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar artículo",
+    })
+    if (!ok) return
     try {
-      const res = await guardedFetch(`/api/blog/${deleteTarget.id}`, { method: "DELETE" })
+      const res = await guardedFetch(`/api/blog/${post.id}`, { method: "DELETE" })
       if (!res.ok) setError("Error al eliminar el articulo.")
     } catch {
       setError("No se pudo conectar al servidor.")
     }
-    setDeleteTarget(null)
     await load()
   }
 
-  function cancelDelete() {
-    setDeleteTarget(null)
-  }
-
+  const totalCount = posts.length
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
-  const visiblePosts = posts
+  const visiblePosts = posts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   return (
     <>
@@ -179,15 +180,16 @@ export default function BlogDashboardPage() {
                       <span
                         className="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full"
                         style={{
-                          backgroundColor: "rgba(255,255,255,0.9)",
-                          color: p.published ? "#2f7a4f" : "#8a7d70",
+                          // Fondo semántico: verde = en la web, gris cálido = todavía no. El
+                          // gris no compite con el dorado de los botones de acción.
+                          backgroundColor: p.published ? "#1f7a52" : "#6f635a",
+                          color: "#fff",
                           letterSpacing: "0.08em",
-                          backdropFilter: "blur(6px)",
-                          boxShadow: "0 2px 8px rgba(58,15,32,0.2)",
+                          boxShadow: "0 2px 8px rgba(58,15,32,0.25)",
                         }}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${p.published ? "bg-[#37a866]" : "bg-gray-400"}`} />
-                        {p.published ? "Publicado" : "Borrador"}
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.85)" }} />
+                        {p.published ? "Publicado" : "Sin publicar"}
                       </span>
 
                       {/* Acciones */}
@@ -202,7 +204,7 @@ export default function BlogDashboardPage() {
                           Editar
                         </Link>
                         <button
-                          onClick={() => setDeleteTarget(p)}
+                          onClick={() => handleDelete(p)}
                           aria-label={`Eliminar "${p.title}"`}
                           className="flex items-center justify-center w-9 h-9 rounded-full text-white hover:scale-105 transition-transform"
                           style={{ backgroundColor: "#d1455f", boxShadow: "0 4px 14px rgba(58,15,32,0.35)" }}
@@ -238,52 +240,17 @@ export default function BlogDashboardPage() {
               })}
             </div>
 
-            {/* Paginación */}
-            {totalPages > 1 && (
-              <nav className="flex items-center justify-center gap-1.5 mt-8" aria-label="Paginación de artículos">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage <= 1}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Página anterior"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
-                  <button
-                    key={pg}
-                    onClick={() => setPage(pg)}
-                    aria-current={pg === currentPage ? "page" : undefined}
-                    className={`inline-flex items-center justify-center min-w-[36px] h-9 px-2 rounded-lg text-sm font-semibold transition-colors ${
-                      pg === currentPage
-                        ? "text-white"
-                        : "border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)]"
-                    }`}
-                    style={pg === currentPage ? { backgroundColor: "var(--vintage-gold)" } : undefined}
-                  >
-                    {pg}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage >= totalPages}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  aria-label="Página siguiente"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </nav>
-            )}
+            <DashboardPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              label="Paginación de artículos"
+            />
           </>
         )}
       </div>
 
-      <DeleteBlogDialog
-        open={deleteTarget !== null}
-        onConfirm={confirmDelete}
-        onCancel={cancelDelete}
-        blogTitle={deleteTarget?.title ?? ""}
-      />
+
     </>
   )
 }

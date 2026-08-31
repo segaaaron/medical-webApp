@@ -4,18 +4,18 @@ import { backendFetch } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
-import { MessageCircle, MapPin, Clock } from "lucide-react"
+import { MapPin, Clock } from "lucide-react"
 import type { Metadata } from "next"
 import type { ContactData } from "@/types/content"
 import { PageHero } from "@/components/ui/PageHero"
-import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ContactForm } from "@/components/sections/ContactForm"
 import { ContactCards } from "@/components/sections/ContactCards"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  title: "Agenda tu Consulta GRATIS — Medicina Estética Cochabamba | Dra. Yasmin Medrano",
+  // La marca la pone el template del layout: llevarla aquí la repetía dos veces.
+  title: "Agenda tu Consulta Gratuita en Cochabamba",
   description:
     "Agenda tu consulta GRATIS con la Dra. Yasmin Medrano en Cochabamba. Atención vía WhatsApp e Instagram. Cupos limitados — ¡reserva el tuyo hoy!",
   keywords: [
@@ -197,16 +197,6 @@ export default async function ContactoPage() {
                   </a>
                 </div>
 
-                {/* CTA */}
-                <TrackWhatsAppLink
-                  href={ct.whatsappUrl}
-                  source="contacto-page-cta"
-                  className="flex items-center justify-center gap-3 w-full py-4 rounded-full text-base font-bold uppercase tracking-wide hover:brightness-110 transition-all"
-                  style={{ backgroundColor: "var(--vintage-gold)", color: "white" }}
-                >
-                  <MessageCircle size={18} />
-                  AGENDAR MI CONSULTA GRATIS
-                </TrackWhatsAppLink>
               </div>
 
               {/* Contact form */}

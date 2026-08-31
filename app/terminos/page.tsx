@@ -16,7 +16,7 @@ const LAST_UPDATED = "16 de junio de 2026"
 export const metadata: Metadata = {
   title: "Términos y Condiciones — Dra. Yasmin Medrano Avila | Medicina Estética Cochabamba",
   description:
-    "Términos y Condiciones de uso del sitio web y de la atención por WhatsApp del consultorio de la Dra. Yasmin Medrano Avila, especialista en medicina estética en Cochabamba, Bolivia.",
+    "Términos y condiciones de uso del sitio web y de la atención por WhatsApp del consultorio de la Dra. Yasmin Medrano Avila, en Cochabamba.",
   alternates: {
     canonical: `${BASE_URL}/terminos`,
   },

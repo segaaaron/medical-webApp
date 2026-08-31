@@ -8,6 +8,8 @@ import { safeJsonLd } from "@/lib/seo-utils";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
+import { WhatsAppProvider } from "@/components/providers/WhatsAppProvider";
+import { getWhatsAppConfig } from "@/lib/data/whatsapp";
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -60,7 +62,7 @@ export const metadata: Metadata = {
     template: "%s | Dra. Yasmin Medrano Avila",
   },
   description:
-    "Especialista en medicina estética en Cochabamba. +5.000 pacientes felices, 10+ años de experiencia. Botox, rellenos, armonización facial. ¡Consulta de valoración GRATIS!",
+    "Medicina estética en Cochabamba: botox, rellenos y armonización facial con 10+ años de experiencia. Consulta de valoración gratuita.",
   keywords: [
     // Geo-transaccionales Bolivia/Cochabamba — alta intención de compra
     "médico estético Cochabamba Bolivia",
@@ -196,13 +198,13 @@ const jsonLd = {
           availableLanguage: "Spanish",
         },
       ],
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        reviewCount: "523",
-        bestRating: "5",
-        worstRating: "1",
-      },
+      // Sin aggregateRating aquí a propósito: este bloque va en TODAS las
+      // páginas y llevaba "4.9 sobre 523 reseñas" escrito a mano, un dato que
+      // no existe en ninguna parte. Reseñas inventadas en datos estructurados
+      // violan las directrices de Google (penalización manual) y, en salud,
+      // son publicidad engañosa. El rating real —calculado de las reseñas
+      // aprobadas— lo aportan `/` y `/nosotros` sobre esta misma entidad
+      // (@id #business), y solo cuando hay reseñas que respalden el número.
       availableService: [
         { "@type": "MedicalProcedure", name: "Toxina Botulínica (Botox)" },
         { "@type": "MedicalProcedure", name: "Rellenos con Ácido Hialurónico" },
@@ -251,11 +253,14 @@ const jsonLd = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // WhatsApp configurado en el panel (Dashboard → Contacto), no cableado.
+  const whatsapp = await getWhatsAppConfig();
+
   return (
     <html lang="es-BO">
       <head>
@@ -283,13 +288,17 @@ export default function RootLayout({
       </head>
       <body className={`${roboto.variable} ${playfair.variable} ${cormorant.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
         <SkipNav />
-        <LazyMotion features={domAnimation}>
-          <SmoothScrollProvider>
-            <CustomCursorLoader />
-            <div id="main-content">{children}</div>
-          </SmoothScrollProvider>
-        </LazyMotion>
-        <WhatsAppFAB />
+        <WhatsAppProvider value={whatsapp}>
+          <LazyMotion features={domAnimation}>
+            <SmoothScrollProvider>
+              <CustomCursorLoader />
+              <div id="main-content">{children}</div>
+            </SmoothScrollProvider>
+            {/* Dentro de LazyMotion: usa `m.*` y sin las features cargadas no
+                llega a montarse — estaba fuera y nunca se renderizó. */}
+            <WhatsAppFAB />
+          </LazyMotion>
+        </WhatsAppProvider>
         <AnalyticsScripts />
       </body>
     </html>

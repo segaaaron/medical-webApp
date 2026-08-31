@@ -2,8 +2,9 @@
 import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
-import { Check, MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
+import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
+import { SaveBar } from "@/components/dashboard/SaveBar"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
@@ -73,6 +74,9 @@ function toBackend(form: ContactData) {
 export default function ContactoDashboardPage() {
   const showToast = useToast()
   const [form, setForm] = useState<ContactData>(DEFAULTS)
+  // Copia de lo último persistido: comparar contra ella es lo que da el estado
+  // "tienes cambios sin guardar" sin depender de una librería de formularios.
+  const [savedForm, setSavedForm] = useState<ContactData>(DEFAULTS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -81,7 +85,11 @@ export default function ContactoDashboardPage() {
     fetch("/api/contact")
       .then((r) => r.json())
       .then((data) => {
-        if (data && !data.error) setForm(fromBackend(data))
+        if (data && !data.error) {
+          const next = fromBackend(data)
+          setForm(next)
+          setSavedForm(next)
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -89,7 +97,10 @@ export default function ContactoDashboardPage() {
 
   function set(key: keyof ContactData, value: string) {
     setForm((f) => ({ ...f, [key]: value }))
+    setSaved(false)
   }
+
+  const dirty = JSON.stringify(form) !== JSON.stringify(savedForm)
 
   async function handleSave() {
     setSaving(true)
@@ -100,8 +111,8 @@ export default function ContactoDashboardPage() {
         body: JSON.stringify(toBackend(form)),
       })
       if (!res.ok) throw new Error()
+      setSavedForm(form)
       setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
       showToast("success", "¡Cambios guardados exitosamente!")
     } catch {
       showToast("error", "No se pudo guardar. Intenta de nuevo.")
@@ -117,18 +128,11 @@ export default function ContactoDashboardPage() {
       <PageHeader
         title="Información de Contacto"
         description="Edita los datos de contacto que se muestran en la página /contacto."
-        saving={saving}
-        saved={saved}
-        onSave={handleSave}
       />
 
       <div className="flex flex-col gap-6">
         {/* WhatsApp */}
-        <EditorCard title="WhatsApp">
-          <div className="flex items-center gap-2 mb-4">
-            <MessageCircle size={16} className="text-green-600" />
-            <span className="text-sm text-gray-500">Número y enlace de WhatsApp</span>
-          </div>
+        <EditorCard title="WhatsApp" icon={MessageCircle} hint="Número y enlace de WhatsApp">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Número visible" htmlFor="wa-number">
               <input
@@ -152,11 +156,7 @@ export default function ContactoDashboardPage() {
         </EditorCard>
 
         {/* Teléfono */}
-        <EditorCard title="Teléfono">
-          <div className="flex items-center gap-2 mb-4">
-            <Phone size={16} className="text-yellow-600" />
-            <span className="text-sm text-gray-500">Número de teléfono</span>
-          </div>
+        <EditorCard title="Teléfono" icon={Phone} hint="Número de teléfono">
           <FormField label="Teléfono" htmlFor="phone">
             <input
               id="phone"
@@ -169,11 +169,7 @@ export default function ContactoDashboardPage() {
         </EditorCard>
 
         {/* Instagram */}
-        <EditorCard title="Instagram">
-          <div className="flex items-center gap-2 mb-4">
-            <Instagram size={16} className="text-pink-500" />
-            <span className="text-sm text-gray-500">Perfil de Instagram</span>
-          </div>
+        <EditorCard title="Instagram" icon={Instagram} hint="Perfil de Instagram">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Usuario (@...)" htmlFor="ig-handle">
               <input
@@ -197,11 +193,7 @@ export default function ContactoDashboardPage() {
         </EditorCard>
 
         {/* Facebook */}
-        <EditorCard title="Facebook">
-          <div className="flex items-center gap-2 mb-4">
-            <Facebook size={16} className="text-blue-600" />
-            <span className="text-sm text-gray-500">Página de Facebook</span>
-          </div>
+        <EditorCard title="Facebook" icon={Facebook} hint="Página de Facebook">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Nombre de la página" htmlFor="fb-name">
               <input
@@ -225,11 +217,7 @@ export default function ContactoDashboardPage() {
         </EditorCard>
 
         {/* Horarios */}
-        <EditorCard title="Horario de Atención">
-          <div className="flex items-center gap-2 mb-4">
-            <Clock size={16} className="text-amber-600" />
-            <span className="text-sm text-gray-500">Horarios que se muestran en la página de contacto</span>
-          </div>
+        <EditorCard title="Horario de Atención" icon={Clock} hint="Horarios que se muestran en la página de contacto">
           <div className="flex flex-col gap-4">
             <FormField label="Lunes – Viernes" htmlFor="sched-weekdays">
               <input
@@ -262,11 +250,7 @@ export default function ContactoDashboardPage() {
         </EditorCard>
 
         {/* Ubicación */}
-        <EditorCard title="Ubicación">
-          <div className="flex items-center gap-2 mb-4">
-            <MapPin size={16} className="text-rose-500" />
-            <span className="text-sm text-gray-500">Texto de ubicación del consultorio</span>
-          </div>
+        <EditorCard title="Ubicación" icon={MapPin} hint="Texto de ubicación del consultorio">
           <FormField label="Descripción de ubicación" htmlFor="location">
             <textarea
               id="location"
@@ -311,18 +295,13 @@ export default function ContactoDashboardPage() {
           </FormField>
         </EditorCard>
 
-        {/* Save button bottom */}
-        <div className="flex justify-end pb-4">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
-            style={{ backgroundColor: "var(--vintage-gold)" }}
-          >
-            <Check size={15} />
-            {saving ? "Guardando..." : "Guardar cambios"}
-          </button>
-        </div>
+        <SaveBar
+          dirty={dirty}
+          saving={saving}
+          saved={saved}
+          onSave={handleSave}
+          onReset={() => setForm(savedForm)}
+        />
       </div>
     </>
   )

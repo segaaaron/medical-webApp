@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { TreatmentsGrid, type Treatment } from "@/components/sections/TreatmentsGrid"
+import { pageWindow } from "@/lib/pagination"
 
 interface Props {
   initialTreatments: Treatment[]
@@ -25,19 +26,6 @@ const activeStyle: React.CSSProperties = {
   backgroundColor: "var(--vintage-gold)",
   border: "1px solid var(--vintage-gold)",
   boxShadow: "0 0 0 1px rgba(184,151,59,0.35), 0 6px 18px rgba(184,151,59,0.3)",
-}
-
-/** Devuelve la ventana de páginas con -1 como marcador de elipsis. */
-function pageWindow(current: number, total: number): number[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
-  const pages: number[] = [1]
-  const start = Math.max(2, current - 1)
-  const end = Math.min(total - 1, current + 1)
-  if (start > 2) pages.push(-1)
-  for (let p = start; p <= end; p++) pages.push(p)
-  if (end < total - 1) pages.push(-1)
-  pages.push(total)
-  return pages
 }
 
 /**

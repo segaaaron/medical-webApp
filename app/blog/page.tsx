@@ -22,7 +22,7 @@ const breadcrumbLd = {
 }
 
 export const metadata: Metadata = {
-  title: "Blog Medicina Estética Bolivia — Guías, Consejos y Verdades de una Experta",
+  title: "Blog de Medicina Estética",
   description:
     "Guías reales de medicina estética en Bolivia por la Dra. Yasmin Medrano. Botox, ácido hialurónico, cuidado de piel y los mejores tratamientos de 2026.",
   keywords: [

@@ -17,9 +17,10 @@ export type { BioDoc, BioSection } from "@/types/about"
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
-  title: "Dra. Yasmin Medrano Avila — Especialista Medicina Estética Cochabamba",
+  // Absoluto: el template añadiría el nombre de la doctora por segunda vez.
+  title: { absolute: "Dra. Yasmin Medrano Avila — Medicina Estética Cochabamba" },
   description:
-    "Dra. Yasmin Medrano Avila — médica especialista en Cochabamba. +5.000 pacientes, 10+ años de experiencia. Botox, rellenos, armonización facial. ¡Consulta GRATIS!",
+    "Dra. Yasmin Medrano Avila, médica especialista en medicina estética en Cochabamba. Botox, rellenos y armonización facial. Consulta gratuita.",
   keywords: [
     "Dra. Yasmin Medrano Avila Cochabamba",
     "médica estética Bolivia especialista",

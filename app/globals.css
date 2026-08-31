@@ -323,6 +323,9 @@ h1, h2, h3, h4 {
   margin-bottom: 16px;
 }
 
+/* Inline usage (chips, tiles, overlays) — drops the section-eyebrow spacing */
+.prem-eyebrow--inline { margin-bottom: 0; }
+
 /* Premium section ornament divider */
 .prem-divider {
   display: flex;
@@ -597,3 +600,369 @@ a:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .img-shimmer { animation: none; }
 }
+
+/* ── Global dashboard loading overlay ────────────────────────────────── */
+@keyframes gl-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes gl-stage-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* Heartbeat travelling along the ECG trace */
+@keyframes gl-ecg-run {
+  from { stroke-dashoffset: 420; }
+  to   { stroke-dashoffset: -100; }
+}
+@keyframes gl-halo-breathe {
+  0%, 100% { opacity: 0.28; transform: scale(0.92); }
+  50%      { opacity: 0.55; transform: scale(1.06); }
+}
+@keyframes gl-label-breathe {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+
+.gl-overlay {
+  position: fixed;
+  inset: 0;
+  /* Above the sidebar (z-30) but below the toast stack (z-50) so error
+     toasts stay readable during the overlay's minimum-visible window. */
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Warm burgundy veil, lit from the centre — not a flat grey scrim */
+  background:
+    radial-gradient(
+      120% 90% at 50% 45%,
+      color-mix(in oklab, var(--primary-darker) 88%, transparent) 0%,
+      color-mix(in oklab, var(--primary-darkest) 96%, transparent) 52%,
+      color-mix(in oklab, #14040d 98%, transparent) 100%
+    );
+  backdrop-filter: blur(7px) saturate(115%);
+  -webkit-backdrop-filter: blur(7px) saturate(115%);
+  animation: gl-overlay-in var(--duration-fast) var(--ease-out-expo) both;
+}
+
+.gl-overlay__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  animation: gl-stage-in var(--duration-normal) var(--ease-out-expo) both;
+}
+
+.gl-overlay__mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 116px;
+  height: 116px;
+}
+
+/* Soft gold glow breathing behind the monogram */
+.gl-overlay__halo {
+  position: absolute;
+  inset: -30%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    rgba(184, 151, 59, 0.32) 0%,
+    rgba(184, 151, 59, 0.10) 45%,
+    transparent 70%
+  );
+  animation: gl-halo-breathe 2.4s var(--ease-in-out-quart) infinite;
+}
+
+.gl-overlay__logo {
+  position: relative;
+  width: 116px;
+  height: auto;
+  filter: drop-shadow(0 2px 14px rgba(0, 0, 0, 0.5)) brightness(1.18) saturate(1.1);
+}
+
+.gl-overlay__ecg {
+  width: 240px;
+  height: 42px;
+}
+
+.gl-overlay__ecg-track {
+  fill: none;
+  stroke: rgba(184, 151, 59, 0.22);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gl-overlay__ecg-pulse {
+  fill: none;
+  stroke: var(--vintage-gold-light);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 90 420;
+  filter: drop-shadow(0 0 4px rgba(184, 151, 59, 0.55));
+  animation: gl-ecg-run 1.9s var(--ease-in-out-quart) infinite;
+}
+
+.gl-overlay__label {
+  color: var(--vintage-gold-light);
+  animation: gl-label-breathe 2.4s var(--ease-in-out-quart) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-overlay,
+  .gl-overlay__stage { animation: none; }
+  .gl-overlay__halo,
+  .gl-overlay__label { animation: none; opacity: 1; transform: none; }
+  /* Keep one calm cue instead of a travelling pulse */
+  .gl-overlay__ecg-pulse {
+    stroke-dasharray: none;
+    animation: none;
+    opacity: 0.9;
+  }
+}
+
+/* ── Dashboard icon action buttons (review/invite rows) ──────────────── */
+.dash-iconbtn {
+  background-color: var(--vintage-parchment);
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+              border-color var(--duration-fast) var(--ease-out-expo);
+}
+.dash-iconbtn:hover:not(:disabled) {
+  background-color: var(--vintage-cream-dark);
+}
+
+/* ── Botón flotante de WhatsApp ──────────────────────────────────────── */
+@keyframes wa-halo {
+  0%   { transform: scale(0.85); opacity: 0.55; }
+  70%  { transform: scale(1.45); opacity: 0; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+
+.wa-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(184, 151, 59, 0.45);
+  background: color-mix(in oklab, var(--primary-darkest) 94%, transparent);
+  box-shadow: 0 10px 30px rgba(26, 5, 16, 0.38);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-decoration: none;
+  transition: gap var(--duration-normal) var(--ease-out-expo),
+              border-color var(--duration-normal) var(--ease-out-expo),
+              box-shadow var(--duration-normal) var(--ease-out-expo);
+}
+.wa-fab[data-expanded="true"] {
+  gap: 12px;
+  border-color: rgba(184, 151, 59, 0.8);
+  box-shadow: 0 14px 38px rgba(26, 5, 16, 0.46);
+}
+
+/* Latido dorado que atrae la vista sin parpadear */
+.wa-fab__halo {
+  position: absolute;
+  left: 6px;
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  background: rgba(37, 211, 102, 0.35);
+  animation: wa-halo 2.6s var(--ease-out-expo) infinite;
+  pointer-events: none;
+}
+
+.wa-fab__disc {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 9999px;
+  color: #fff;
+  background: linear-gradient(145deg, #2fe06f 0%, #25d366 45%, #17a74a 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+/* La etiqueta ocupa 0px cerrada: no reserva espacio ni desplaza nada */
+.wa-fab__label {
+  display: grid;
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  white-space: nowrap;
+  transition: max-width var(--duration-normal) var(--ease-out-expo),
+              opacity var(--duration-fast) var(--ease-out-expo),
+              padding-right var(--duration-normal) var(--ease-out-expo);
+}
+.wa-fab[data-expanded="true"] .wa-fab__label {
+  max-width: 200px;
+  opacity: 1;
+  padding-right: 12px;
+}
+
+.wa-fab__label-title {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 1.15;
+  color: var(--vintage-cream);
+}
+.wa-fab__label-sub {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--vintage-gold-light);
+}
+
+@media (hover: hover) {
+  .wa-fab:hover .wa-fab__disc { transform: scale(1.04); }
+  .wa-fab__disc { transition: transform var(--duration-fast) var(--ease-spring); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wa-fab,
+  .wa-fab__label,
+  .wa-fab__disc { transition: none; }
+  .wa-fab__halo { animation: none; }
+}
+
+/* ── Panel de administración ─────────────────────────────────────────── */
+/* Navegación lateral: los seis estados en un solo sitio, no repetidos por link. */
+.dash-nav-link {
+  color: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid transparent;
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+              color var(--duration-fast) var(--ease-out-expo),
+              border-color var(--duration-fast) var(--ease-out-expo);
+}
+.dash-nav-link:hover {
+  color: var(--vintage-gold-light);
+  background-color: rgba(184, 151, 59, 0.07);
+}
+.dash-nav-link:active { background-color: rgba(184, 151, 59, 0.16); }
+.dash-nav-link[data-active="true"] {
+  color: var(--vintage-gold);
+  background-color: rgba(184, 151, 59, 0.12);
+  border-left-color: var(--vintage-gold);
+}
+.dash-nav-link--danger { color: rgba(224, 90, 122, 0.85); }
+.dash-nav-link--danger:hover {
+  color: #f08aa3;
+  background-color: rgba(224, 90, 122, 0.1);
+}
+
+/* Botón primario del panel: dorado de la casa, no el morado de plantilla. */
+.dash-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 44px;
+  padding: 0 1.25rem;
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out-expo),
+              border-color var(--duration-fast) var(--ease-out-expo),
+              color var(--duration-fast) var(--ease-out-expo),
+              opacity var(--duration-fast) var(--ease-out-expo);
+}
+.dash-btn--primary {
+  background-color: var(--vintage-gold);
+  color: #2a1206;
+}
+.dash-btn--primary:hover:not(:disabled) { background-color: var(--vintage-gold-dark); color: #fff; }
+.dash-btn--primary:active:not(:disabled) { background-color: #866b28; }
+.dash-btn--saved { background-color: #1f7a52; color: #fff; }
+.dash-btn--ghost {
+  background-color: var(--prem-surface);
+  border-color: var(--prem-border);
+  color: var(--prem-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.dash-btn--ghost:hover:not(:disabled) { border-color: var(--vintage-gold); color: var(--vintage-gold-dark); }
+.dash-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Barra de guardado fija: en formularios largos, guardar no debe exigir
+   volver arriba del todo. */
+.dash-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--prem-border);
+  background: color-mix(in oklab, var(--prem-surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 26px rgba(58, 15, 32, 0.12);
+}
+
+/* Tarjetas del resumen: enlaces, así que necesitan estados como tales. */
+.dash-metric {
+  background-color: var(--prem-surface);
+  border-color: var(--prem-border);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+              box-shadow var(--duration-fast) var(--ease-out-expo),
+              transform var(--duration-fast) var(--ease-out-expo);
+}
+.dash-metric:hover {
+  border-color: rgba(184, 151, 59, 0.5);
+  box-shadow: 0 6px 20px rgba(58, 15, 32, 0.09);
+}
+.dash-metric:active { transform: translateY(1px); }
+.dash-metric[data-highlight="true"] {
+  background-color: rgba(184, 151, 59, 0.07);
+  border-color: rgba(184, 151, 59, 0.34);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-metric, .dash-metric:active { transform: none; transition: none; }
+}
+
+/* "Añadir elemento" y enlaces de acción dentro de las secciones editables:
+   el morado de la plantilla original sustituido por el acento de la casa. */
+.dash-dashed-add {
+  border-color: var(--prem-border);
+  color: var(--prem-muted);
+  transition: border-color var(--duration-fast) var(--ease-out-expo),
+              color var(--duration-fast) var(--ease-out-expo),
+              background-color var(--duration-fast) var(--ease-out-expo);
+}
+.dash-dashed-add:hover {
+  border-color: var(--vintage-gold);
+  color: var(--vintage-gold-dark);
+  background-color: rgba(184, 151, 59, 0.05);
+}
+.dash-link-action {
+  color: var(--vintage-gold-dark);
+  transition: color var(--duration-fast) var(--ease-out-expo);
+}
+.dash-link-action:hover { color: var(--primary-dark); }
+
+/* Botón de confirmación del diálogo del panel. */
+.dash-confirm-btn { transition: filter var(--duration-fast) var(--ease-out-expo); }
+.dash-confirm-btn:hover { filter: brightness(0.92); }

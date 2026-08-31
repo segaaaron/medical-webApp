@@ -1,451 +1,199 @@
 "use client"
+
+import { useCallback, useEffect, useState } from "react"
+import Link from "next/link"
+import {
+  Star,
+  Link2,
+  Newspaper,
+  Stethoscope,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 import { guardedFetch } from "@/lib/client-fetch"
-
-import { useEffect, useState } from "react"
-import { useFormik, FormikProvider } from "formik"
-import * as Yup from "yup"
-import { Sparkles, BarChart2, HelpCircle, Plus, Trash2, Check, GripVertical } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
-import { EditorCard } from "@/components/dashboard/EditorCard"
-import { FormField } from "@/components/ui/FormField"
-import { useToast } from "@/components/dashboard/Toast"
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core"
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
 
-const INPUT_CLS =
-  "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
-
-const INPUT_ERROR_CLS =
-  "w-full px-4 py-2.5 rounded-lg border border-red-400 text-sm outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
-
-interface FaqItem {
-  question: string
-  answer: string
+interface Metric {
+  key: string
+  label: string
+  value: number
+  hint: string
+  href: string
+  icon: LucideIcon
+  /** Requiere una decisión de la doctora, no es solo un dato. */
+  actionable: boolean
 }
 
-interface HomeForm {
-  specialties: string
-  doctorName: string
-  subtitle: string
-  description: string
-  highlightedText: string
-  btn1Text: string
-  btn2Text: string
-  stat1Value: string
-  stat1Label: string
-  stat2Value: string
-  stat2Label: string
-  stat3Value: string
-  stat3Label: string
-  faqSectionLabel: string
-  faqTitle: string
-  faqs: FaqItem[]
+const EMPTY_COUNTS = {
+  pendingReviews: 0,
+  pendingInvites: 0,
+  draftPosts: 0,
+  inactiveTreatments: 0,
 }
 
-const EMPTY: HomeForm = {
-  specialties: "",
-  doctorName: "",
-  subtitle: "",
-  description: "",
-  highlightedText: "",
-  btn1Text: "",
-  btn2Text: "",
-  stat1Value: "",
-  stat1Label: "",
-  stat2Value: "",
-  stat2Label: "",
-  stat3Value: "",
-  stat3Label: "",
-  faqSectionLabel: "",
-  faqTitle: "",
-  faqs: [],
+/** Lee una lista del panel y cuenta los que cumplen la condición. */
+async function count(url: string, match: (item: Record<string, unknown>) => boolean) {
+  const res = await guardedFetch(url)
+  if (!res.ok) return 0
+  const data: unknown = await res.json()
+  const list = Array.isArray(data) ? data : ((data as { data?: unknown[] })?.data ?? [])
+  return list.filter((item) => match(item as Record<string, unknown>)).length
 }
 
-const homeSchema = Yup.object({
-  doctorName: Yup.string()
-    .min(5, "El nombre debe tener al menos 5 caracteres")
-    .required("El nombre del doctor es obligatorio"),
-  specialties: Yup.string()
-    .min(5, "La especialidad debe tener al menos 5 caracteres")
-    .required("La especialidad es obligatoria"),
-})
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function fromBackend(raw: any): HomeForm {
-  return {
-    specialties: raw.specialties ?? "",
-    doctorName: raw.doctorName ?? "",
-    subtitle: raw.subtitle ?? "",
-    description: raw.description ?? "",
-    highlightedText: raw.highlightedText ?? "",
-    btn1Text: raw.btn1Text ?? "",
-    btn2Text: raw.btn2Text ?? "",
-    stat1Value: raw.stat1Value ?? "",
-    stat1Label: raw.stat1Label ?? "",
-    stat2Value: raw.stat2Value ?? "",
-    stat2Label: raw.stat2Label ?? "",
-    stat3Value: raw.stat3Value ?? "",
-    stat3Label: raw.stat3Label ?? "",
-    faqSectionLabel: raw.faqSectionLabel ?? "",
-    faqTitle: raw.faqTitle ?? "",
-    faqs: Array.isArray(raw.faqs) ? raw.faqs : [],
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function FaqDndList({ formik }: { formik: any }) {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  )
-
-  const faqs: FaqItem[] = formik.values.faqs
-  const ids = faqs.map((_, i) => `faq-${i}`)
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = ids.indexOf(active.id as string)
-    const newIndex = ids.indexOf(over.id as string)
-    formik.setFieldValue("faqs", arrayMove(faqs, oldIndex, newIndex))
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-          {faqs.map((_, i) => (
-            <SortableFAQItem
-              key={ids[i]}
-              id={ids[i]}
-              index={i}
-              inputCls={INPUT_CLS}
-              formik={formik}
-              onRemove={() => {
-                const updated = faqs.filter((_, idx) => idx !== i)
-                formik.setFieldValue("faqs", updated)
-              }}
-            />
-          ))}
-        </SortableContext>
-      </DndContext>
-      <button
-        type="button"
-        onClick={() => formik.setFieldValue("faqs", [...faqs, { question: "", answer: "" }])}
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-400 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] transition-colors"
-      >
-        <Plus size={16} />
-        Añadir pregunta
-      </button>
-    </div>
-  )
-}
-
-function SortableFAQItem({
-  id,
-  index,
-  inputCls,
-  formik,
-  onRemove,
-}: {
-  id: string
-  index: number
-  inputCls: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formik: any
-  onRemove: () => void
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
-  return (
-    <div ref={setNodeRef} style={style} className="border border-gray-100 rounded-lg p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            {...attributes}
-            {...listeners}
-            className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 transition-colors touch-none"
-          >
-            <GripVertical size={16} />
-          </button>
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            Pregunta #{index + 1}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
-        >
-          <Trash2 size={13} />
-          Eliminar
-        </button>
-      </div>
-      <FormField label="Pregunta" htmlFor={`faqs[${index}].question`}>
-        <input
-          id={`faqs[${index}].question`}
-          className={inputCls}
-          {...formik.getFieldProps(`faqs[${index}].question`)}
-          placeholder="¿Cuál es tu pregunta?"
-        />
-      </FormField>
-      <FormField label="Respuesta" htmlFor={`faqs[${index}].answer`}>
-        <textarea
-          id={`faqs[${index}].answer`}
-          className={inputCls}
-          rows={3}
-          {...formik.getFieldProps(`faqs[${index}].answer`)}
-          placeholder="Escribe la respuesta aquí..."
-        />
-      </FormField>
-    </div>
-  )
-}
-
-export default function DashboardHomePage() {
-  const showToast = useToast()
+export default function DashboardOverviewPage() {
+  const [counts, setCounts] = useState(EMPTY_COUNTS)
   const [loading, setLoading] = useState(true)
-  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState("")
 
-  const formik = useFormik<HomeForm>({
-    initialValues: EMPTY,
-    validationSchema: homeSchema,
-    validateOnMount: true,
-    onSubmit: async (values, { setSubmitting }) => {
-      try {
-        const res = await guardedFetch("/api/home", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
-        })
-        if (!res.ok) throw new Error()
-        const updated = await res.json()
-        if (updated && !updated.error) formik.resetForm({ values: fromBackend(updated) })
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
-        showToast("success", "¡Inicio guardado exitosamente!")
-      } catch {
-        showToast("error", "No se pudo guardar. Intenta de nuevo.")
-      } finally {
-        setSubmitting(false)
-      }
-    },
-  })
-
-  useEffect(() => {
-    fetch("/api/home")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data && !data.error) formik.resetForm({ values: fromBackend(data) })
-      })
-      .catch(() => {
-        showToast("error", "No se pudo conectar al servidor.")
-      })
-      .finally(() => setLoading(false))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError("")
+    try {
+      const [pendingReviews, pendingInvites, draftPosts, inactiveTreatments] = await Promise.all([
+        count("/api/reviews?status=pending", () => true),
+        count("/api/reviews/invites?status=pending", () => true),
+        count("/api/admin/blog", (p) => p.published === false),
+        count("/api/admin/treatments", (t) => t.active === false),
+      ])
+      setCounts({ pendingReviews, pendingInvites, draftPosts, inactiveTreatments })
+    } catch {
+      setError("No se pudo cargar el resumen.")
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  function inputCls(field: keyof HomeForm) {
-    const touched = formik.touched[field]
-    const error = formik.errors[field]
-    return touched && error ? INPUT_ERROR_CLS : INPUT_CLS
-  }
+  useEffect(() => {
+    load()
+  }, [load])
 
-  if (loading) return <p className="text-gray-400 text-sm" role="status">Cargando...</p>
+  const metrics: Metric[] = [
+    {
+      key: "reviews",
+      label: "Reseñas por revisar",
+      value: counts.pendingReviews,
+      hint: "esperan publicarse o rechazarse",
+      href: "/dashboard/resenas",
+      icon: Star,
+      actionable: true,
+    },
+    {
+      key: "invites",
+      label: "Invitaciones sin usar",
+      value: counts.pendingInvites,
+      hint: "links enviados aún sin reseña",
+      href: "/dashboard/resenas",
+      icon: Link2,
+      actionable: false,
+    },
+    {
+      key: "drafts",
+      label: "Artículos sin publicar",
+      value: counts.draftPosts,
+      hint: "escritos pero fuera de la web",
+      href: "/dashboard/blog",
+      icon: Newspaper,
+      actionable: false,
+    },
+    {
+      key: "treatments",
+      label: "Tratamientos inactivos",
+      value: counts.inactiveTreatments,
+      hint: "no se muestran en el catálogo",
+      href: "/dashboard/tratamientos",
+      icon: Stethoscope,
+      actionable: false,
+    },
+  ]
+
+  const pendingTotal = counts.pendingReviews
+  const today = new Date().toLocaleDateString("es-MX", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  })
 
   return (
-    <FormikProvider value={formik}>
-      <form onSubmit={formik.handleSubmit} noValidate>
-        <PageHeader
-          title="Contenido del Home"
-          description="Edita las secciones de la página de inicio."
-          saving={formik.isSubmitting}
-          saved={saved}
-          onSave={() => formik.submitForm()}
-          saveDisabled={!formik.isValid || formik.isSubmitting}
-        />
+    <>
+      <PageHeader
+        title="Resumen"
+        description={today.charAt(0).toUpperCase() + today.slice(1)}
+      />
 
-        <div className="flex flex-col gap-6">
-          {/* Hero */}
-          <EditorCard title="Hero">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles size={16} className="text-purple-500" />
-              <span className="text-sm text-gray-500">Sección principal de la página de inicio</span>
-            </div>
-            <div className="flex flex-col gap-4">
-              <FormField label={<>Nombre del doctor <span className="text-red-500">*</span></>} htmlFor="doctorName">
-                <input
-                  id="doctorName"
-                  className={inputCls("doctorName")}
-                  {...formik.getFieldProps("doctorName")}
-                  placeholder="Dra. Yasmin Medrano Avila"
-                />
-                {formik.touched.doctorName && formik.errors.doctorName && (
-                  <p className="text-xs text-red-500 mt-1">{formik.errors.doctorName}</p>
-                )}
-              </FormField>
+      {error && (
+        <p role="alert" className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm mb-4" style={{ backgroundColor: "rgba(224,90,122,0.08)", color: "#b03f5c" }}>
+          {error}
+        </p>
+      )}
 
-              <FormField label={<>Especialidades <span className="text-red-500">*</span></>} htmlFor="specialties">
-                <input
-                  id="specialties"
-                  className={inputCls("specialties")}
-                  {...formik.getFieldProps("specialties")}
-                  placeholder="MEDICINA ESTÉTICA · REJUVENECIMIENTO · TRATAMIENTOS CORPORALES"
-                />
-                {formik.touched.specialties && formik.errors.specialties && (
-                  <p className="text-xs text-red-500 mt-1">{formik.errors.specialties}</p>
-                )}
-              </FormField>
-
-              <FormField label="Subtítulo" htmlFor="subtitle">
-                <input
-                  id="subtitle"
-                  className={INPUT_CLS}
-                  {...formik.getFieldProps("subtitle")}
-                  placeholder="Medicina Estética Avanzada"
-                />
-              </FormField>
-
-              <FormField label="Descripción" htmlFor="description">
-                <textarea
-                  id="description"
-                  className={INPUT_CLS}
-                  rows={3}
-                  {...formik.getFieldProps("description")}
-                  placeholder="Realza tu belleza natural con tratamientos seguros y efectivos..."
-                />
-              </FormField>
-
-              <FormField
-                label="Texto resaltado"
-                htmlFor="highlightedText"
-                hint="Debe ser un fragmento exacto del texto de descripción"
-              >
-                <input
-                  id="highlightedText"
-                  className={INPUT_CLS}
-                  {...formik.getFieldProps("highlightedText")}
-                  placeholder="tratamientos seguros y efectivos"
-                />
-              </FormField>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Texto botón primario" htmlFor="btn1Text">
-                  <input
-                    id="btn1Text"
-                    className={INPUT_CLS}
-                    {...formik.getFieldProps("btn1Text")}
-                    placeholder="VER TRATAMIENTOS"
-                  />
-                </FormField>
-                <FormField label="Texto botón secundario" htmlFor="btn2Text">
-                  <input
-                    id="btn2Text"
-                    className={INPUT_CLS}
-                    {...formik.getFieldProps("btn2Text")}
-                    placeholder="AGENDA TU CITA"
-                  />
-                </FormField>
-              </div>
-            </div>
-          </EditorCard>
-
-          {/* Stats */}
-          <EditorCard title="Estadísticas">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart2 size={16} className="text-green-500" />
-              <span className="text-sm text-gray-500">Números destacados del hero</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {([1, 2, 3] as const).map((n) => (
-                <div key={n} className="flex flex-col gap-3 p-3 rounded-lg border border-gray-100 bg-gray-50">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Estadística {n}</p>
-                  <FormField label="Valor" htmlFor={`stat${n}Value`}>
-                    <input
-                      id={`stat${n}Value`}
-                      className={INPUT_CLS}
-                      {...formik.getFieldProps(`stat${n}Value`)}
-                      placeholder="10+"
-                    />
-                  </FormField>
-                  <FormField label="Etiqueta" htmlFor={`stat${n}Label`}>
-                    <input
-                      id={`stat${n}Label`}
-                      className={INPUT_CLS}
-                      {...formik.getFieldProps(`stat${n}Label`)}
-                      placeholder="AÑOS DE EXPERIENCIA"
-                    />
-                  </FormField>
-                </div>
-              ))}
-            </div>
-          </EditorCard>
-
-          {/* FAQs */}
-          <EditorCard title="Preguntas Frecuentes">
-            <div className="flex items-center gap-2 mb-4">
-              <HelpCircle size={16} className="text-blue-500" />
-              <span className="text-sm text-gray-500">Sección de preguntas y respuestas</span>
-            </div>
-            <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField label="Etiqueta de sección" htmlFor="faqSectionLabel">
-                  <input
-                    id="faqSectionLabel"
-                    className={INPUT_CLS}
-                    {...formik.getFieldProps("faqSectionLabel")}
-                    placeholder="¿TIENES PREGUNTAS?"
-                  />
-                </FormField>
-                <FormField label="Título de sección" htmlFor="faqTitle">
-                  <input
-                    id="faqTitle"
-                    className={INPUT_CLS}
-                    {...formik.getFieldProps("faqTitle")}
-                    placeholder="Preguntas Frecuentes"
-                  />
-                </FormField>
-              </div>
-
-              <FaqDndList formik={formik} />
-            </div>
-          </EditorCard>
-
-          {/* Save bottom */}
-          <div className="flex justify-end pb-4">
-            <button
-              type="submit"
-              disabled={!formik.isValid || formik.isSubmitting}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-60 transition-opacity"
-              style={{ backgroundColor: "var(--vintage-gold)" }}
-            >
-              <Check size={15} />
-              {formik.isSubmitting ? "Guardando..." : "Guardar inicio"}
-            </button>
-          </div>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3" aria-hidden="true">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-[116px] rounded-2xl img-shimmer" />
+          ))}
         </div>
-      </form>
-    </FormikProvider>
+      ) : (
+        <>
+          {/* Todo al día: el estado vacío también merece diseño. */}
+          {pendingTotal === 0 && (
+            <div
+              className="flex items-center gap-3 rounded-2xl border px-5 py-4 mb-4"
+              style={{ backgroundColor: "rgba(31,122,82,0.07)", borderColor: "rgba(31,122,82,0.25)" }}
+            >
+              <CheckCircle2 size={20} aria-hidden="true" style={{ color: "#1f7a52" }} />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "var(--prem-fg)" }}>
+                  Todo al día
+                </p>
+                <p className="text-xs" style={{ color: "var(--prem-muted)" }}>
+                  No hay reseñas esperando tu decisión.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {metrics.map(({ key, label, value, hint, href, icon: Icon, actionable }) => {
+              const highlight = actionable && value > 0
+              return (
+                <Link
+                  key={key}
+                  href={href}
+                  className="dash-metric group flex flex-col gap-2 rounded-2xl border p-5"
+                  data-highlight={highlight ? "true" : "false"}
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon size={15} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
+                    <span className="prem-eyebrow prem-eyebrow--inline" style={{ color: "var(--prem-muted)" }}>
+                      {label}
+                    </span>
+                  </span>
+
+                  <span
+                    className="text-3xl leading-none tabular-nums"
+                    style={{
+                      fontFamily: "var(--font-heading)",
+                      color: highlight ? "var(--vintage-gold-dark)" : "var(--prem-fg)",
+                    }}
+                  >
+                    {value}
+                  </span>
+
+                  <span className="flex items-center justify-between gap-2 text-xs" style={{ color: "var(--prem-muted)" }}>
+                    {hint}
+                    <ArrowRight
+                      size={14}
+                      aria-hidden="true"
+                      className="shrink-0 transition-transform duration-200 group-hover:translate-x-0.5"
+                    />
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
+        </>
+      )}
+    </>
   )
 }

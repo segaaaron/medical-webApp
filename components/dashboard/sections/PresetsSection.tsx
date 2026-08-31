@@ -11,7 +11,7 @@ export function PresetsSection({ data, setData }: SectionProps) {
   }
 
   function add() {
-    setData({ ...data, presets: [...data.presets, { name: "", description: "", tag: "", tagColor: "#673de6" }] })
+    setData({ ...data, presets: [...data.presets, { name: "", description: "", tag: "", tagColor: "#B8973B" }] })
   }
 
   function remove(i: number) {
@@ -61,7 +61,7 @@ export function PresetsSection({ data, setData }: SectionProps) {
       ))}
       <button
         onClick={add}
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed text-sm dash-dashed-add transition-colors"
       >
         <Plus size={16} />
         Anadir tratamiento

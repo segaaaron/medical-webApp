@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
-import { Plus, Trash2, Pencil, GripVertical, Grip, ArrowUpDown, Save, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react"
+import { Plus, Trash2, Pencil, GripVertical, Grip, ArrowUpDown, Save, X, ImageOff } from "lucide-react"
 import {
   DndContext,
   closestCenter,
@@ -23,8 +23,9 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { guardedFetch } from "@/lib/client-fetch"
 import { PageHeader } from "@/components/dashboard/PageHeader"
+import { DashboardPagination } from "@/components/dashboard/DashboardPagination"
 import { useToast } from "@/components/dashboard/Toast"
-import { DeleteTreatmentDialog } from "@/components/ui/DialogAlert"
+import { useConfirm } from "@/components/dashboard/ConfirmDialog"
 import { TAG_COLORS, DEFAULT_TAG_COLOR } from "@/lib/treatment-tags"
 
 interface Treatment {
@@ -140,15 +141,17 @@ function SortableRow({
           <span
             className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full"
             style={{
-              backgroundColor: "rgba(255,255,255,0.9)",
-              color: treatment.active ? "#2f7a4f" : "#8a7d70",
+              // Fondo semántico: verde = visible en la web, gris cálido = fuera de
+              // ella. El gris no compite con el dorado de los botones de acción.
+              // El punto y el texto acompañan al color (nunca color a solas).
+              backgroundColor: treatment.active ? "#1f7a52" : "#6f635a",
+              color: "#fff",
               letterSpacing: "0.08em",
-              backdropFilter: "blur(6px)",
-              boxShadow: "0 2px 8px rgba(58,15,32,0.2)",
+              boxShadow: "0 2px 8px rgba(58,15,32,0.25)",
             }}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${treatment.active ? "bg-[#37a866]" : "bg-gray-400"}`} />
-            {treatment.active ? "Publicado" : "Borrador"}
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.85)" }} />
+            {treatment.active ? "Activo" : "Inactivo"}
           </span>
         </div>
 
@@ -240,18 +243,19 @@ function SortableRow({
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
+/** Mismo tamaño de página que servía el backend (8): la vista no cambia. */
+const PAGE_SIZE = 8
+
 export default function TratamientosDashboardPage() {
   const showToast = useToast()
 
   const [treatments, setTreatments] = useState<Treatment[]>([])
   const [loading, setLoading] = useState(true)
-  const [deleteTarget, setDeleteTarget] = useState<Treatment | null>(null)
+  const confirm = useConfirm()
   const [reorderMode, setReorderMode] = useState(false)
   const [saving, setSaving] = useState(false)
   const [originalOrder, setOriginalOrder] = useState<Treatment[]>([])
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -259,41 +263,43 @@ export default function TratamientosDashboardPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  // Paginación 100% gobernada por el backend (page size, total y totalPages vienen del backend).
-  // Reordenar pide TODA la lista (sin page) para poder arrastrar sobre todos los items.
-  // Si el backend aún no pagina (responde array), se muestra todo en una sola página: sin hardcode.
-  const load = useCallback(async (opts?: { all?: boolean; page?: number }) => {
+  /**
+   * Lista completa desde la superficie de administración.
+   *
+   * Antes convivían dos contratos sobre la ruta pública: `?page=N` para la
+   * tabla y `?all=true` para reordenar — y ninguno reenviaba el token, así que
+   * el panel veía la web pública. Ahora hay una sola carga autenticada: la
+   * tabla pagina en memoria y reordenar ya tiene todos los items delante.
+   */
+  const load = useCallback(async () => {
     setLoading(true)
-    const all = opts?.all ?? false
-    const pageToLoad = opts?.page ?? page
-    const path = all ? "/api/treatments?all=true" : `/api/treatments?page=${pageToLoad}`
-    const res = await guardedFetch(path)
+    const res = await guardedFetch("/api/admin/treatments")
     if (res.ok) {
       const json = await res.json()
-      const isArray = Array.isArray(json)
-      const list: Treatment[] = isArray
-        ? [...json].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        : ((json.data ?? []) as Treatment[])
+      const list: Treatment[] = (Array.isArray(json) ? json : []).sort(
+        (a: Treatment, b: Treatment) => (a.order ?? 0) - (b.order ?? 0)
+      )
       setTreatments(list)
-      setTotalPages(isArray ? 1 : Math.max(1, json.totalPages ?? (json.total && json.limit ? Math.ceil(json.total / json.limit) : 1)))
-      setTotalCount(isArray ? list.length : (json.total ?? list.length))
-      // En reorder cargamos toda la lista → ése es el baseline para "Cancelar".
-      if (all) setOriginalOrder(list)
+      setOriginalOrder(list)
     }
     setLoading(false)
-  }, [page])
+  }, [])
 
-  // Carga inicial + al cambiar de página (solo fuera del modo reordenar).
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de datos en mount/cambio de página
-    if (!reorderMode) load({ page })
-  }, [page, reorderMode, load])
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga de datos en mount
+    load()
+  }, [load])
 
+  const totalCount = treatments.length
+  // En reorder se arrastra sobre la lista entera: paginar partiría el drag.
+  const totalPages = reorderMode ? 1 : Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
-  const visibleTreatments = treatments
+  const visibleTreatments = reorderMode
+    ? treatments
+    : treatments.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   function enterReorderMode() {
-    load({ all: true })
+    setOriginalOrder(treatments)
     setReorderMode(true)
   }
 
@@ -332,12 +338,16 @@ export default function TratamientosDashboardPage() {
     }
   }
 
-  async function confirmDelete() {
-    if (!deleteTarget) return
-    const res = await guardedFetch(`/api/treatments/${deleteTarget.id}`, { method: "DELETE" })
-    if (res.ok) showToast("success", `"${deleteTarget.name}" fue eliminado correctamente.`)
+  async function handleDelete(treatment: Treatment) {
+    const ok = await confirm({
+      title: "¿Eliminar tratamiento?",
+      description: `Se borrará "${treatment.name}" de forma permanente. Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar tratamiento",
+    })
+    if (!ok) return
+    const res = await guardedFetch(`/api/treatments/${treatment.id}`, { method: "DELETE" })
+    if (res.ok) showToast("success", `"${treatment.name}" fue eliminado correctamente.`)
     else showToast("error", "No se pudo eliminar el tratamiento. Intenta de nuevo.")
-    setDeleteTarget(null)
     await load()
   }
 
@@ -374,7 +384,7 @@ export default function TratamientosDashboardPage() {
                 style={{ backgroundColor: "var(--vintage-gold)" }}
               >
                 <Save size={15} />
-                {saving ? "Guardando..." : "Guardar orden"}
+                Guardar orden
               </button>
             </>
           ) : (
@@ -430,58 +440,25 @@ export default function TratamientosDashboardPage() {
                     treatment={t}
                     reorderMode={reorderMode}
                     onEdit={() => { window.location.href = `/dashboard/tratamientos/${t.id}/editar` }}
-                    onDelete={() => setDeleteTarget(t)}
+                    onDelete={() => handleDelete(t)}
                   />
                 ))}
               </div>
             </SortableContext>
           </DndContext>
 
-          {/* Paginación — oculta en modo reordenar */}
-          {!reorderMode && totalPages > 1 && (
-            <nav className="flex items-center justify-center gap-1.5 mt-8" aria-label="Paginación de tratamientos">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage <= 1}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                aria-label="Página anterior"
-              >
-                <ChevronLeft size={16} />
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  aria-current={p === currentPage ? "page" : undefined}
-                  className={`inline-flex items-center justify-center min-w-[36px] h-9 px-2 rounded-lg text-sm font-semibold transition-colors ${
-                    p === currentPage
-                      ? "text-white"
-                      : "border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)]"
-                  }`}
-                  style={p === currentPage ? { backgroundColor: "var(--vintage-gold)" } : undefined}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage >= totalPages}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-[var(--vintage-gold)] hover:text-[var(--vintage-gold)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                aria-label="Página siguiente"
-              >
-                <ChevronRight size={16} />
-              </button>
-            </nav>
+          {!reorderMode && (
+            <DashboardPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              label="Paginación de tratamientos"
+            />
           )}
         </>
       )}
 
-      <DeleteTreatmentDialog
-        open={deleteTarget !== null}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteTarget(null)}
-        treatmentName={deleteTarget?.name ?? ""}
-      />
+
     </>
   )
 }

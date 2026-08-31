@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { FaqPrompt } from "@/components/ui/FaqPrompt"
-import { WHATSAPP_URL } from "@/lib/constants"
+import { useWhatsApp } from "@/components/providers/WhatsAppProvider"
 import type { CourseIncluded, CourseModule, CourseItemIcon } from "@/types"
 import Link from "next/link"
 
@@ -37,6 +37,7 @@ interface CourseSectionProps {
 }
 
 export function ServiceSection({ included, modules, info }: CourseSectionProps) {
+  const { url: whatsappUrl } = useWhatsApp()
   const eyebrow = info?.label || "Nuestros Servicios"
   const title = info?.title || "Tratamientos de Medicina Estética"
   const subtitle = info?.subtitle ||
@@ -107,7 +108,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                 {modules.map((mod) => (
                   <li key={mod.treatmentId} className="flex items-start gap-2 text-sm" style={{ color: "#fce4ec" }}>
                     <span style={{ color: "var(--vintage-gold)" }}>›</span>
-                      <Link href={`/tratamientos/${mod.treatmentId}`}
+                      <Link href={`/tratamientos/${mod.treatmentSlug ?? ""}`}
                       className="inline-flex items-center gap-4 text-xs font-medium hover:opacity-80 transition-opacity py-2 -my-2"
                       >
                         {mod.title}
@@ -148,7 +149,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
                   {ctaSubtitle}
                 </p>
                 <FaqPrompt className="mb-8" />
-                <LinkButton href={WHATSAPP_URL} variant="primary" className="w-full justify-center py-4">
+                <LinkButton href={whatsappUrl} variant="primary" className="w-full justify-center py-4">
                   {buttonText}
                 </LinkButton>
                 <p className="text-xs mt-4" style={{ color: "var(--gray-mid)" }}>
@@ -166,7 +167,7 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
           transition={{ duration: 0.6 }}
           className="text-center"
         >
-          <LinkButton href={WHATSAPP_URL} variant="warning" className="px-12">
+          <LinkButton href={whatsappUrl} variant="warning" className="px-12">
             AGENDA TU CITA AHORA
           </LinkButton>
         </m.div>

@@ -115,7 +115,7 @@ function LoginForm() {
               type="submit"
               disabled={!formik.isValid || formik.isSubmitting}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-lg font-bold text-sm text-white transition-colors disabled:opacity-60 mt-2"
-              style={{ backgroundColor: "#673de6" }}
+              style={{ backgroundColor: "var(--vintage-gold)" }}
             >
               {formik.isSubmitting && <Loader2 size={16} className="animate-spin" />}
               {formik.isSubmitting ? "Entrando..." : "Entrar al dashboard"}

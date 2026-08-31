@@ -4,8 +4,9 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useState } from "react"
 import { useFormik, FieldArray, FormikProvider } from "formik"
 import * as Yup from "yup"
-import { Plus, Trash2, User, MessageCircle, Facebook, Instagram, Link, Copyright, Palette } from "lucide-react"
+import { Plus, Trash2, User, MessageCircle, Facebook, Instagram, Link, Copyright } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
+import { SaveBar } from "@/components/dashboard/SaveBar"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
@@ -154,6 +155,7 @@ function LinkArrayEditor({
 export default function FooterDashboardPage() {
   const showToast = useToast()
   const [loading, setLoading] = useState(true)
+  const [saved, setSaved] = useState(false)
 
   const formik = useFormik<FooterFormValues>({
     initialValues: INITIAL_VALUES,
@@ -166,6 +168,10 @@ export default function FooterDashboardPage() {
           body: JSON.stringify(values),
         })
         if (!res.ok) throw new Error()
+        // resetForm con los valores enviados: `dirty` vuelve a false y la barra
+        // pasa a "guardado" sin necesidad de recargar del backend.
+        formik.resetForm({ values })
+        setSaved(true)
         showToast("success", "¡Footer guardado exitosamente!")
       } catch {
         showToast("error", "No se pudo guardar. Intenta de nuevo.")
@@ -190,8 +196,6 @@ export default function FooterDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const isSubmitDisabled = formik.isSubmitting || !formik.values.doctorName.trim()
-
   if (loading) return <p className="text-gray-400 text-sm" role="status">Cargando...</p>
 
   return (
@@ -200,18 +204,11 @@ export default function FooterDashboardPage() {
         <PageHeader
           title="Footer"
           description="Edita la información del pie de página del sitio web."
-          saving={formik.isSubmitting}
-          saveDisabled={isSubmitDisabled}
-          onSave={() => formik.submitForm()}
         />
 
         <div className="flex flex-col gap-6">
           {/* Información del doctor */}
-          <EditorCard title="Información de la Doctora">
-            <div className="flex items-center gap-2 mb-4">
-              <User size={16} className="text-purple-600" />
-              <span className="text-sm text-gray-500">Datos principales que aparecen en el footer</span>
-            </div>
+          <EditorCard title="Información de la Doctora" icon={User} hint="Datos principales que aparecen en el footer">
             <div className="flex flex-col gap-4">
               <FormField label="Nombre del doctor *" htmlFor="doctorName">
                 <input
@@ -248,7 +245,7 @@ export default function FooterDashboardPage() {
           <EditorCard title="Redes Sociales">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2 mb-1">
-                <MessageCircle size={16} className="text-green-600" />
+                <MessageCircle size={16} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
                 <span className="text-sm text-gray-500">WhatsApp</span>
               </div>
               <FormField label="URL de WhatsApp" htmlFor="whatsappUrl">
@@ -274,7 +271,7 @@ export default function FooterDashboardPage() {
               </FormField>
 
               <div className="flex items-center gap-2 mt-2">
-                <Instagram size={16} className="text-pink-500" />
+                <Instagram size={16} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
                 <span className="text-sm text-gray-500">Instagram</span>
               </div>
               <FormField label="URL de Instagram" htmlFor="instagramUrl">
@@ -289,11 +286,7 @@ export default function FooterDashboardPage() {
           </EditorCard>
 
           {/* Tratamientos faciales */}
-          <EditorCard title="Tratamientos Faciales">
-            <div className="flex items-center gap-2 mb-4">
-              <Link size={16} className="text-rose-500" />
-              <span className="text-sm text-gray-500">Links de tratamientos faciales en el footer</span>
-            </div>
+          <EditorCard title="Tratamientos Faciales" icon={Link} hint="Links de tratamientos faciales en el footer">
             <LinkArrayEditor
               fieldName="facialTreatments"
               label="Cada link tiene un texto visible y una ruta"
@@ -302,11 +295,7 @@ export default function FooterDashboardPage() {
           </EditorCard>
 
           {/* Tratamientos corporales */}
-          <EditorCard title="Tratamientos Corporales">
-            <div className="flex items-center gap-2 mb-4">
-              <Link size={16} className="text-amber-500" />
-              <span className="text-sm text-gray-500">Links de tratamientos corporales en el footer</span>
-            </div>
+          <EditorCard title="Tratamientos Corporales" icon={Link} hint="Links de tratamientos corporales en el footer">
             <LinkArrayEditor
               fieldName="bodyTreatments"
               label="Cada link tiene un texto visible y una ruta"
@@ -315,11 +304,7 @@ export default function FooterDashboardPage() {
           </EditorCard>
 
           {/* Links del consultorio */}
-          <EditorCard title="Links del Consultorio">
-            <div className="flex items-center gap-2 mb-4">
-              <Link size={16} className="text-blue-500" />
-              <span className="text-sm text-gray-500">Links de navegación del consultorio</span>
-            </div>
+          <EditorCard title="Links del Consultorio" icon={Link} hint="Links de navegación del consultorio">
             <LinkArrayEditor
               fieldName="officeLinks"
               label="Cada link tiene un texto visible y una ruta"
@@ -328,11 +313,7 @@ export default function FooterDashboardPage() {
           </EditorCard>
 
           {/* Links legales */}
-          <EditorCard title="Links Legales">
-            <div className="flex items-center gap-2 mb-4">
-              <Link size={16} className="text-gray-500" />
-              <span className="text-sm text-gray-500">Política de privacidad, términos, etc.</span>
-            </div>
+          <EditorCard title="Links Legales" icon={Link} hint="Política de privacidad, términos, etc.">
             <LinkArrayEditor
               fieldName="legalLinks"
               label="Cada link tiene un texto visible y una ruta"
@@ -341,11 +322,7 @@ export default function FooterDashboardPage() {
           </EditorCard>
 
           {/* Textos de copyright */}
-          <EditorCard title="Textos Finales">
-            <div className="flex items-center gap-2 mb-4">
-              <Copyright size={16} className="text-gray-500" />
-              <span className="text-sm text-gray-500">Textos al pie del footer</span>
-            </div>
+          <EditorCard title="Textos Finales" icon={Copyright} hint="Textos al pie del footer">
             <div className="flex flex-col gap-4">
               <FormField label="Texto de copyright" htmlFor="copyrightText">
                 <input
@@ -366,18 +343,13 @@ export default function FooterDashboardPage() {
             </div>
           </EditorCard>
 
-          {/* Bottom save */}
-          <div className="flex justify-end pb-4">
-            <button
-              type="submit"
-              disabled={isSubmitDisabled}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-opacity"
-              style={{ backgroundColor: "var(--vintage-gold)" }}
-            >
-              <Palette size={15} />
-              {formik.isSubmitting ? "Guardando..." : "Guardar footer"}
-            </button>
-          </div>
+          <SaveBar
+          dirty={formik.dirty}
+          saving={formik.isSubmitting}
+          saved={saved}
+          onSave={() => formik.submitForm()}
+          onReset={() => formik.resetForm()}
+        />
         </div>
       </form>
     </FormikProvider>

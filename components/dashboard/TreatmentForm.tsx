@@ -46,7 +46,6 @@ export interface TreatmentFormValues extends TreatmentSchemaValues {
 interface TreatmentFormProps {
   initialValues?: Partial<TreatmentFormValues>
   submitLabel: string
-  savingLabel?: string
   onSubmit: (values: TreatmentFormValues) => Promise<void>
 }
 
@@ -101,7 +100,6 @@ function ImagePickerField({ id, label, hint, preview, onSelect, onRemove, previe
 export function TreatmentForm({
   initialValues,
   submitLabel,
-  savingLabel = "Guardando...",
   onSubmit,
 }: TreatmentFormProps) {
   const [saving, setSaving] = useState(false)
@@ -260,7 +258,7 @@ export function TreatmentForm({
             style={{ backgroundColor: "var(--vintage-gold)" }}
           >
             <Check size={15} />
-            {saving ? savingLabel : submitLabel}
+            {submitLabel}
           </button>
           <Link
             href="/dashboard/tratamientos"

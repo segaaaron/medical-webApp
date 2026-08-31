@@ -137,7 +137,7 @@ export function FAQsSection({ data, setData }: SectionProps) {
       </DndContext>
       <button
         onClick={add}
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm text-gray-400 hover:border-purple-400 hover:text-purple-500 transition-colors"
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-dashed text-sm dash-dashed-add transition-colors"
       >
         <Plus size={16} />
         Anadir pregunta

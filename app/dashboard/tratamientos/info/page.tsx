@@ -261,7 +261,7 @@ export default function TratamientosInfoPage() {
             style={{ backgroundColor: "var(--vintage-gold)" }}
           >
             <Check size={15} aria-hidden="true" />
-            {formik.isSubmitting ? "Guardando..." : "Guardar cambios"}
+            Guardar cambios
           </button>
         </div>
       </form>

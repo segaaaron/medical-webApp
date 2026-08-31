@@ -15,6 +15,7 @@ interface BackendBlogPost {
 
 interface BackendTreatment {
   id: string
+  slug: string
   active: boolean
 }
 
@@ -45,7 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const treatmentEntries: MetadataRoute.Sitemap = treatmentData
     .filter((t) => t.active)
     .map((t) => ({
-      url: `${BASE_URL}/tratamientos/${t.id}`,
+      url: `${BASE_URL}/tratamientos/${t.slug}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.8,

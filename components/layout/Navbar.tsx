@@ -6,7 +6,7 @@ import { Menu, X, Phone } from "lucide-react"
 import { m, AnimatePresence } from "framer-motion"
 import Image from "next/image"
 import type { NavLink } from "@/types"
-import { WHATSAPP_URL } from "@/lib/constants"
+import { useWhatsApp } from "@/components/providers/WhatsAppProvider"
 import { trackWhatsAppClick } from "@/lib/analytics"
 
 interface NavbarProps {
@@ -22,6 +22,7 @@ const getScrolledSnapshot = () => window.scrollY > 56
 const getScrolledServerSnapshot = () => false
 
 export function Navbar({ links }: NavbarProps) {
+  const { url: whatsappUrl } = useWhatsApp()
   const [mobileOpen, setMobileOpen] = useState(false)
   const pathname = usePathname()
   const isHome = pathname === "/"
@@ -95,7 +96,7 @@ export function Navbar({ links }: NavbarProps) {
         {/* CTA Button */}
         <div className="hidden lg:flex items-center gap-3">
           <a
-            href={WHATSAPP_URL}
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 uppercase transition-all"
@@ -175,7 +176,7 @@ export function Navbar({ links }: NavbarProps) {
                 transition={{ duration: 0.2, delay: links.length * 0.05 }}
               >
                 <a
-                  href={WHATSAPP_URL}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full px-5 py-3 text-sm font-bold uppercase tracking-wide"

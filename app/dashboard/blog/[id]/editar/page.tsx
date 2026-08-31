@@ -262,7 +262,7 @@ export default function EditarBlogPage() {
               style={{ backgroundColor: "var(--vintage-gold)" }}
             >
               <Check size={15} aria-hidden="true" />
-              {formik.isSubmitting ? "Guardando..." : "Actualizar"}
+              Actualizar
             </button>
             <Link
               href="/dashboard/blog"

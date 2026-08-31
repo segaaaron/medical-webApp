@@ -144,6 +144,7 @@ interface SiteContentTreatmentsPage {
 }
 
 interface BackendTreatment {
+  slug: string
   id: string
   name: string
   description: string | null

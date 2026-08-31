@@ -3,12 +3,16 @@ import { useState } from "react"
 import { Menu } from "lucide-react"
 import { Sidebar } from "./Sidebar"
 import { ToastProvider } from "./Toast"
+import { GlobalLoadingProvider } from "./GlobalLoadingProvider"
+import { ConfirmProvider } from "./ConfirmDialog"
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <ToastProvider>
+    <GlobalLoadingProvider>
+    <ConfirmProvider>
     <div className="min-h-screen" style={{ backgroundColor: "#F8F4EF" }}>
       {/* Sidebar — always fixed */}
       {sidebarOpen && (
@@ -48,6 +52,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
+    </ConfirmProvider>
+    </GlobalLoadingProvider>
     </ToastProvider>
   )
 }
