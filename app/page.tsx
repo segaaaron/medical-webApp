@@ -5,6 +5,7 @@ import { getAboutData } from "@/lib/data/about"
 import { backendFetch, resolveImageUrl, extractList, extractReviewAggregate } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
 import dynamic from "next/dynamic"
+import type { Metadata } from "next"
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 import { PromoBanner } from "@/components/layout/PromoBanner"
@@ -18,6 +19,7 @@ import { AboutSection } from "@/components/sections/AboutSection"
 import { HomeSection } from "@/components/sections/HomeSection"
 import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import type { PublicReview, ReviewAggregate } from "@/components/sections/TestimonialsSection"
+import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
 import { CourseModule, HeroCTA } from "@/types"
 
 // ─── Below-fold sections (lazy — split JS chunk, still SSR'd) ─────────────────
@@ -77,7 +79,11 @@ const SAME_AS = [
 ]
 
 /** MedicalBusiness (subtipo de Organization) con datos del negocio + estrellas. */
-function buildLocalBusinessJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) {
+function buildLocalBusinessJsonLd(
+  reviews: PublicReview[],
+  aggregate?: ReviewAggregate,
+  treatments: BackendTreatment[] = []
+) {
   return {
     "@context": "https://schema.org",
     "@type": "MedicalBusiness",
@@ -98,6 +104,31 @@ function buildLocalBusinessJsonLd(reviews: PublicReview[], aggregate?: ReviewAgg
       latitude: -17.386471,
       longitude: -66.152366,
     },
+    // Catálogo de servicios.
+    //
+    // El negocio declaraba su especialidad pero no QUÉ hace: nada conectaba la
+    // entidad «consultorio» con los once procedimientos ni con sus páginas. Es
+    // la lista que un buscador —y un motor de respuestas tipo ChatGPT o
+    // Perplexity, que citan enumerando servicios— necesita para saber que aquí
+    // se pone botox. Se deriva de los tratamientos activos, así que activar uno
+    // nuevo en el panel lo añade solo.
+    ...(treatments.length
+      ? {
+          hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: "Tratamientos de medicina estética en Cochabamba",
+            itemListElement: treatments.map((t) => ({
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "MedicalProcedure",
+                name: seoTitleFor(t.slug, t.name),
+                alternateName: searchAliasesFor(t.slug, t.name),
+                url: `${BASE_URL}/tratamientos/${t.slug}`,
+              },
+            })),
+          },
+        }
+      : {}),
     openingHoursSpecification: [
       { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "19:00" },
       { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday"], opens: "09:00", closes: "14:00" },
@@ -154,6 +185,70 @@ interface BackendTreatment {
   active: boolean
 }
 
+/**
+ * Metadatos de la home, derivados de los tratamientos REALES del panel.
+ *
+ * Antes el título vivía escrito a mano en el layout. Eso tiene un fallo que no
+ * es de posicionamiento sino de honestidad: la lista se desincroniza del
+ * consultorio. Llegó a anunciar «Armonización Facial» sin que existiera ese
+ * tratamiento, y las keywords declaraban depilación láser y mesoterapia
+ * corporal, que tampoco se ofrecen.
+ *
+ * El panel es la fuente de verdad. Si la doctora activa un tratamiento, aparece
+ * aquí; si lo desactiva, desaparece. No se puede prometer lo que no se hace.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { data, error } = await backendFetch<BackendTreatment[]>(
+    "/treatments?active=true",
+    { revalidate: 300 }
+  )
+
+  const activos = error === null ? extractList<BackendTreatment>(data) : []
+  const nombres = activos.filter((t) => t.slug).map((t) => seoTitleFor(t.slug, t.name))
+
+  // Sin datos del backend se cae al título genérico del layout en vez de
+  // inventar una lista: mejor decir menos que decir algo falso.
+  if (nombres.length === 0) return {}
+
+  // Se añaden tratamientos mientras quepan.
+  //
+  // Coger tres fijos daba títulos de 94 caracteres («Ácido Hialurónico, Botox,
+  // Rinomodelación sin Cirugía en Cochabamba | Dra. Yasmin Medrano Avila») y
+  // Google corta en unos 60: el tercer tratamiento y media marca no llegaban a
+  // verse. El límite es de espacio, no de cantidad, así que se mide.
+  const COLA = " en Cochabamba"
+  // El presupuesto se mide SIN la marca, aunque el template del layout la
+  // añada después. Google corta por el final, y el final es la marca: es lo
+  // prescindible. Lo que tiene que caber en los ~60 caracteres visibles son
+  // los tratamientos y la ciudad, que es por lo que la gente busca. Reservar
+  // sitio para la marca dejaba entrar un solo tratamiento.
+  const PRESUPUESTO = 60 - COLA.length
+
+  const elegidos: string[] = []
+  for (const nombre of nombres) {
+    const tentativa = [...elegidos, nombre].join(", ")
+    if (elegidos.length > 0 && tentativa.length > PRESUPUESTO) break
+    elegidos.push(nombre)
+  }
+
+  const lista = elegidos.join(", ")
+
+  return {
+    title: `${lista} en Cochabamba`,
+    description:
+      `${lista} y más tratamientos de medicina estética en Cochabamba, ` +
+      "con la Dra. Yasmin Medrano Avila. Consulta de valoración personalizada.",
+    // `keywords` se deriva de lo que el consultorio ofrece de verdad. Google
+    // ignora esta etiqueta desde 2009, así que no posiciona: se mantiene
+    // sincronizada por coherencia, no porque trabaje.
+    keywords: [
+      ...activos.flatMap((t) => (t.slug ? searchAliasesFor(t.slug, t.name) : [])),
+      "medicina estética Cochabamba",
+      "Dra. Yasmin Medrano Avila",
+    ],
+  }
+}
+
 export const revalidate = 300 // 5 min ISR
 
 export default async function HomePage() {
@@ -163,7 +258,7 @@ export default async function HomePage() {
     getFooterData(),
     getPromoData(),
     getAboutData(),
-    backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 60 }),
+    backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 }),
     backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 60 }),
     backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
   ])
@@ -190,7 +285,6 @@ export default async function HomePage() {
             total_count: approvedReviews.length,
           }
         : undefined
-  const localBusinessJsonLd = buildLocalBusinessJsonLd(approvedReviews, reviewAggregate)
   const siteNavJsonLd = buildSiteNavJsonLd(homeData.navLinks)
 
   const backendError = treatment.error !== null
@@ -200,6 +294,12 @@ export default async function HomePage() {
         ...t,
         imageUrl: resolveImageUrl(t.imageUrl),
       }))
+
+  const localBusinessJsonLd = buildLocalBusinessJsonLd(
+    approvedReviews,
+    reviewAggregate,
+    backendTreatments
+  )
 
   const pageInfo: TreatmentsPageInfo | undefined =
   infoResult.error === null && infoResult.data?.value

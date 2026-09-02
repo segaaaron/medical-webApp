@@ -10,7 +10,8 @@ import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 import { WhatsAppProvider } from "@/components/providers/WhatsAppProvider";
 import { getWhatsAppConfig } from "@/lib/data/whatsapp";
-import { doctorKnowsAbout } from "@/lib/seo/treatment-names"
+import { doctorKnowsAbout, type TreatmentRef } from "@/lib/seo/treatment-names"
+import { backendFetch, extractList } from "@/lib/backend-client"
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -59,35 +60,38 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    // La home es la página con más autoridad del sitio y su título no contenía
-    // ni un solo tratamiento: competía únicamente por «medicina estética», que
-    // es genérico, y por el nombre de la doctora, que solo teclea quien ya la
-    // conoce. Los dos tratamientos con más demanda van ahora en el título, que
-    // es la señal de relevancia con más peso de toda la página.
-    default: "Botox, Rellenos y Armonización Facial en Cochabamba | Dra. Yasmin Medrano Avila",
+    // Título de reserva. La home lo sustituye por los tratamientos que el panel
+    // tiene activos (ver `generateMetadata` en app/page.tsx); aquí no se nombra
+    // ningún procedimiento concreto, para no anunciar desde una constante algo
+    // que el consultorio pueda no estar ofreciendo.
+    default: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
     template: "%s | Dra. Yasmin Medrano Avila",
   },
   description:
     "Medicina estética en Cochabamba: botox, rellenos y armonización facial con 10+ años de experiencia. Consulta de valoración personalizada.",
+  // Términos generales del consultorio, no de tratamientos concretos: los de
+  // cada procedimiento salen de `lib/seo/treatment-names.ts`, que solo conoce
+  // los que existen. Se quitaron de aquí los que anunciaban servicios que el
+  // consultorio no presta (depilación láser, mesoterapia corporal, armonización
+  // facial y bioestimulación no figuran entre sus tratamientos activos).
+  //
+  // Nota: Google ignora esta etiqueta desde 2009. Se mantiene limpia por
+  // coherencia con lo que se ofrece, no porque influya en el posicionamiento.
   keywords: [
     // Geo-transaccionales Bolivia/Cochabamba — alta intención de compra
     "médico estético Cochabamba Bolivia",
     "mejor medicina estética Cochabamba",
     "botox Cochabamba precio consulta",
-    "rellenos labios ácido hialurónico Bolivia",
-    "armonización facial Cochabamba",
     "bioestimuladores polinucleótidos Bolivia",
-    "depilación láser Cochabamba mujer",
+    "bioestimulación facial Bolivia",
+    "rellenos labios ácido hialurónico Bolivia",
     "tratamiento manchas faciales médico Bolivia",
-    "rejuvenecimiento facial sin cirugía Cochabamba",
-    "mesoterapia corporal Bolivia",
     "consulta medicina estética cerca de mí",
     "estética médica Bolivia",
     // Marca + autoridad
     "Dra. Yasmin Medrano Avila",
     "medicina estética avanzada Bolivia",
     "toxina botulínica Cochabamba",
-    "bioestimulación facial Bolivia",
     "peeling químico Cochabamba",
     "radiofrecuencia facial Bolivia",
     "eliminación manchas piel Bolivia",
@@ -146,7 +150,13 @@ export const metadata: Metadata = {
 };
 
 // JSON-LD structured data — Physician / MedicalBusiness
-const jsonLd = {
+/**
+ * `@graph` del sitio. Recibe los tratamientos activos para que la ficha de la
+ * doctora declare lo que realmente hace: si mañana se añade uno en el panel,
+ * su `knowsAbout` lo recoge sin que nadie edite este archivo.
+ */
+function buildSiteJsonLd(treatments: TreatmentRef[]) {
+  return {
   "@context": "https://schema.org",
   "@graph": [
     {
@@ -245,7 +255,7 @@ const jsonLd = {
       medicalSpecialty: "Medicina Estética",
       // En salud Google pesa QUIÉN firma, no solo qué dice la página. Esto
       // conecta a la doctora con cada término por el que queremos aparecer.
-      knowsAbout: doctorKnowsAbout(),
+      knowsAbout: doctorKnowsAbout(treatments),
       sameAs: [
         "https://www.facebook.com/DraMedranoMedesteticAntiaging",
         "https://www.instagram.com/dra_yasmin.medrano",
@@ -255,12 +265,21 @@ const jsonLd = {
       "@type": "WebSite",
       "@id": `${BASE_URL}/#website`,
       url: BASE_URL,
-      name: "Dra. Yasmin Medrano Avila — Medicina Estética Avanzada",
+      // Nombre del sitio, el que Google puede mostrar sobre el título en los
+      // resultados (donde Disney+ pone «disneyplus.com»). Va corto a propósito:
+      // los nombres largos con guion se cortan o se descartan. El descriptivo
+      // pasa a `alternateName`, que es donde Google admite la forma extendida.
+      name: "Dra. Yasmin Medrano",
+      alternateName: [
+        "Dra. Yasmin Medrano Avila",
+        "Dra. Yasmin Medrano — Medicina Estética Cochabamba",
+      ],
       inLanguage: "es-BO",
       publisher: { "@id": `${BASE_URL}/#business` },
     },
-  ],
-};
+    ],
+  }
+}
 
 export default async function RootLayout({
   children,
@@ -268,7 +287,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   // WhatsApp configurado en el panel (Dashboard → Contacto), no cableado.
-  const whatsapp = await getWhatsAppConfig();
+  // Los tratamientos activos alimentan el `knowsAbout` de la doctora: el panel
+  // manda, y un procedimiento nuevo entra en el schema sin tocar código.
+  const [whatsapp, treatmentsResult] = await Promise.all([
+    getWhatsAppConfig(),
+    backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
+  ]);
+  const activeTreatments =
+    treatmentsResult.error === null
+      ? extractList<TreatmentRef>(treatmentsResult.data).filter((t) => t.slug)
+      : [];
+  const jsonLd = buildSiteJsonLd(activeTreatments);
 
   return (
     <html lang="es-BO">

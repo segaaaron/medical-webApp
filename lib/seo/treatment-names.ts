@@ -39,9 +39,18 @@ const LOWERCASE_WORDS = new Set([
   "de", "del", "la", "las", "el", "los", "con", "y", "en", "para", "por", "a", "al",
 ])
 
-/** Siglas y marcas que siempre van en mayúscula. */
+/**
+ * Siglas y marcas que siempre van en mayúscula.
+ *
+ * Es el único punto que un tratamiento nuevo puede necesitar: cuando el nombre
+ * llega TODO EN MAYÚSCULAS no hay forma de distinguir una sigla («PDO») de una
+ * palabra corriente («ORO»), así que las siglas del sector se declaran. Si
+ * alguna falta, el único síntoma es cosmético —«Pdo» en vez de «PDO»— y el
+ * arreglo es añadir una palabra a esta lista.
+ */
 const KEEP_UPPERCASE = new Set([
-  "PRP", "PDRN", "NCTF", "HA", "IPL", "HIFU", "LED", "PLLA", "BOTOX",
+  "PRP", "PRF", "PDRN", "PDO", "NCTF", "HA", "IPL", "HIFU", "LED", "PLLA",
+  "CO2", "RF", "DMAE", "EMS", "BOTOX", "PPC", "MD",
 ])
 
 /**
@@ -129,6 +138,12 @@ const SEARCH_TERMS: Record<string, { title: string; aliases: string[] }> = {
   },
 }
 
+/** Lo mínimo que se necesita de un tratamiento del panel. */
+export interface TreatmentRef {
+  slug: string
+  name: string
+}
+
 /** Nombre optimizado para el `<title>` y los metadatos. */
 export function seoTitleFor(slug: string, rawName: string): string {
   return SEARCH_TERMS[slug]?.title ?? normalizeName(rawName)
@@ -161,12 +176,21 @@ export function searchAliasesFor(slug: string, rawName: string): string[] {
  * @param limit Máximo de tratamientos a devolver.
  * @returns Slugs de tratamiento, el más mencionado primero.
  */
-export function matchTreatmentsInText(text: string, limit = 3): string[] {
+export function matchTreatmentsInText(
+  text: string,
+  treatments: TreatmentRef[],
+  limit = 3
+): string[] {
   const haystack = normalizeForMatch(text)
 
-  const scored = Object.entries(SEARCH_TERMS).map(([slug, entry]) => {
+  const scored = treatments.filter((t) => t.slug).map((t) => {
+    const slug = t.slug
     let score = 0
-    for (const alias of entry.aliases) {
+    // El vocabulario sale del tratamiento real: su nombre siempre cuenta, y
+    // los sinónimos de SEARCH_TERMS se suman cuando existen. Así un
+    // tratamiento nuevo queda cubierto desde el primer día, aunque nadie haya
+    // escrito todavía sus sinónimos de búsqueda.
+    for (const alias of [normalizeName(t.name), ...searchAliasesFor(slug, t.name)]) {
       const needle = normalizeForMatch(alias)
       if (!needle) continue
       // Alias de varias palabras pesan más: «relleno de labios» es una señal
@@ -204,13 +228,14 @@ function normalizeForMatch(s: string): string {
  * queremos que la encuentren. Se deriva del mismo vocabulario de búsqueda: si
  * mañana se añade un tratamiento con sus alias, la ficha lo hereda.
  */
-export function doctorKnowsAbout(): string[] {
+export function doctorKnowsAbout(treatments: TreatmentRef[]): string[] {
   const terms = new Set<string>()
-  for (const entry of Object.values(SEARCH_TERMS)) {
-    terms.add(entry.title)
+  for (const t of treatments) {
+    if (!t.slug) continue
+    terms.add(seoTitleFor(t.slug, t.name))
     // Solo alias de varias palabras: los sueltos («labios») son ambiguos
     // fuera de contexto y ensucian la señal.
-    for (const alias of entry.aliases) {
+    for (const alias of searchAliasesFor(t.slug, t.name)) {
       if (alias.includes(" ")) terms.add(alias)
     }
   }

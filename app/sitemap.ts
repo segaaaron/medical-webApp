@@ -17,7 +17,21 @@ interface BackendTreatment {
   id: string
   slug: string
   active: boolean
+  updatedAt?: string | null
+  createdAt?: string | null
 }
+
+/**
+ * Fecha de referencia para las páginas fijas del sitio.
+ *
+ * NO se usa `new Date()`: el sitemap se regenera a diario y eso le decía a
+ * Google que TODAS las páginas habían cambiado hoy, cada día. Cuando un
+ * `lastmod` miente de forma sistemática, Google deja de creérselo y lo ignora
+ * — justo la señal que sirve para que reindexe rápido lo que sí cambió.
+ *
+ * Esta constante se actualiza a mano cuando el contenido fijo cambia de verdad.
+ */
+const STATIC_PAGES_LAST_MODIFIED = new Date("2026-09-02")
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Ambas lecturas van cacheadas y en paralelo. Cacheadas porque, sin
@@ -28,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // refresca el sitemap al instante en vez de esperar 24 h.
   const [{ data: rawBlogData }, { data: rawTreatmentData }] = await Promise.all([
     backendFetch("/blog?published=true", { revalidate: 86400 }),
-    backendFetch("/treatments?active=true", { revalidate: 86400 }),
+    backendFetch("/treatments?active=true", { revalidate: 300 }),
   ])
 
   const blogData = extractList<BackendBlogPost>(rawBlogData)
@@ -49,12 +63,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }))
 
   const treatmentData = extractList<BackendTreatment>(rawTreatmentData)
-  const now = new Date()
+  const now = STATIC_PAGES_LAST_MODIFIED
   const treatmentEntries: MetadataRoute.Sitemap = treatmentData
     .filter((t) => t.active)
     .map((t) => ({
       url: `${BASE_URL}/tratamientos/${t.slug}`,
-      lastModified: now,
+      // Fecha real de la última edición en el panel. Así, cuando la doctora
+      // actualiza un tratamiento, su `lastmod` cambia y solo ese: es la señal
+      // que hace que Google vuelva a rastrear esa página y no las demás.
+      lastModified: t.updatedAt
+        ? new Date(t.updatedAt)
+        : t.createdAt
+          ? new Date(t.createdAt)
+          : STATIC_PAGES_LAST_MODIFIED,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     }))

@@ -1,5 +1,6 @@
 import DOMPurify from "isomorphic-dompurify"
 import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
+import { buildMetaDescription } from "@/lib/seo/meta"
 import { permanentRedirect } from "next/navigation"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
@@ -23,7 +24,7 @@ export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin 
 
 export async function generateStaticParams() {
   try {
-    const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 3600 })
+    const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 })
     return extractList<BackendTreatment>(data)
       .filter((t) => t.slug)
       .map((t) => ({ slug: t.slug }))
@@ -100,41 +101,6 @@ interface Props {
 }
 
 /**
- * Meta description para buscadores.
- *
- * Antes se hacía `.slice(0, 160)` sobre el texto crudo, que partía la frase a
- * media palabra: en Google se leía «…en tu frente, entrecejo o». Ese fragmento
- * es lo único que un paciente lee antes de decidir si entra, así que ahora se
- * corta en el último límite de frase (o de palabra) y se cierra con la señal
- * local, que es la que gana el clic frente a una clínica de otra ciudad.
- */
-function buildMetaDescription(treatment: BackendTreatment): string {
-  const SUFFIX = " Consulta de valoración en Cochabamba con la Dra. Yasmin Medrano."
-  const LIMIT = 158
-
-  const plain = (treatment.description ?? "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-
-  if (!plain) {
-    return `${treatment.name} en Cochabamba.${SUFFIX}`
-  }
-
-  const room = LIMIT - SUFFIX.length
-  let head = plain
-  if (head.length > room) {
-    const cut = head.slice(0, room)
-    // Preferir cerrar en frase completa; si no hay, en la última palabra entera.
-    const sentence = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "))
-    const word = cut.lastIndexOf(" ")
-    head = sentence > room * 0.5 ? cut.slice(0, sentence + 1) : `${cut.slice(0, word)}…`
-  }
-
-  return `${head.trim()}${SUFFIX}`
-}
-
-/**
  * Sanea el cuerpo del tratamiento y degrada sus encabezados un nivel.
  *
  * El hero de la página ya pinta el `<h1>`. El contenido que la doctora escribe
@@ -153,7 +119,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const treatment = await getTreatment(slug)
   if (!treatment) return {}
-  const description = buildMetaDescription(treatment)
+  const description = buildMetaDescription(
+    treatment.description ?? "",
+    " Consulta de valoración en Cochabamba con la Dra. Yasmin Medrano."
+  )
 
   // El título NO usa el nombre crudo del panel: venía en mayúsculas sostenidas
   // («ÁCIDO HIALURÓNICO»), con comillas escapadas y, en varios casos, con el
@@ -202,6 +171,21 @@ export default async function TratamientoDetallePage({ params }: Props) {
   // título digan lo mismo que la página muestra.
   const seoName = seoTitleFor(slug, treatment.name)
   const aliases = searchAliasesFor(slug, treatment.name)
+
+  // Otros tratamientos, para enlazar entre fichas.
+  //
+  // Cada página de tratamiento era un callejón sin salida: no enlazaba a
+  // ninguna otra. Eso desperdicia dos cosas — el paciente que descarta un
+  // procedimiento se va del sitio en vez de mirar el siguiente, y la autoridad
+  // que gana una ficha no se reparte hacia las demás. Reutiliza el mismo fetch
+  // cacheado de `findBySlug`, así que no añade ninguna llamada al backend.
+  const { data: allActive } = await backendFetch<BackendTreatment[]>(
+    "/treatments?active=true",
+    { revalidate: 300 }
+  )
+  const otherTreatments = extractList<BackendTreatment>(allActive)
+    .filter((t) => t.slug && t.slug !== slug)
+    .slice(0, 3)
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -445,6 +429,38 @@ export default async function TratamientoDetallePage({ params }: Props) {
           </div>
         </article>
       </main>
+      {otherTreatments.length > 0 && (
+        <section className="py-14 px-6" aria-labelledby="otros-tratamientos">
+          <div className="container-xl max-w-4xl">
+            <h2
+              id="otros-tratamientos"
+              className="text-xl font-bold mb-6"
+              style={{ color: "var(--primary-darkest)" }}
+            >
+              Otros tratamientos de la Dra. Yasmin Medrano
+            </h2>
+            <ul className="flex flex-wrap gap-3">
+              {otherTreatments.map((t) => (
+                <li key={t.id}>
+                  <Link
+                    href={`/tratamientos/${t.slug}`}
+                    className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors"
+                    style={{
+                      border: "1px solid var(--vintage-gold)",
+                      color: "var(--primary-darkest)",
+                      borderRadius: "2px",
+                    }}
+                  >
+                    {seoTitleFor(t.slug, t.name)}
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
       <Footer data={footerData} />
     </>
   )

@@ -3,6 +3,7 @@ import { DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { matchTreatmentsInText, seoTitleFor } from "@/lib/seo/treatment-names"
+import { buildMetaDescription } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -90,14 +91,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await resolvePost(slug, allPosts)
   if (!post) return {}
 
+  // El layout ya añade «| Dra. Yasmin Medrano Avila» con su `template`, así que
+  // repetir la marca aquí producía títulos con la firma DOS veces y de más de
+  // 160 caracteres — Google corta en ~60, de modo que el titular del artículo
+  // se perdía detrás de la marca repetida.
+  //
+  // Y la description salía del `excerpt`, que el panel deja vacío a menudo: sin
+  // texto, Google se inventa el fragmento. Ahora, si no hay resumen, se deriva
+  // del propio artículo cortando en frase completa.
+  const description = buildMetaDescription(
+    post.excerpt || post.content || "",
+    " | Dra. Yasmin Medrano, medicina estética en Cochabamba."
+  )
+
   return {
-    title: `${post.title} | Dra. Yasmin Medrano — Medicina Estética Bolivia`,
-    description: post.excerpt,
+    title: post.title,
+    description,
     keywords: post.tags,
     alternates: { canonical: `${BASE_URL}/blog/${post.slug}` },
     openGraph: {
       title: post.title,
-      description: post.excerpt,
+      description,
       url: `${BASE_URL}/blog/${post.slug}`,
       type: "article",
       publishedTime: post.publishedAt,
@@ -108,7 +122,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: post.excerpt,
+      description,
       images: post.imageUrl ? [post.imageUrl] : [],
     },
   }
@@ -145,7 +159,7 @@ export default async function BlogPostPage({ params }: Props) {
   // artículo nuevo queda enlazado sin que nadie configure nada.
   const activeTreatments = extractList<BackendTreatmentRef>(treatmentsResult.data)
   const plainPost = `${post.title} ${(post.content ?? "").replace(/<[^>]*>/g, " ")}`
-  const mentionedSlugs = matchTreatmentsInText(plainPost)
+  const mentionedSlugs = matchTreatmentsInText(plainPost, activeTreatments)
   const relatedTreatments = mentionedSlugs
     .map((ts) => activeTreatments.find((t) => t.slug === ts))
     .filter((t): t is BackendTreatmentRef => Boolean(t))
