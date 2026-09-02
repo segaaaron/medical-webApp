@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { revalidateContact } from "@/lib/cache"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 // GET /api/contact — public
@@ -27,5 +28,8 @@ export async function PUT(req: NextRequest) {
   const body = await req.json()
   const { data, error, status } = await backendFetch("/contact", { method: "PUT", body, auth: true })
   if (error) return proxyError(error, status)
+
+  revalidateContact()
+
   return NextResponse.json(data)
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { revalidateReviews } from "@/lib/cache"
 import { proxyError, checkCsrfOrigin, isValidId, invalidIdResponse } from "@/lib/api-helpers"
 
 async function getSession() {
@@ -47,6 +48,8 @@ export async function PATCH(
   })
   if (error) return proxyError(error, httpStatus)
 
+  revalidateReviews()
+
   return NextResponse.json(data)
 }
 
@@ -68,6 +71,8 @@ export async function DELETE(
     auth: true,
   })
   if (error) return proxyError(error, status)
+
+  revalidateReviews()
 
   return new NextResponse(null, { status: 204 })
 }

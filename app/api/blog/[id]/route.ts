@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { revalidateBlog } from "@/lib/cache"
 import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 async function getSession() {
@@ -57,6 +58,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const formData = await req.formData()
   const { data, error, status: putStatus } = await backendFetch(`/blog/${id}`, { method: "PUT", formData, auth: true })
   if (error) return proxyError(error, putStatus)
+
+  revalidateBlog()
+
   return NextResponse.json(data)
 }
 
@@ -74,5 +78,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { error, status } = await backendFetch(`/blog/${id}`, { method: "DELETE", auth: true })
   if (error) return proxyError(error, status)
+
+  revalidateBlog()
+
   return new NextResponse(null, { status: 204 })
 }

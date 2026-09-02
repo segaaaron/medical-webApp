@@ -10,6 +10,7 @@ import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 import { WhatsAppProvider } from "@/components/providers/WhatsAppProvider";
 import { getWhatsAppConfig } from "@/lib/data/whatsapp";
+import { doctorKnowsAbout } from "@/lib/seo/treatment-names"
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -58,7 +59,12 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "Medicina Estética | Dra. Yasmin Medrano Avila",
+    // La home es la página con más autoridad del sitio y su título no contenía
+    // ni un solo tratamiento: competía únicamente por «medicina estética», que
+    // es genérico, y por el nombre de la doctora, que solo teclea quien ya la
+    // conoce. Los dos tratamientos con más demanda van ahora en el título, que
+    // es la señal de relevancia con más peso de toda la página.
+    default: "Botox, Rellenos y Armonización Facial en Cochabamba | Dra. Yasmin Medrano Avila",
     template: "%s | Dra. Yasmin Medrano Avila",
   },
   description:
@@ -237,6 +243,9 @@ const jsonLd = {
       telephone: "+59178751894",
       worksFor: { "@id": `${BASE_URL}/#business` },
       medicalSpecialty: "Medicina Estética",
+      // En salud Google pesa QUIÉN firma, no solo qué dice la página. Esto
+      // conecta a la doctora con cada término por el que queremos aparecer.
+      knowsAbout: doctorKnowsAbout(),
       sameAs: [
         "https://www.facebook.com/DraMedranoMedesteticAntiaging",
         "https://www.instagram.com/dra_yasmin.medrano",

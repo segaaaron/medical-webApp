@@ -20,8 +20,17 @@ interface BackendTreatment {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // Fetch blog posts from backend (fallback to static)
-  const { data: rawBlogData } = await backendFetch("/blog?published=true")
+  // Ambas lecturas van cacheadas y en paralelo. Cacheadas porque, sin
+  // `revalidate`, `backendFetch` usa `no-store` y eso volvía la ruta dinámica:
+  // el `revalidate = 86400` de arriba era letra muerta y cada bot que pedía el
+  // sitemap disparaba dos llamadas al backend. Cacheadas además quedan
+  // etiquetadas por recurso, así que publicar o borrar un post/tratamiento
+  // refresca el sitemap al instante en vez de esperar 24 h.
+  const [{ data: rawBlogData }, { data: rawTreatmentData }] = await Promise.all([
+    backendFetch("/blog?published=true", { revalidate: 86400 }),
+    backendFetch("/treatments?active=true", { revalidate: 86400 }),
+  ])
+
   const blogData = extractList<BackendBlogPost>(rawBlogData)
   const blogEntries: MetadataRoute.Sitemap = blogData.length > 0
     ? blogData
@@ -39,8 +48,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.6,
       }))
 
-  // Fetch active treatments from backend
-  const { data: rawTreatmentData } = await backendFetch("/treatments?active=true")
   const treatmentData = extractList<BackendTreatment>(rawTreatmentData)
   const now = new Date()
   const treatmentEntries: MetadataRoute.Sitemap = treatmentData

@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import { m } from "framer-motion"
+import { normalizeName } from "@/lib/seo/treatment-names"
 import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
 import { LinkButton } from "@/components/ui/Button"
@@ -109,7 +110,7 @@ function PosterCard({
           {hasImage ? (
             <ImageWithFallback
               src={treatment.imageUrl!}
-              alt={`${treatment.name} — Dra. Yasmin Medrano Avila`}
+              alt={`${normalizeName(treatment.name)} — Dra. Yasmin Medrano Avila`}
               variant="dark"
               objectPosition="center top"
               loading="lazy"
@@ -231,7 +232,7 @@ function PosterCard({
 
         {/* Title */}
         <h4 style={{ fontFamily: "var(--font-heading)", fontSize: "clamp(15px, 1.6vw, 20px)", fontWeight: 500, color: "#ffffff", lineHeight: 1.25, marginBottom: "10px", letterSpacing: "-0.01em", textTransform: "uppercase", textShadow: "0 2px 12px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.7)" }}>
-          {treatment.name}
+          {normalizeName(treatment.name)}
         </h4>
 
         {/* Description reveal — solo home */}
@@ -249,7 +250,7 @@ function PosterCard({
             </span>
             <div style={{ display: "flex", gap: "8px" }}>
               <a
-                href={`${whatsappUrl}?text=${encodeURIComponent(`Hola, me interesa el tratamiento de ${treatment.name}`)}`}
+                href={`${whatsappUrl}?text=${encodeURIComponent(`Hola, me interesa el tratamiento de ${normalizeName(treatment.name)}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => { e.stopPropagation(); trackWhatsAppClick("treatment-card", treatment.name) }}

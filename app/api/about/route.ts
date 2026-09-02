@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { revalidateAbout } from "@/lib/cache"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 // GET /api/about — public
@@ -55,11 +56,17 @@ export async function PUT(req: NextRequest) {
 
     const { data, error, status } = await backendFetch("/about", { method: "PUT", formData, auth: true })
     if (error) return proxyError(error, status)
+
+    revalidateAbout()
+
     return NextResponse.json(data)
   }
 
   const body = await req.json()
   const { data, error, status } = await backendFetch("/about", { method: "PUT", body, auth: true })
   if (error) return proxyError(error, status)
+
+  revalidateAbout()
+
   return NextResponse.json(data)
 }

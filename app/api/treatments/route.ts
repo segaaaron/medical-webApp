@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { revalidatePath } from "next/cache"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { revalidateTreatments } from "@/lib/cache"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
-
-/** Refresca las páginas públicas que listan tratamientos tras una mutación. */
-function revalidateTreatments() {
-  revalidatePath("/tratamientos")
-  revalidatePath("/")
-}
 
 // Allowed query parameters for treatments endpoint
 const ALLOWED_TREATMENT_PARAMS = new Set(["category", "page", "limit", "search", "active", "all"])

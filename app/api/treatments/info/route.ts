@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { revalidateSiteContent } from "@/lib/cache"
 import { checkCsrfOrigin, checkWriteRateLimit } from "@/lib/api-helpers"
 
 async function getSession() {
@@ -69,5 +70,8 @@ export async function PUT(req: NextRequest) {
     auth: true,
   })
   if (error) return NextResponse.json({ error }, { status: putStatus >= 400 && putStatus < 500 ? putStatus : 502 })
+
+  revalidateSiteContent()
+
   return NextResponse.json(data)
 }

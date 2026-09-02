@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { revalidatePath } from "next/cache"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { revalidateTreatments } from "@/lib/cache"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 async function getSession() {
@@ -39,8 +39,7 @@ export async function PATCH(req: NextRequest) {
   if (error) return proxyError(error, status)
 
   // Refrescar las páginas públicas que dependen del orden (listado + home)
-  revalidatePath("/tratamientos")
-  revalidatePath("/")
+  revalidateTreatments()
 
   return NextResponse.json(data ?? { ok: true })
 }

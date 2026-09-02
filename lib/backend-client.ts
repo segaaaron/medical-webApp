@@ -8,6 +8,8 @@
  */
 
 import { cookies } from "next/headers"
+import { revalidateTag } from "next/cache"
+import { logger } from "@/lib/logger"
 import {
   BACKEND_ACCESS_COOKIE,
   BACKEND_REFRESH_COOKIE,
@@ -125,6 +127,70 @@ async function resolveToken(): Promise<string | null> {
   return null
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Invalidación automática de caché por recurso.
+//
+// Historia del bug que esto cierra: la doctora aprobaba una reseña en el panel
+// y el sitio público seguía mostrando el estado anterior. La lectura estaba
+// cacheada con ISR y NADIE invalidaba al escribir. Solo /treatments y
+// /promo-banner lo hacían a mano; el resto —reseñas, blog, home, about,
+// footer, contacto, site-content— no. Un endpoint nuevo heredaba el olvido.
+//
+// Arreglarlo endpoint por endpoint es un parche que caduca con el próximo
+// endpoint. Así que la invalidación vive AQUÍ, en el único punto por el que
+// pasan todas las lecturas y todas las escrituras contra el backend:
+//
+//   - toda LECTURA cacheada se etiqueta con el recurso de su path
+//     (`/reviews/public` → tag "reviews", `/blog/123` → tag "blog").
+//   - toda ESCRITURA correcta (POST/PUT/PATCH/DELETE) invalida ese mismo tag.
+//
+// Consecuencia: escribir cualquier recurso refresca automáticamente cada
+// página que lo lea, presente o futura. No hay nada que recordar.
+
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"])
+
+/**
+ * Recurso al que pertenece un path del backend — su primer segmento.
+ * `/reviews/invites/abc` → "reviews"; `/site-content/main` → "site-content".
+ */
+function resourceTag(path: string): string {
+  const segment = path.split("?")[0].split("/").filter(Boolean)[0]
+  return segment ? `backend:${segment}` : "backend:root"
+}
+
+/**
+ * El primer segmento agrupa por diseño: `/reviews`, `/reviews/public` y
+ * `/reviews/invites/:id` comparten el tag "backend:reviews", así que aprobar,
+ * borrar o revocar una invitación refresca el listado público sin mapeos extra.
+ */
+function tagsFor(path: string): string[] {
+  return [resourceTag(path)]
+}
+
+/**
+ * Invalida el recurso escrito. Nunca puede tumbar la mutación: el dato ya está
+ * guardado en el backend, y `revalidateTag` lanza si se llama fuera de un
+ * contexto de request (por ejemplo, desde un script). Peor caso: el contenido
+ * tarda lo que diga el ISR, que es exactamente el comportamiento anterior.
+ */
+function invalidateResource(path: string): void {
+  for (const tag of tagsFor(path)) {
+    try {
+      // `{ expire: 0 }` = purga inmediata (Next 16 exige perfil de caducidad).
+      revalidateTag(tag, { expire: 0 })
+    } catch (err) {
+      // Fuera de contexto de request (scripts, build): no es fatal, el dato ya
+      // está guardado y el ISR lo recogerá. Pero se registra: el bug original
+      // fue justo esto, un fallo de caché que nadie veía.
+      logger.warn("cache.revalidate_failed", {
+        resource: tag,
+        path,
+        detail: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+}
+
 // Validate backend path to prevent SSRF — must start with / and contain no traversal
 function validateBackendPath(path: string): boolean {
   if (!path.startsWith("/")) return false
@@ -143,6 +209,8 @@ export async function backendFetch<T>(
     return { data: null, error: "Invalid backend path", status: 400 }
   }
 
+  const isMutation = MUTATING_METHODS.has(method.toUpperCase())
+
   try {
     const headers: Record<string, string> = formData
       ? {} // Let fetch set Content-Type with boundary for multipart
@@ -156,9 +224,11 @@ export async function backendFetch<T>(
     }
 
     const fetchBody = formData ? formData : body ? JSON.stringify(body) : undefined
+    // Las lecturas cacheadas se etiquetan por recurso para que una escritura
+    // posterior sobre ese mismo recurso las invalide sin configuración extra.
     const cacheOption: RequestInit =
       revalidate !== undefined
-        ? { next: { revalidate } }
+        ? { next: { revalidate, tags: tagsFor(path) } }
         : { cache: "no-store" }
 
     const res = await fetch(`${BACKEND_URL}/api${path}`, {
@@ -191,6 +261,7 @@ export async function backendFetch<T>(
                 signal: AbortSignal.timeout(10_000),
               })
               if (retry.ok) {
+                if (isMutation) invalidateResource(path)
                 if (retry.status === 204) return { data: null, error: null, status: 204 }
                 const retryData: T = await retry.json()
                 return { data: retryData, error: null, status: retry.status }
@@ -217,6 +288,8 @@ export async function backendFetch<T>(
       const err = await res.json().catch(() => ({ error: res.statusText }))
       return { data: null, error: err.error ?? "Backend error", status: res.status }
     }
+
+    if (isMutation) invalidateResource(path)
 
     if (res.status === 204) return { data: null, error: null, status: 204 }
 

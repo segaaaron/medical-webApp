@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch } from "@/lib/backend-client"
+import { revalidateHome } from "@/lib/cache"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 
 // GET /api/home — public
@@ -27,5 +28,8 @@ export async function PUT(req: NextRequest) {
   const body = await req.json()
   const { data, error, status } = await backendFetch("/home", { method: "PUT", body, auth: true })
   if (error) return proxyError(error, status)
+
+  revalidateHome()
+
   return NextResponse.json(data)
 }

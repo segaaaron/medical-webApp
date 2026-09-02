@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { revalidateBlog } from "@/lib/cache"
 import { staticBlogPosts } from "@/lib/data/blog-posts"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 import { logger } from "@/lib/logger"
@@ -79,5 +80,8 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const { data, error, status } = await backendFetch("/blog", { method: "POST", formData, auth: true })
   if (error) return proxyError(error, status)
+
+  revalidateBlog()
+
   return NextResponse.json(data, { status: 201 })
 }

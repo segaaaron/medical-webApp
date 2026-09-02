@@ -8,6 +8,26 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        /**
+         * www → apex, permanente.
+         *
+         * Hasta que se añadió `www` en Dokploy, ese nombre servía el
+         * certificado por defecto de Traefik (autofirmado) y el navegador
+         * mostraba «Tu conexión no es privada» — justo a quien llegaba desde
+         * Google, que tenía indexada la variante www. Con el certificado ya
+         * emitido, www responde 200… con el MISMO contenido que el apex: dos
+         * URLs gemelas compitiendo entre sí.
+         *
+         * El `canonical` ya apunta al apex, pero eso es una sugerencia que
+         * Google puede ignorar. Un 301 no: consolida toda la autoridad en una
+         * sola dirección y no deja lugar a interpretación.
+         */
+        source: "/:path*",
+        has: [{ type: "host", value: "www.yasminmedrano.com" }],
+        destination: "https://yasminmedrano.com/:path*",
+        permanent: true,
+      },
+      {
         // El panel de Citas se retiró: no existía backend que lo alimentara.
         // Lo más cercano en propósito —quién escribió pidiendo hora— son los
         // contactos del formulario web.
@@ -25,6 +45,20 @@ const nextConfig = {
   },
 
   output: "standalone",
+
+  /**
+   * Techo de obsolescencia del contenido público.
+   *
+   * Por defecto Next sirve `stale-while-revalidate` de ~1 año: si por lo que
+   * sea la invalidación on-demand no llega (proceso reiniciado a mitad, varias
+   * réplicas del contenedor donde solo una atiende la escritura), esa página
+   * puede quedarse servida en su versión vieja indefinidamente. Fue justo lo
+   * que pasó con las reseñas aprobadas.
+   *
+   * Con esto el peor caso absoluto son 5 minutos, no un año. La invalidación
+   * explícita sigue siendo el camino normal — esto es solo la red debajo.
+   */
+  expireTime: 300,
   async headers() {
     const securityHeaders = [
       { key: "X-Content-Type-Options", value: "nosniff" },

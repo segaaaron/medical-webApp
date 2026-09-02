@@ -2,6 +2,7 @@ import DOMPurify from "isomorphic-dompurify"
 import { DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
+import { matchTreatmentsInText, seoTitleFor } from "@/lib/seo/treatment-names"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -114,15 +115,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 
+/** Lo mínimo que necesita el bloque de tratamientos mencionados. */
+interface BackendTreatmentRef {
+  id: string
+  slug: string
+  name: string
+}
+
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
-  const [allPosts, footerData] = await Promise.all([getAllPosts(), getFooterData()])
+  const [allPosts, footerData, treatmentsResult] = await Promise.all([
+    getAllPosts(),
+    getFooterData(),
+    backendFetch<BackendTreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
+  ])
   const post = await resolvePost(slug, allPosts)
   const c = DEFAULTS
   if (!post) notFound()
 
   // Related posts (exclude current)
   const related = allPosts.filter((p) => p.slug !== slug).slice(0, 2)
+
+  // Tratamientos que el artículo menciona.
+  //
+  // El blog hablaba de botox en dos artículos sin enlazar ni una vez a la
+  // página de botox. Un enlace interno cuyo texto ES la palabra clave, apuntando
+  // a la página que trata de ella, es de las señales de relevancia más directas
+  // que existen — y no había ninguna. Se derivan del propio texto, así que un
+  // artículo nuevo queda enlazado sin que nadie configure nada.
+  const activeTreatments = extractList<BackendTreatmentRef>(treatmentsResult.data)
+  const plainPost = `${post.title} ${(post.content ?? "").replace(/<[^>]*>/g, " ")}`
+  const mentionedSlugs = matchTreatmentsInText(plainPost)
+  const relatedTreatments = mentionedSlugs
+    .map((ts) => activeTreatments.find((t) => t.slug === ts))
+    .filter((t): t is BackendTreatmentRef => Boolean(t))
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -133,8 +159,12 @@ export default async function BlogPostPage({ params }: Props) {
     datePublished: post.publishedAt,
     author: {
       "@type": "Person",
+      // `@id` apunta a la ficha Physician del layout: sin esto, el autor del
+      // artículo era una persona anónima sin relación con la doctora del sitio,
+      // y la autoridad del artículo no sumaba a la de ella (ni al revés).
+      "@id": `${BASE_URL}/#doctor`,
       name: post.author,
-      jobTitle: "Medica Especialista en Medicina Estetica",
+      jobTitle: "Médica Especialista en Medicina Estética",
       sameAs: [
         "https://www.instagram.com/dra_yasmin.medrano",
         "https://www.facebook.com/DraMedranoMedesteticAntiaging",
@@ -246,6 +276,38 @@ export default async function BlogPostPage({ params }: Props) {
         </article>
 
         {/* Related posts */}
+        {relatedTreatments.length > 0 && (
+          <section className="py-12 px-6" aria-labelledby="tratamientos-mencionados">
+            <div className="container-xl max-w-3xl">
+              <h2
+                id="tratamientos-mencionados"
+                className="text-xl font-bold mb-6"
+                style={{ color: "var(--primary-darkest)" }}
+              >
+                Tratamientos que menciona este artículo
+              </h2>
+              <ul className="flex flex-wrap gap-3">
+                {relatedTreatments.map((t) => (
+                  <li key={t.id}>
+                    <Link
+                      href={`/tratamientos/${t.slug}`}
+                      className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors"
+                      style={{
+                        border: "1px solid var(--vintage-gold)",
+                        color: "var(--primary-darkest)",
+                        borderRadius: "2px",
+                      }}
+                    >
+                      {seoTitleFor(t.slug, t.name)}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
         {related.length > 0 && (
           <section className="py-16 px-6" style={{ backgroundColor: "#F8F0E3" }} aria-label="Artículos relacionados">
             <div className="max-w-3xl mx-auto">

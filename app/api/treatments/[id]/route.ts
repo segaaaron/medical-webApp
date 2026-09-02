@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
-import { revalidatePath } from "next/cache"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
+import { revalidateTreatments } from "@/lib/cache"
 import { isValidId, invalidIdResponse, checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
-
-/** Refresca las páginas públicas afectadas por una mutación de tratamiento. */
-function revalidateTreatment(id: string) {
-  revalidatePath("/tratamientos")
-  revalidatePath("/")
-  revalidatePath(`/tratamientos/${id}`)
-}
 
 async function getSession() {
   const cookieStore = await cookies()
@@ -66,14 +59,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const formData = await req.formData()
     const { data, error, status: s1 } = await backendFetch(`/treatments/${id}`, { method: "PUT", formData, auth: true })
     if (error) return proxyError(error, s1)
-    revalidateTreatment(id)
+    revalidateTreatments()
     return NextResponse.json(data)
   }
 
   const body = await req.json()
   const { data, error, status: s2 } = await backendFetch(`/treatments/${id}`, { method: "PUT", body, auth: true })
   if (error) return proxyError(error, s2)
-  revalidateTreatment(id)
+  revalidateTreatments()
   return NextResponse.json(data)
 }
 
@@ -91,6 +84,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   const { error, status } = await backendFetch(`/treatments/${id}`, { method: "DELETE", auth: true })
   if (error) return proxyError(error, status)
-  revalidateTreatment(id)
+  revalidateTreatments()
   return new NextResponse(null, { status: 204 })
 }

@@ -1,4 +1,5 @@
 import DOMPurify from "isomorphic-dompurify"
+import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
 import { permanentRedirect } from "next/navigation"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
@@ -98,35 +99,87 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+/**
+ * Meta description para buscadores.
+ *
+ * Antes se hacía `.slice(0, 160)` sobre el texto crudo, que partía la frase a
+ * media palabra: en Google se leía «…en tu frente, entrecejo o». Ese fragmento
+ * es lo único que un paciente lee antes de decidir si entra, así que ahora se
+ * corta en el último límite de frase (o de palabra) y se cierra con la señal
+ * local, que es la que gana el clic frente a una clínica de otra ciudad.
+ */
+function buildMetaDescription(treatment: BackendTreatment): string {
+  const SUFFIX = " Consulta de valoración en Cochabamba con la Dra. Yasmin Medrano."
+  const LIMIT = 158
+
+  const plain = (treatment.description ?? "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  if (!plain) {
+    return `${treatment.name} en Cochabamba.${SUFFIX}`
+  }
+
+  const room = LIMIT - SUFFIX.length
+  let head = plain
+  if (head.length > room) {
+    const cut = head.slice(0, room)
+    // Preferir cerrar en frase completa; si no hay, en la última palabra entera.
+    const sentence = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "))
+    const word = cut.lastIndexOf(" ")
+    head = sentence > room * 0.5 ? cut.slice(0, sentence + 1) : `${cut.slice(0, word)}…`
+  }
+
+  return `${head.trim()}${SUFFIX}`
+}
+
+/**
+ * Sanea el cuerpo del tratamiento y degrada sus encabezados un nivel.
+ *
+ * El hero de la página ya pinta el `<h1>`. El contenido que la doctora escribe
+ * en el panel viene casi siempre con su propio `<h1>` («Bótox – Toxina
+ * Botulínica»), así que la página servía DOS h1 compitiendo por el mismo
+ * término. Se degradan a `<h2>` para que quede una jerarquía única: un h1 con
+ * el nombre del tratamiento y el resto colgando por debajo.
+ */
+function sanitizeBody(html: string): string {
+  return DOMPurify.sanitize(html)
+    .replace(/<h1(\s[^>]*)?>/gi, "<h2$1>")
+    .replace(/<\/h1>/gi, "</h2>")
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const treatment = await getTreatment(slug)
   if (!treatment) return {}
-  const description = treatment.description
-    ? treatment.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
-    : `Conoce más sobre ${treatment.name} en el consultorio de la Dra. Yasmin Medrano Avila.`
+  const description = buildMetaDescription(treatment)
+
+  // El título NO usa el nombre crudo del panel: venía en mayúsculas sostenidas
+  // («ÁCIDO HIALURÓNICO»), con comillas escapadas y, en varios casos, con el
+  // nombre clínico que nadie teclea en Google. Ver lib/seo/treatment-names.ts.
+  const seoName = seoTitleFor(slug, treatment.name)
+  const aliases = searchAliasesFor(slug, treatment.name)
 
   return {
     // Sin sufijo de marca: el template del layout ya añade "| Dra. Yasmin
     // Medrano Avila" y el título salía con el nombre repetido dos veces.
-    title: `${treatment.name} en Cochabamba`,
+    title: `${seoName} en Cochabamba`,
     description,
     keywords: [
-      treatment.name,
-      `${treatment.name} Cochabamba`,
-      `${treatment.name} Bolivia`,
+      ...aliases,
+      ...aliases.slice(0, 2).map((a) => `${a} Cochabamba`),
+      ...aliases.slice(0, 2).map((a) => `${a} precio Bolivia`),
       "medicina estética Cochabamba",
-      "tratamiento estético Bolivia",
       "Dra. Yasmin Medrano Avila",
-      "consulta medicina estética Cochabamba",
     ],
     alternates: { canonical: `${BASE_URL}/tratamientos/${slug}` },
     openGraph: {
-      title: `${treatment.name} en Cochabamba | Dra. Yasmin Medrano Avila`,
+      title: `${seoName} en Cochabamba | Dra. Yasmin Medrano Avila`,
       description,
       url: `${BASE_URL}/tratamientos/${slug}`,
       type: "website",
-      images: treatment.imageUrl ? [{ url: treatment.imageUrl, width: 1200, height: 630, alt: `${treatment.name} — Dra. Yasmin Medrano Avila Cochabamba` }] : [],
+      images: treatment.imageUrl ? [{ url: treatment.imageUrl, width: 1200, height: 630, alt: `${seoName} — Dra. Yasmin Medrano Avila, Cochabamba` }] : [],
       locale: "es_BO",
     },
   }
@@ -145,13 +198,18 @@ export default async function TratamientoDetallePage({ params }: Props) {
 
   const navLinks = c?.navLinks ?? DEFAULTS.navLinks
 
+  // Mismo nombre optimizado que usan los metadatos, para que el schema y el
+  // título digan lo mismo que la página muestra.
+  const seoName = seoTitleFor(slug, treatment.name)
+  const aliases = searchAliasesFor(slug, treatment.name)
+
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Inicio", item: BASE_URL },
       { "@type": "ListItem", position: 2, name: "Tratamientos", item: `${BASE_URL}/tratamientos` },
-      { "@type": "ListItem", position: 3, name: treatment.name },
+      { "@type": "ListItem", position: 3, name: seoName },
     ],
   }
 
@@ -193,7 +251,13 @@ export default async function TratamientoDetallePage({ params }: Props) {
   const procedureLd = {
     "@context": "https://schema.org",
     "@type": "MedicalProcedure",
-    name: treatment.name,
+    name: seoName,
+    // El nombre clínico se conserva, y los términos por los que la gente busca
+    // de verdad entran como alternativos: es la forma que entiende Google de
+    // «esta página también trata de esto».
+    alternateName: [treatment.name, ...aliases].filter(
+      (v, i, arr) => v && arr.indexOf(v) === i
+    ),
     description: (treatment.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300),
     url: `${BASE_URL}/tratamientos/${slug}`,
     ...(procedureImages.length ? { image: procedureImages } : {}),
@@ -308,7 +372,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
             {treatment.description && (
               <div
                 className="blog-content"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(treatment.description) }}
+                dangerouslySetInnerHTML={{ __html: sanitizeBody(treatment.description) }}
               />
             )}
 
