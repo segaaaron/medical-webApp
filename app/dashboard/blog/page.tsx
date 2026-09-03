@@ -8,7 +8,6 @@ import { PageHeader } from "@/components/dashboard/PageHeader"
 import { DashboardPagination } from "@/components/dashboard/DashboardPagination"
 import { useConfirm } from "@/components/dashboard/ConfirmDialog"
 import { resolveImageUrl } from "@/lib/image-utils"
-import { LoadingState } from "@/components/dashboard/ui/LoadingState"
 
 interface BlogPost {
   id: string
@@ -134,7 +133,7 @@ export default function BlogDashboardPage() {
         </div>
 
         {loading && posts.length === 0 ? (
-          <LoadingState />
+          null
         ) : posts.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 p-10 text-center">
             <p className="text-gray-400 text-sm">No hay artículos. Crea el primero.</p>

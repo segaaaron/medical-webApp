@@ -2,14 +2,13 @@
 import { guardedFetch } from "@/lib/client-fetch"
 
 import { useEffect, useState } from "react"
-import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock } from "lucide-react"
+import { MessageCircle, Phone, Instagram, Facebook, MapPin, Clock, Music2 } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { SaveBar } from "@/components/dashboard/SaveBar"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 import type { ContactData } from "@/types/content"
-import { LoadingState } from "@/components/dashboard/ui/LoadingState"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
@@ -22,6 +21,9 @@ const DEFAULTS: ContactData = {
   instagramUrl: "https://www.instagram.com/dra_yasmin.medrano",
   facebook: "DraMedranoMedesteticAntiaging",
   facebookUrl: "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+  // Vacíos: la tarjeta de TikTok solo se pinta si hay perfil cargado.
+  tiktok: "",
+  tiktokUrl: "",
   scheduleWeekdays: "9:00 AM – 7:00 PM",
   scheduleSaturday: "9:00 AM – 2:00 PM",
   scheduleSunday: "Cerrado",
@@ -42,6 +44,8 @@ function fromBackend(raw: any): ContactData {
     instagramUrl: raw.instagramUrl ?? DEFAULTS.instagramUrl,
     facebook: raw.facebookName ?? DEFAULTS.facebook,
     facebookUrl: raw.facebookUrl ?? DEFAULTS.facebookUrl,
+    tiktok: raw.tiktokUsername ?? DEFAULTS.tiktok,
+    tiktokUrl: raw.tiktokUrl ?? DEFAULTS.tiktokUrl,
     scheduleWeekdays: raw.mondayFridayHours ?? DEFAULTS.scheduleWeekdays,
     scheduleSaturday: raw.saturdayHours ?? DEFAULTS.scheduleSaturday,
     scheduleSunday: raw.sundayStatus ?? DEFAULTS.scheduleSunday,
@@ -62,6 +66,8 @@ function toBackend(form: ContactData) {
     instagramUrl: form.instagramUrl,
     facebookName: form.facebook,
     facebookUrl: form.facebookUrl,
+    tiktokUsername: form.tiktok,
+    tiktokUrl: form.tiktokUrl,
     mondayFridayHours: form.scheduleWeekdays,
     saturdayHours: form.scheduleSaturday,
     sundayStatus: form.scheduleSunday,
@@ -122,7 +128,7 @@ export default function ContactoDashboardPage() {
     }
   }
 
-  if (loading) return <LoadingState />
+  if (loading) return null
 
   return (
     <>
@@ -215,6 +221,35 @@ export default function ContactoDashboardPage() {
               />
             </FormField>
           </div>
+        </EditorCard>
+
+        {/* TikTok */}
+        <EditorCard title="TikTok" icon={Music2} hint="Perfil de TikTok del consultorio">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Usuario (@...)" htmlFor="tt-handle">
+              <input
+                id="tt-handle"
+                className={INPUT_CLS}
+                value={form.tiktok}
+                onChange={(e) => set("tiktok", e.target.value)}
+                placeholder="@drayasminmedranoa"
+              />
+            </FormField>
+            <FormField label="URL del perfil" htmlFor="tt-url">
+              <input
+                id="tt-url"
+                className={INPUT_CLS}
+                value={form.tiktokUrl}
+                onChange={(e) => set("tiktokUrl", e.target.value)}
+                placeholder="https://www.tiktok.com/@drayasminmedranoa"
+              />
+            </FormField>
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            Pega la direcci&oacute;n tal como te la da la app: los par&aacute;metros que
+            a&ntilde;ade al compartir se limpian solos. Si lo dejas vac&iacute;o, la
+            tarjeta de TikTok no aparece en la p&aacute;gina de contacto.
+          </p>
         </EditorCard>
 
         {/* Horarios */}

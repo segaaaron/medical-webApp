@@ -94,7 +94,6 @@ export default function EditarTratamientoPage() {
     return (
       <>
         {backNav}
-        <p className="text-gray-400 text-sm">Cargando tratamiento...</p>
       </>
     )
   }

@@ -2,6 +2,7 @@ import { readContent, DEFAULTS } from "@/lib/store/content-store"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { backendFetch, extractList } from "@/lib/backend-client"
 import { seoTitleFor, type TreatmentRef } from "@/lib/seo/treatment-names"
+import { normalizeSocialUrl } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -100,7 +101,9 @@ function mapContact(raw: any): ContactData {
     facebook: raw.facebookName ?? DEFAULTS.contact.facebook,
     facebookUrl: raw.facebookUrl ?? DEFAULTS.contact.facebookUrl,
     tiktok: raw.tiktokUsername ?? DEFAULTS.contact.tiktok,
-    tiktokUrl: raw.tiktokUrl ?? DEFAULTS.contact.tiktokUrl,
+    // Se limpia al leer, no al guardar: la doctora pega el enlace tal como se
+    // lo da la app —con `?_r=1&_t=…`— y no tiene por qué recortarlo a mano.
+    tiktokUrl: normalizeSocialUrl(raw.tiktokUrl ?? DEFAULTS.contact.tiktokUrl),
     scheduleWeekdays: raw.mondayFridayHours ?? DEFAULTS.contact.scheduleWeekdays,
     scheduleSaturday: raw.saturdayHours ?? DEFAULTS.contact.scheduleSaturday,
     scheduleSunday: raw.sundayStatus ?? DEFAULTS.contact.scheduleSunday,

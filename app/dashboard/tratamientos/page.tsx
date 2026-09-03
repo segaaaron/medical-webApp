@@ -27,7 +27,6 @@ import { DashboardPagination } from "@/components/dashboard/DashboardPagination"
 import { useToast } from "@/components/dashboard/Toast"
 import { useConfirm } from "@/components/dashboard/ConfirmDialog"
 import { TAG_COLORS, DEFAULT_TAG_COLOR } from "@/lib/treatment-tags"
-import { LoadingState } from "@/components/dashboard/ui/LoadingState"
 
 interface Treatment {
   id: string
@@ -421,7 +420,7 @@ export default function TratamientosDashboardPage() {
       )}
 
       {loading && treatments.length === 0 ? (
-        <LoadingState />
+        null
       ) : treatments.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-100 p-10 text-center">
           <p className="text-gray-400 text-sm">No hay tratamientos. Crea el primero.</p>

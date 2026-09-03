@@ -139,7 +139,7 @@ export default function TratamientosInfoPage() {
   }
 
   if (loading) {
-    return <p className="text-gray-400 text-sm" role="status">Cargando información...</p>
+    return null
   }
 
   return (

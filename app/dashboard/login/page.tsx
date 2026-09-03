@@ -5,6 +5,7 @@ import { useFormik } from "formik"
 import * as Yup from "yup"
 import { Loader2, Lock, Eye, EyeOff } from "lucide-react"
 import { Suspense } from "react"
+import { GlobalLoadingOverlay } from "@/components/dashboard/GlobalLoadingOverlay"
 
 const loginSchema = Yup.object({
   email: Yup.string().email("Correo no válido").required("El correo es obligatorio"),
@@ -52,6 +53,11 @@ function LoginForm() {
       }
     },
   })
+
+  // Mientras se navega al panel se pinta el MISMO overlay que usa el panel
+  // (logo sobre el electrocardiograma). Sin esto, el formulario se quedaba en
+  // pantalla durante la espera y parecía que el clic no había hecho nada.
+  if (redirecting) return <GlobalLoadingOverlay message="Entrando al panel" />
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: "#1F1346" }}>
@@ -120,12 +126,12 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={!formik.isValid || formik.isSubmitting || redirecting}
+              disabled={!formik.isValid || formik.isSubmitting}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-lg font-bold text-sm text-white transition-colors disabled:opacity-60 mt-2"
               style={{ backgroundColor: "var(--vintage-gold)" }}
             >
-              {(formik.isSubmitting || redirecting) && <Loader2 size={16} className="animate-spin" />}
-              {formik.isSubmitting || redirecting ? "Entrando…" : "Entrar al dashboard"}
+              {formik.isSubmitting && <Loader2 size={16} className="animate-spin" />}
+              {formik.isSubmitting ? "Entrando…" : "Entrar al dashboard"}
             </button>
           </form>
         </div>

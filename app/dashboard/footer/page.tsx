@@ -10,7 +10,6 @@ import { SaveBar } from "@/components/dashboard/SaveBar"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
-import { LoadingState } from "@/components/dashboard/ui/LoadingState"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
@@ -201,7 +200,7 @@ export default function FooterDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (loading) return <LoadingState />
+  if (loading) return null
 
   return (
     <FormikProvider value={formik}>
