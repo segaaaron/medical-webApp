@@ -21,6 +21,7 @@ import { HomeSection } from "@/components/sections/HomeSection"
 import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
 import type { PublicReview, ReviewAggregate } from "@/components/sections/TestimonialsSection"
 import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
+import { getConsultorioLocation, type ConsultorioLocation } from "@/lib/data/location"
 import { CourseModule, HeroCTA } from "@/types"
 
 // ─── Below-fold sections (lazy — split JS chunk, still SSR'd) ─────────────────
@@ -118,8 +119,9 @@ function buildPromoJsonLd(promo: PromoDisplayData) {
 
 function buildLocalBusinessJsonLd(
   reviews: PublicReview[],
-  aggregate?: ReviewAggregate,
-  treatments: BackendTreatment[] = []
+  aggregate: ReviewAggregate | undefined,
+  treatments: BackendTreatment[],
+  ubicacion: ConsultorioLocation | null
 ) {
   return {
     "@context": "https://schema.org",
@@ -138,11 +140,19 @@ function buildLocalBusinessJsonLd(
       addressRegion: "Cochabamba",
       addressCountry: "BO",
     },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: -17.386471,
-      longitude: -66.152366,
-    },
+    // Coordenadas del panel (Dashboard → Contacto). Estaban escritas a mano y
+    // se quedaron desfasadas cuando la doctora corrigió el punto. Sin dato se
+    // omite el `geo`: mejor ninguno que uno equivocado.
+    ...(ubicacion
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: ubicacion.latitude,
+            longitude: ubicacion.longitude,
+          },
+          hasMap: ubicacion.mapsUrl,
+        }
+      : {}),
     // Catálogo de servicios.
     //
     // El negocio declaraba su especialidad pero no QUÉ hace: nada conectaba la
@@ -282,7 +292,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 300 // 5 min ISR
 
 export default async function HomePage() {
-  const [homeData, homeServiceData, footerData, promoData, aboutData, treatment, infoResult, reviewsResult] = await Promise.all([
+  const [homeData, homeServiceData, footerData, promoData, aboutData, treatment, infoResult, reviewsResult, ubicacion] = await Promise.all([
     getHomeData(),
     getHomeDataService(),
     getFooterData(),
@@ -291,6 +301,7 @@ export default async function HomePage() {
     backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 }),
     backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 60 }),
     backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
+    getConsultorioLocation(),
   ])
 
   const faqJsonLd = buildFaqJsonLd(homeData.faqs)
@@ -329,7 +340,8 @@ export default async function HomePage() {
   const localBusinessJsonLd = buildLocalBusinessJsonLd(
     approvedReviews,
     reviewAggregate,
-    backendTreatments
+    backendTreatments,
+    ubicacion
   )
 
   const pageInfo: TreatmentsPageInfo | undefined =

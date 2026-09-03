@@ -13,6 +13,7 @@ import { getWhatsAppConfig } from "@/lib/data/whatsapp";
 import { doctorKnowsAbout, seoTitleFor, type TreatmentRef } from "@/lib/seo/treatment-names"
 import { backendFetch, extractList } from "@/lib/backend-client"
 import { getFooterData } from "@/lib/data/footer"
+import { getConsultorioLocation, type ConsultorioLocation } from "@/lib/data/location"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
 
 const roboto = Roboto({
@@ -147,7 +148,11 @@ export const metadata: Metadata = {
  * doctora declare lo que realmente hace: si mañana se añade uno en el panel,
  * su `knowsAbout` lo recoge sin que nadie edite este archivo.
  */
-function buildSiteJsonLd(treatments: TreatmentRef[], perfiles: string[]) {
+function buildSiteJsonLd(
+  treatments: TreatmentRef[],
+  perfiles: string[],
+  ubicacion: ConsultorioLocation | null
+) {
   return {
   "@context": "https://schema.org",
   "@graph": [
@@ -164,7 +169,10 @@ function buildSiteJsonLd(treatments: TreatmentRef[], perfiles: string[]) {
       currenciesAccepted: "BOB, USD",
       paymentAccepted: "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR",
       medicalSpecialty: "Medicina Estética",
-      hasMap: "https://www.google.com/maps?q=-17.386471,-66.152366",
+      // Mapa y coordenadas salen del panel (Dashboard → Contacto). Estaban
+      // escritos a mano y apuntaban 90 metros más allá, sobre otra calle, aun
+      // después de que la doctora corrigiera el punto en el panel.
+      ...(ubicacion ? { hasMap: ubicacion.mapsUrl } : {}),
       address: {
         "@type": "PostalAddress",
         // `streetAddress` es lo que Google pide para `LocalBusiness`. Sin
@@ -175,11 +183,17 @@ function buildSiteJsonLd(treatments: TreatmentRef[], perfiles: string[]) {
         addressRegion: "Cochabamba",
         addressCountry: "BO",
       },
-      geo: {
-        "@type": "GeoCoordinates",
-        latitude: -17.386471,
-        longitude: -66.152366,
-      },
+      // Sin coordenadas en el panel se omite el `geo` entero: declarar un punto
+      // que ya no es cierto es peor que no declarar ninguno.
+      ...(ubicacion
+        ? {
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: ubicacion.latitude,
+              longitude: ubicacion.longitude,
+            },
+          }
+        : {}),
       openingHoursSpecification: [
         {
           "@type": "OpeningHoursSpecification",
@@ -291,10 +305,11 @@ export default async function RootLayout({
   // WhatsApp configurado en el panel (Dashboard → Contacto), no cableado.
   // Los tratamientos activos alimentan el `knowsAbout` de la doctora: el panel
   // manda, y un procedimiento nuevo entra en el schema sin tocar código.
-  const [whatsapp, treatmentsResult, footerData] = await Promise.all([
+  const [whatsapp, treatmentsResult, footerData, ubicacion] = await Promise.all([
     getWhatsAppConfig(),
     backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
     getFooterData(),
+    getConsultorioLocation(),
   ]);
   const activeTreatments =
     treatmentsResult.error === null
@@ -313,7 +328,7 @@ export default async function RootLayout({
     .map(normalizeSocialUrl)
     .filter(Boolean);
 
-  const jsonLd = buildSiteJsonLd(activeTreatments, perfilesSociales);
+  const jsonLd = buildSiteJsonLd(activeTreatments, perfilesSociales, ubicacion);
 
   return (
     <html lang="es-BO">
