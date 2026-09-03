@@ -372,8 +372,26 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Precarga del poster del hero → pinta de inmediato (sin "imagen cargando") */}
-      <link rel="preload" as="image" href="/images/hero-poster.jpg" fetchPriority="high" />
+      {/* Precarga del póster del hero → pinta de inmediato, sin "imagen cargando".
+          Van los dos con `media`, cada uno para su forma de pantalla. Precargar
+          solo el apaisado hacía que en móvil se bajaran 38 KB que no se pintan
+          nunca, y encima con prioridad alta: competían con el póster que sí se
+          muestra, que es el elemento más grande de la primera pantalla.
+          El criterio es el mismo que en globals.css y en HeroLayout. */}
+      <link
+        rel="preload"
+        as="image"
+        href="/images/hero-poster.jpg"
+        media="(min-aspect-ratio: 1/1)"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/images/hero-poster-mobile.jpg"
+        media="(max-aspect-ratio: 1/1)"
+        fetchPriority="high"
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(siteNavJsonLd) }} />

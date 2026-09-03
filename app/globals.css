@@ -290,6 +290,88 @@ h1, h2, h3, h4 {
 @keyframes pulse-line { 0%,100%{transform:scaleY(1);opacity:.45} 50%{transform:scaleY(1.3);opacity:1} }
 
 /* Hero light leak utility classes */
+/* ── Hero: fondo del vídeo ────────────────────────────────────────────────────
+   El vídeo y su póster son 1280x720 (16:9). En una pantalla vertical, cubrir
+   con `cover` obliga a ampliar la imagen ~1.3x y deja ver solo el 26% central:
+   un primer plano de cara se convierte en una nariz gigante. Por eso el móvil
+   usa un recurso propio en 9:16, compuesto para ese formato.
+   El corte NO es por ancho sino por proporción de la pantalla. Con
+   `max-width: 767px` un iPad vertical (820x1180) recibía el recurso apaisado y
+   volvía el mismo recorte que se vino a arreglar. `max-aspect-ratio: 1/1`
+   significa "más alta que ancha", que es justo cuando hace falta el vertical.
+   El póster se resuelve en CSS para que el servidor ya sirva el correcto y no
+   haya salto en el primer pintado. */
+.hero__media {
+  background-image: url(/images/hero-poster.jpg);
+  background-size: cover;
+  background-position: center 35%;
+  background-repeat: no-repeat;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .hero__media {
+    background-image: url(/images/hero-poster-mobile.jpg);
+    background-position: center;
+  }
+}
+
+/* El vídeo cubre su contenedor. El encuadre se ajusta por formato: en vertical
+   el recurso ya está compuesto en 9:16, así que va centrado; en apaisado se
+   sube un poco para no cortar el rostro. */
+.hero__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+@media (max-aspect-ratio: 1/1) {
+  .hero__video { object-position: center; }
+}
+
+/* ── Hero: centrado óptico ────────────────────────────────────────────────────
+   Con el contenido llenando ~63% de la pantalla, centrar exacto reparte el aire
+   sobrante a partes iguales y deja un hueco muerto entre la barra de navegación
+   y el texto. El ojo espera el bloque algo por encima del centro geométrico:
+   ese padding inferior extra lo sube sin tocar el centrado. Solo en pantallas
+   altas, que son las únicas donde sobra sitio. */
+@media (min-height: 850px) {
+  .hero__section { padding-bottom: 150px !important; }
+}
+
+@media (min-height: 760px) and (max-height: 849px) {
+  .hero__section { padding-bottom: 115px !important; }
+}
+
+/* ── Hero: pantallas bajas ────────────────────────────────────────────────────
+   El hero se dimensiona por ALTO, no por ancho. Un iPhone SE (568px) y un
+   iPhone 15 Pro Max (932px) tienen anchos parecidos y alturas que difieren en
+   un 60%: con una sola escala, o sobra medio viewport en el grande o no cabe en
+   el pequeño. Estas reglas comprimen solo cuando la pantalla es baja.
+   El padding inferior se sacrifica primero porque solo existe para equilibrar
+   ópticamente el hueco de la barra de navegación, y en una pantalla sin holgura
+   ese equilibrio ya no importa. */
+@media (max-height: 800px) {
+  .hero__section { padding-bottom: 0 !important; }
+  .hero__content { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+}
+
+@media (max-height: 800px) and (max-width: 639px) {
+  .hero__content h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  .hero__content > p:first-child { margin-bottom: 0.75rem; }      /* eyebrow */
+  .hero__content p.italic { font-size: 1.25rem; margin-bottom: 0.75rem; }
+  .hero__content .grid-cols-3 { margin-top: 1.5rem; }
+}
+
+/* Muy bajas (iPhone SE, plegables): se aprieta un poco más, pero NO se oculta
+   nada. El párrafo de descripción es copy de marketing; que el CEO decida si
+   sobra, no el CSS. En estas pantallas el hero puede pedir un scroll corto, que
+   es preferible a comerse el mensaje. */
+@media (max-height: 640px) and (max-width: 639px) {
+  .hero__content .hero__description { font-size: 0.9375rem; margin-bottom: 1.25rem; }
+  .hero__content .grid-cols-3 { margin-top: 1rem; }
+}
+
 .hero__leak1 {
   position: absolute;
   inset: 0;
