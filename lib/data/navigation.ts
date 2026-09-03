@@ -22,10 +22,11 @@ export const footerGroups: FooterGroup[] = [
   {
     title: "Tratamientos Corporales",
     links: [
-      { label: "Reducción de Medidas", href: "/tratamientos" },
-      { label: "Eliminación de Celulitis", href: "/tratamientos" },
-      { label: "Depilación Láser", href: "/tratamientos" },
-      { label: "Tratamiento de Estrías", href: "/tratamientos" },
+      // Los tratamientos corporales se retiraron: reducción de medidas,
+      // celulitis, depilación láser y estrías no figuran entre los servicios
+      // del consultorio. Si algún día se ofrecen, se dan de alta en el panel y
+      // el sitio los recoge solo.
+      { label: "Ver todos los tratamientos", href: "/tratamientos" },
     ],
   },
   {

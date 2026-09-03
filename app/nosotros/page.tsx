@@ -2,6 +2,7 @@ import { getAboutData } from "@/lib/data/about"
 import { getFooterData } from "@/lib/data/footer"
 import { readContent } from "@/lib/store/content-store"
 import { backendFetch, extractList, extractReviewAggregate } from "@/lib/backend-client"
+import { doctorKnowsAbout, type TreatmentRef } from "@/lib/seo/treatment-names"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -39,18 +40,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Dra. Yasmin Medrano Avila — 10 Años Transformando Vidas en Bolivia",
     description:
-      "⭐ +5.000 pacientes felices en Cochabamba. Médica especialista certificada en botox natural, rellenos y rejuvenecimiento facial. Resultados que hablan por sí solos.",
+      "+5.000 pacientes felices en Cochabamba. Médica especialista certificada en botox natural, rellenos y rejuvenecimiento facial. Resultados que hablan por sí solos.",
     url: `${BASE_URL}/nosotros`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Dra. Yasmin Medrano Avila — Especialista Medicina Estética Cochabamba Bolivia" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Dra. Yasmin Medrano Avila — Medicina estética en Cochabamba, Bolivia" }],
     type: "profile",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dra. Yasmin Medrano Avila | +5.000 Pacientes en Bolivia ⭐",
+    images: ["/opengraph-image"],
+    title: "Dra. Yasmin Medrano Avila | +5.000 Pacientes en Bolivia",
     description:
       "10+ años de experiencia en Cochabamba. Botox natural, rellenos y rejuvenecimiento facial con resultados reales. Agenda tu consulta hoy.",
-    images: ["/og-image.jpg"],
   },
 }
 
@@ -63,7 +64,11 @@ const breadcrumbLd = {
   ],
 }
 
-function buildAboutJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) {
+function buildAboutJsonLd(
+  reviews: PublicReview[],
+  aggregate: ReviewAggregate | undefined,
+  treatments: TreatmentRef[]
+) {
   const hasReviews = reviews.length > 0
   const avgRating = aggregate?.avg_rating != null
     ? aggregate.avg_rating.toFixed(1)
@@ -80,22 +85,14 @@ function buildAboutJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) 
       name: "Dra. Yasmin Medrano Avila",
       jobTitle: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia",
       description:
-        "Médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia. Experta en toxina botulínica, ácido hialurónico, armonización facial, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento facial avanzadas.",
+        "Médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia. Experta en toxina botulínica, ácido hialurónico, rellenos de labios, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento facial avanzadas.",
       url: `${BASE_URL}/nosotros`,
       image: `${BASE_URL}/images/DraMedrano.jpeg`,
       telephone: "+59178751894",
       medicalSpecialty: "Medicina Estética",
-      knowsAbout: [
-        "Toxina Botulínica",
-        "Ácido Hialurónico",
-        "Armonización Facial",
-        "Bioestimulación con Polinucleótidos",
-        "Depilación Láser",
-        "Mesoterapia Facial",
-        "Radiofrecuencia Facial",
-        "Peeling Químico",
-        "Rejuvenecimiento Facial",
-      ],
+      // Derivado del panel: la lista fija incluía armonización facial y
+      // depilación láser, que el consultorio no ofrece.
+      knowsAbout: doctorKnowsAbout(treatments),
       hasOccupation: {
         "@type": "Occupation",
         name: "Médica Especialista en Medicina Estética",
@@ -123,12 +120,18 @@ function buildAboutJsonLd(reviews: PublicReview[], aggregate?: ReviewAggregate) 
 }
 
 export default async function NosotrosPage() {
-  const [c, footerData, aboutData, reviewsResult] = await Promise.all([
+  const [c, footerData, aboutData, reviewsResult, treatmentsResult] = await Promise.all([
     readContent(),
     getFooterData(),
     getAboutData(),
     backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
+    backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
   ])
+
+  const activeTreatments =
+    treatmentsResult.error === null
+      ? extractList<TreatmentRef>(treatmentsResult.data).filter((t) => t.slug)
+      : []
 
   const approvedReviews = reviewsResult.error === null
     ? extractList<PublicReview>(reviewsResult.data)
@@ -151,7 +154,7 @@ export default async function NosotrosPage() {
           }
         : undefined
 
-  const aboutJsonLd = buildAboutJsonLd(approvedReviews, reviewAggregate)
+  const aboutJsonLd = buildAboutJsonLd(approvedReviews, reviewAggregate, activeTreatments)
 
   return (
     <>

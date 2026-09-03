@@ -17,6 +17,22 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { BlogPageTracker } from "@/components/analytics/BlogPageTracker"
 
+/**
+ * NO añadir `loading.tsx` en este segmento.
+ *
+ * Un `loading.tsx` crea un límite de Suspense implícito que hace que Next
+ * empiece a transmitir la respuesta —y por tanto envíe las cabeceras— ANTES de
+ * ejecutar el componente. Cuando después se llama a `notFound()`, el estado ya
+ * se mandó: la página respondía **HTTP 200** mostrando el contenido de 404.
+ *
+ * Eso es un «soft 404»: para Google la URL existe y es contenido pobre, así que
+ * la indexa y gasta presupuesto de rastreo en artículos inventados. Medido:
+ * `/blog/cualquier-cosa` devolvía 200 mientras `/tratamientos/cualquier-cosa`
+ * —sin `loading.tsx`— devolvía 404 correctamente.
+ *
+ * El coste de quitarlo es mínimo: la página es ISR, se sirve desde caché.
+ */
+
 export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el post
 
 export async function generateStaticParams() {
@@ -41,6 +57,7 @@ interface BackendBlogPost {
   published: boolean
   publishedAt: string | null
   createdAt: string
+  updatedAt?: string | null
 }
 
 /** Map a backend post to the StaticBlogPost shape used by the UI */
@@ -54,6 +71,7 @@ function toStaticPost(p: BackendBlogPost): StaticBlogPost {
     content: body,
     imageUrl: resolveImageUrl(p.imageUrl),
     publishedAt: p.publishedAt ?? p.createdAt,
+    updatedAt: p.updatedAt ?? p.publishedAt ?? p.createdAt,
     author: "Dra. Yasmin Medrano Avila",
     readTime: body
       ? `${Math.max(1, Math.ceil(body.split(/\s+/).length / 200))} min`
@@ -171,6 +189,12 @@ export default async function BlogPostPage({ params }: Props) {
     description: post.excerpt,
     image: post.imageUrl,
     datePublished: post.publishedAt,
+    // `dateModified` faltaba: sin él, Google no distingue un artículo revisado
+    // este mes de uno abandonado hace dos años, y en salud la vigencia pesa.
+    dateModified: post.updatedAt ?? post.publishedAt,
+    // Quién responde del contenido médico.
+    reviewedBy: { "@id": `${BASE_URL}/#doctor` },
+    medicalAudience: { "@type": "MedicalAudience", audienceType: "Patient" },
     author: {
       "@type": "Person",
       // `@id` apunta a la ficha Physician del layout: sin esto, el autor del

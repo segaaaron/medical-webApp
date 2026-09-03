@@ -24,7 +24,7 @@ const breadcrumbLd = {
 export const metadata: Metadata = {
   title: "Blog de Medicina Estética",
   description:
-    "Guías reales de medicina estética en Bolivia por la Dra. Yasmin Medrano. Botox, ácido hialurónico, cuidado de piel y los mejores tratamientos de 2026.",
+    "Guías reales de medicina estética en Bolivia por la Dra. Yasmin Medrano. Botox, ácido hialurónico, cuidado de piel y tratamientos estéticos explicados por una médica.",
   keywords: [
     "blog medicina estética Bolivia",
     "consejos botox Cochabamba",
@@ -43,18 +43,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Blog Experto de Medicina Estética en Bolivia | Dra. Yasmin Medrano",
     description:
-      "📖 Guías reales de una médica con 10+ años de experiencia. Todo lo que necesitas saber sobre botox, rellenos, cuidado de piel y tratamientos estéticos en Bolivia.",
+      "Guías reales de una médica con 10+ años de experiencia. Todo lo que necesitas saber sobre botox, rellenos, cuidado de piel y tratamientos estéticos en Bolivia.",
     url: `${BASE_URL}/blog`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Blog medicina estética Bolivia — Dra. Yasmin Medrano Avila experta" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Blog de medicina estética — Dra. Yasmin Medrano Avila, Cochabamba" }],
     type: "website",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Blog Medicina Estética Bolivia 📖 | Dra. Yasmin Medrano Avila",
+    images: ["/opengraph-image"],
+    title: "Blog Medicina Estética Bolivia | Dra. Yasmin Medrano Avila",
     description:
-      "Guías expertas, verdades del botox, cuidado de piel y los mejores tratamientos estéticos en Bolivia. Escrito por especialista médica en Cochabamba.",
-    images: ["/og-image.jpg"],
+      "Guías sobre botox, ácido hialurónico y cuidado de la piel, escritas por una médica especialista en Cochabamba.",
   },
 }
 

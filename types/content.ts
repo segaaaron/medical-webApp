@@ -36,6 +36,9 @@ export interface ContactData {
   instagramUrl: string
   facebook: string
   facebookUrl: string
+  /** Handle visible, p. ej. «@drayasminmedranoa». Vacío si no hay perfil. */
+  tiktok?: string
+  tiktokUrl?: string
   scheduleWeekdays: string
   scheduleSaturday: string
   scheduleSunday: string

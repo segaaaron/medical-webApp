@@ -21,6 +21,7 @@ function LoginForm() {
 
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   const formik = useFormik<LoginValues>({
     initialValues: { email: "", password: "" },
@@ -38,6 +39,12 @@ function LoginForm() {
           setError(data.error ?? "Usuario o contraseña incorrectos.")
           return
         }
+        // `isSubmitting` de Formik se apaga en cuanto termina `onSubmit`, pero
+        // la navegación sigue en curso: el botón volvía a decir «Entrar al
+        // dashboard» y el formulario quedaba activo mientras se esperaba.
+        // `redirecting` no se apaga nunca — el componente se desmonta al
+        // navegar— así que el estado de carga dura hasta que aparece el panel.
+        setRedirecting(true)
         router.push(from)
         router.refresh()
       } catch {
@@ -113,12 +120,12 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={!formik.isValid || formik.isSubmitting}
+              disabled={!formik.isValid || formik.isSubmitting || redirecting}
               className="flex items-center justify-center gap-2 w-full py-3 rounded-lg font-bold text-sm text-white transition-colors disabled:opacity-60 mt-2"
               style={{ backgroundColor: "var(--vintage-gold)" }}
             >
-              {formik.isSubmitting && <Loader2 size={16} className="animate-spin" />}
-              {formik.isSubmitting ? "Entrando..." : "Entrar al dashboard"}
+              {(formik.isSubmitting || redirecting) && <Loader2 size={16} className="animate-spin" />}
+              {formik.isSubmitting || redirecting ? "Entrando…" : "Entrar al dashboard"}
             </button>
           </form>
         </div>

@@ -6,18 +6,19 @@ import { Send } from "lucide-react"
 import { WHATSAPP_NUMBER } from "@/lib/constants"
 import { trackLead, trackWhatsAppClick } from "@/lib/analytics"
 
-const TREATMENTS = [
-  "Toxina Botulínica (Botox)",
-  "Rellenos con Ácido Hialurónico",
-  "Armonización Facial",
-  "Depilación Láser",
-  "Mesoterapia Facial",
-  "Radiofrecuencia Facial",
-  "Bioestimulación",
-  "Peeling Químico",
-  "Tratamiento Corporal",
-  "Otro / Consulta general",
-]
+/**
+ * Opción final del desplegable, siempre presente: cubre a quien no sabe qué
+ * tratamiento necesita, que es la mayoría en una primera consulta.
+ */
+const OPCION_GENERAL = "Otro / Consulta general"
+
+/**
+ * Respaldo mínimo si el backend no responde. Solo tratamientos que el
+ * consultorio presta de verdad: la lista anterior ofrecía «Armonización
+ * Facial» y «Depilación Láser», así que un paciente podía pedir cita para algo
+ * que no existe.
+ */
+const TREATMENTS_FALLBACK = [OPCION_GENERAL]
 
 const GOLD = "var(--vintage-gold)"
 
@@ -28,7 +29,13 @@ function blurRing(e: React.FocusEvent<HTMLElement>) {
   (e.target as HTMLElement).style.boxShadow = "none"
 }
 
-export function ContactForm() {
+export function ContactForm({ treatments }: { treatments?: string[] }) {
+  // Del panel cuando hay datos; si no, solo la consulta general.
+  const TREATMENTS =
+    treatments && treatments.length > 0
+      ? [...treatments, OPCION_GENERAL]
+      : TREATMENTS_FALLBACK
+
   const [form, setForm] = useState({ name: "", phone: "", treatment: "", message: "", preferredDate: "", website: "" })
   const [sent, setSent] = useState(false)
 

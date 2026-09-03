@@ -10,8 +10,10 @@ import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 import { WhatsAppProvider } from "@/components/providers/WhatsAppProvider";
 import { getWhatsAppConfig } from "@/lib/data/whatsapp";
-import { doctorKnowsAbout, type TreatmentRef } from "@/lib/seo/treatment-names"
+import { doctorKnowsAbout, seoTitleFor, type TreatmentRef } from "@/lib/seo/treatment-names"
 import { backendFetch, extractList } from "@/lib/backend-client"
+import { getFooterData } from "@/lib/data/footer"
+import { normalizeSocialUrl } from "@/lib/seo/meta"
 
 const roboto = Roboto({
   variable: "--font-roboto",
@@ -80,7 +82,6 @@ export const metadata: Metadata = {
   keywords: [
     // Geo-transaccionales Bolivia/Cochabamba — alta intención de compra
     "médico estético Cochabamba Bolivia",
-    "mejor medicina estética Cochabamba",
     "botox Cochabamba precio consulta",
     "bioestimuladores polinucleótidos Bolivia",
     "bioestimulación facial Bolivia",
@@ -126,22 +127,13 @@ export const metadata: Metadata = {
     siteName: "Dra. Yasmin Medrano Avila — Medicina Estética Cochabamba",
     title: "Medicina Estética Cochabamba | Dra. Yasmin Medrano Avila",
     description:
-      "⭐ Más de 5.000 pacientes satisfechos en Cochabamba. Botox, rellenos, armonización facial y bioestimulación. Resultados naturales, seguros y duraderos. Agenda tu consulta hoy.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Dra. Yasmin Medrano Avila — Mejor Medicina Estética Cochabamba Bolivia",
-      },
-    ],
+      "Botox, ácido hialurónico, rellenos de labios y bioestimulación en Cochabamba. Más de 10 años de experiencia. Agenda tu consulta de valoración.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
     description:
-      "✨ +5.000 pacientes felices en Bolivia. Botox natural, rellenos, armonización facial. 10+ años de experiencia. Agenda tu consulta este mes.",
-    images: ["/og-image.jpg"],
+      "Botox, ácido hialurónico y rellenos de labios en Cochabamba, con la Dra. Yasmin Medrano Avila. Más de 10 años de experiencia.",
   },
   alternates: {
     canonical: BASE_URL,
@@ -155,7 +147,7 @@ export const metadata: Metadata = {
  * doctora declare lo que realmente hace: si mañana se añade uno en el panel,
  * su `knowsAbout` lo recoge sin que nadie edite este archivo.
  */
-function buildSiteJsonLd(treatments: TreatmentRef[]) {
+function buildSiteJsonLd(treatments: TreatmentRef[], perfiles: string[]) {
   return {
   "@context": "https://schema.org",
   "@graph": [
@@ -165,9 +157,9 @@ function buildSiteJsonLd(treatments: TreatmentRef[]) {
       name: "Consultorio Dra. Yasmin Medrano Avila",
       alternateName: "Medicina Estética Avanzada — Dra. Yasmin",
       url: BASE_URL,
-      image: `${BASE_URL}/og-image.jpg`,
+      image: `${BASE_URL}/opengraph-image`,
       description:
-        "Consultorio líder en medicina estética en Cochabamba, Bolivia. Más de 10 años de experiencia, +5.000 pacientes atendidos. Tratamientos faciales y corporales seguros con tecnología de vanguardia.",
+        "Consultorio de medicina estética en Cochabamba, Bolivia. Más de 10 años de experiencia, +5.000 pacientes atendidos. Tratamientos faciales y corporales seguros con tecnología de vanguardia.",
       priceRange: "$$",
       currenciesAccepted: "BOB, USD",
       paymentAccepted: "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR",
@@ -221,25 +213,17 @@ function buildSiteJsonLd(treatments: TreatmentRef[]) {
       // son publicidad engañosa. El rating real —calculado de las reseñas
       // aprobadas— lo aportan `/` y `/nosotros` sobre esta misma entidad
       // (@id #business), y solo cuando hay reseñas que respalden el número.
-      availableService: [
-        { "@type": "MedicalProcedure", name: "Toxina Botulínica (Botox)" },
-        { "@type": "MedicalProcedure", name: "Rellenos con Ácido Hialurónico" },
-        { "@type": "MedicalProcedure", name: "Rejuvenecimiento Facial" },
-        { "@type": "MedicalProcedure", name: "Depilación Láser" },
-        { "@type": "MedicalProcedure", name: "Mesoterapia Facial" },
-        { "@type": "MedicalProcedure", name: "Radiofrecuencia Facial" },
-        { "@type": "MedicalProcedure", name: "Tratamiento de Manchas" },
-        { "@type": "MedicalProcedure", name: "Peeling Químico" },
-        { "@type": "MedicalProcedure", name: "Reducción de Medidas" },
-        { "@type": "MedicalProcedure", name: "Tratamiento de Celulitis" },
-        { "@type": "MedicalProcedure", name: "Bioestimulación con Polinucleótidos" },
-        { "@type": "MedicalProcedure", name: "Tratamiento de Estrías" },
-      ],
+      // Servicios que el consultorio presta, derivados del panel. La lista
+      // anterior estaba escrita a mano y anunciaba depilación láser, reducción
+      // de medidas, celulitis y estrías, que no se ofrecen. Un dato falso en el
+      // schema del negocio es publicidad engañosa, no solo un fallo de SEO.
+      availableService: treatments.map((t) => ({
+        "@type": "MedicalProcedure",
+        name: seoTitleFor(t.slug, t.name),
+        url: `${BASE_URL}/tratamientos/${t.slug}`,
+      })),
       telephone: "+59178751894",
-      sameAs: [
-        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-        "https://www.instagram.com/dra_yasmin.medrano",
-      ],
+      sameAs: perfiles,
     },
     {
       "@type": "Physician",
@@ -247,7 +231,7 @@ function buildSiteJsonLd(treatments: TreatmentRef[]) {
       name: "Dra. Yasmin Medrano Avila",
       jobTitle: "Médica Especialista en Medicina Estética",
       description:
-        "Médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, armonización facial, bioestimulación y técnicas de vanguardia.",
+        "Médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, rellenos de labios, bioestimulación y técnicas de vanguardia.",
       url: BASE_URL,
       image: `${BASE_URL}/images/DraMedrano.jpeg`,
       telephone: "+59178751894",
@@ -256,10 +240,18 @@ function buildSiteJsonLd(treatments: TreatmentRef[]) {
       // En salud Google pesa QUIÉN firma, no solo qué dice la página. Esto
       // conecta a la doctora con cada término por el que queremos aparecer.
       knowsAbout: doctorKnowsAbout(treatments),
-      sameAs: [
-        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-        "https://www.instagram.com/dra_yasmin.medrano",
-      ],
+      // Credencial profesional. Es una de las señales más directas de que
+      // detrás del contenido hay una médica y no un sitio de afiliados.
+      //
+      // PENDIENTE: falta el número de registro del Colegio Médico. No se
+      // inventa — un identificador falso es peor que ninguno. Cuando la
+      // doctora lo facilite, se añade aquí como `identifier`.
+      hasCredential: {
+        "@type": "EducationalOccupationalCredential",
+        credentialCategory: "degree",
+        educationalLevel: "Médica Cirujana con especialidad en Medicina Estética",
+      },
+      sameAs: perfiles,
     },
     {
       "@type": "WebSite",
@@ -289,15 +281,29 @@ export default async function RootLayout({
   // WhatsApp configurado en el panel (Dashboard → Contacto), no cableado.
   // Los tratamientos activos alimentan el `knowsAbout` de la doctora: el panel
   // manda, y un procedimiento nuevo entra en el schema sin tocar código.
-  const [whatsapp, treatmentsResult] = await Promise.all([
+  const [whatsapp, treatmentsResult, footerData] = await Promise.all([
     getWhatsAppConfig(),
     backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
+    getFooterData(),
   ]);
   const activeTreatments =
     treatmentsResult.error === null
       ? extractList<TreatmentRef>(treatmentsResult.data).filter((t) => t.slug)
       : [];
-  const jsonLd = buildSiteJsonLd(activeTreatments);
+  // `sameAs` conecta el sitio con sus perfiles: es como Google entiende que la
+  // web, el Facebook, el Instagram y el TikTok son la MISMA entidad, y por eso
+  // las señales de cada uno se suman. Antes estaban escritos a mano y faltaba
+  // TikTok. Ahora salen del panel, y solo se incluyen los que existen: un
+  // perfil vacío o inventado rompe la conexión en vez de reforzarla.
+  const perfilesSociales = [
+    footerData.facebookUrl,
+    footerData.instagramUrl,
+    footerData.tiktokUrl,
+  ]
+    .map(normalizeSocialUrl)
+    .filter(Boolean);
+
+  const jsonLd = buildSiteJsonLd(activeTreatments, perfilesSociales);
 
   return (
     <html lang="es-BO">

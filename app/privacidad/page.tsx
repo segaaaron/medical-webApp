@@ -13,7 +13,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 const LAST_UPDATED = "16 de junio de 2026"
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad — Dra. Yasmin Medrano Avila | Medicina Estética Cochabamba",
+  // Sin marca: el template del layout la añade.
+  title: "Política de Privacidad",
   description:
     "Cómo recopilamos, usamos y protegemos tus datos personales en el sitio web y la atención por WhatsApp del consultorio de la Dra. Medrano.",
   alternates: {

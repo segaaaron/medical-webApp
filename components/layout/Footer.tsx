@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { MessageCircle, Facebook, Instagram } from "lucide-react"
+import { MessageCircle, Facebook, Instagram, Music2 } from "lucide-react"
 import { trackWhatsAppClick } from "@/lib/analytics"
 
 const LINK_STYLE = { color: "rgba(255,255,255,0.65)" }
@@ -14,6 +14,8 @@ export interface FooterData {
   whatsappUrl: string
   facebookUrl: string
   instagramUrl: string
+  /** Perfil de TikTok. Vacío si aún no se ha cargado en el panel. */
+  tiktokUrl?: string
   facialTreatments: { label: string; href: string }[]
   bodyTreatments: { label: string; href: string }[]
   officeLinks: { label: string; href: string }[]
@@ -137,12 +139,28 @@ export function Footer({ data }: { data: FooterData }) {
                   <Instagram size={18} color="var(--prem-dark-muted)" />
                 </a>
               )}
+              {data.tiktokUrl && (
+                <a
+                  href={data.tiktokUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TikTok"
+                  className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                  style={{ backgroundColor: "var(--prem-dark-border)" }}
+                >
+                  <Music2 size={18} color="var(--prem-dark-muted)" />
+                </a>
+              )}
             </div>
           </div>
 
           {/* Link groups */}
-          <LinkGroup title="Tratamientos Faciales" links={data.facialTreatments} />
-          <LinkGroup title="Tratamientos Corporales" links={data.bodyTreatments} />
+          {/* Los enlaces salen del panel y se reparten en dos columnas por
+              espacio, no por tipo: rotularlas «Faciales» y «Corporales» hacía
+              que «Mesoterapia Facial» apareciera bajo «Corporales». El
+              consultorio no ofrece tratamientos corporales. */}
+          <LinkGroup title="Tratamientos" links={data.facialTreatments} />
+          <LinkGroup title="" links={data.bodyTreatments} />
           <LinkGroup title="Consultorio" links={data.officeLinks} />
           <LinkGroup title="Legal" links={data.legalLinks} />
         </div>

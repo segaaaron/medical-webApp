@@ -4,6 +4,7 @@ import { getPromoData } from "@/lib/data/promo"
 import { getAboutData } from "@/lib/data/about"
 import { backendFetch, resolveImageUrl, extractList, extractReviewAggregate } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
+import type { PromoDisplayData } from "@/lib/data/promo"
 import dynamic from "next/dynamic"
 import type { Metadata } from "next"
 
@@ -79,6 +80,42 @@ const SAME_AS = [
 ]
 
 /** MedicalBusiness (subtipo de Organization) con datos del negocio + estrellas. */
+/**
+ * Promoción vigente como dato estructurado.
+ *
+ * El banner se pintaba solo como HTML decorado: para un buscador —y para un
+ * motor de respuestas tipo ChatGPT o Perplexity— era texto suelto, no una
+ * oferta. Marcarlo como `Offer` colgando del negocio (@id #business) permite
+ * que la promoción se entienda como tal y pueda citarse cuando alguien
+ * pregunte por ofertas de medicina estética en Cochabamba.
+ *
+ * Solo se emite si está activa en el panel: una oferta caducada en el schema
+ * es peor que no tener ninguna.
+ */
+// El nodo `WebSite` no se declara aquí: ya va en el `@graph` del layout, que
+// lo sirve en todas las páginas. Estaban los dos con el MISMO `@id` (#website)
+// y nombres distintos —«Dra. Yasmin Medrano» frente a «Dra. Yasmin Medrano
+// Avila»—, así que Google recibía dos versiones contradictorias de la misma
+// entidad y tenía que elegir una.
+
+function buildPromoJsonLd(promo: PromoDisplayData) {
+  if (!promo.active || !promo.title) return null
+
+  const nombre = [promo.title, promo.highlightedText].filter(Boolean).join(" ").trim()
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Offer",
+    name: nombre,
+    ...(promo.description ? { description: promo.description } : {}),
+    url: promo.ctaHref?.startsWith("http") ? promo.ctaHref : BASE_URL,
+    availability: "https://schema.org/InStock",
+    areaServed: { "@type": "City", name: "Cochabamba" },
+    offeredBy: { "@id": `${BASE_URL}/#business` },
+    seller: { "@id": `${BASE_URL}/#business` },
+  }
+}
+
 function buildLocalBusinessJsonLd(
   reviews: PublicReview[],
   aggregate?: ReviewAggregate,
@@ -139,15 +176,6 @@ function buildLocalBusinessJsonLd(
   }
 }
 
-const websiteJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "@id": `${BASE_URL}/#website`,
-  name: "Dra. Yasmin Medrano Avila",
-  url: BASE_URL,
-  inLanguage: "es-BO",
-  publisher: { "@id": `${BASE_URL}/#business` },
-}
 
 function buildSiteNavJsonLd(navLinks: { label?: string; name?: string; href?: string; url?: string }[]) {
   const items = navLinks
@@ -286,6 +314,7 @@ export default async function HomePage() {
           }
         : undefined
   const siteNavJsonLd = buildSiteNavJsonLd(homeData.navLinks)
+  const promoJsonLd = buildPromoJsonLd(promoData)
 
   const backendError = treatment.error !== null
   const backendTreatments = backendError
@@ -313,7 +342,13 @@ export default async function HomePage() {
 
   const liveModules: CourseModule[] =
     backendTreatments.length > 0
-      ? backendTreatments.map((t) => ({ title: t.name, treatmentId: t.id, treatmentSlug: t.slug }))
+      // `seoTitleFor` y no `t.name`: el panel guarda los nombres en MAYÚSCULAS
+      // SOSTENIDAS y la home los pintaba gritando («ÁCIDO HIALURÓNICO»).
+      ? backendTreatments.map((t) => ({
+          title: seoTitleFor(t.slug, t.name),
+          treatmentId: t.id,
+          treatmentSlug: t.slug,
+        }))
       : homeData.courseModules
 
   const heroCTAsSection: HeroCTA[] = [
@@ -327,9 +362,11 @@ export default async function HomePage() {
       <link rel="preload" as="image" href="/images/hero-poster.jpg" fetchPriority="high" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(siteNavJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessJsonLd) }} />
+      {promoJsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(promoJsonLd) }} />
+      )}
       <PromoBanner data={promoData} />
       <Navbar links={homeData.navLinks} />
       <FadeIn>

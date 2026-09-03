@@ -241,3 +241,31 @@ export function doctorKnowsAbout(treatments: TreatmentRef[]): string[] {
   }
   return [...terms]
 }
+
+/**
+ * Enlaces a las fichas de tratamiento, para menús, footer y desplegables.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * POR QUÉ
+ *
+ * Estas listas vivían escritas a mano en `lib/data/footer.ts`,
+ * `lib/data/navigation.ts` y en el formulario de contacto, y anunciaban cinco
+ * servicios que el consultorio no presta: depilación láser, armonización
+ * facial, reducción de medidas, celulitis y estrías. Un paciente podía
+ * elegirlos en el formulario y pedir cita para algo inexistente.
+ *
+ * Encima todos apuntaban a `/tratamientos` genérico, así que el enlace interno
+ * no llevaba a ninguna ficha ni transmitía relevancia hacia ella.
+ *
+ * Ahora salen del panel: lo que existe se enlaza, y a su página real.
+ */
+export function treatmentLinks(
+  treatments: TreatmentRef[]
+): { label: string; href: string }[] {
+  return treatments
+    .filter((t) => t.slug)
+    .map((t) => ({
+      label: seoTitleFor(t.slug, t.name),
+      href: `/tratamientos/${t.slug}`,
+    }))
+}

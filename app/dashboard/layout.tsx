@@ -4,7 +4,10 @@ import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { DashboardShell } from "@/components/dashboard/DashboardShell"
 
 export const metadata: Metadata = {
-  title: "Dashboard | Dra. Yasmin Medrano Avila",
+  // Sin marca: el `template` del layout raíz ya añade «| Dra. Yasmin Medrano
+  // Avila», y repetirla aquí producía «Dashboard | Dra. Yasmin Medrano Avila |
+  // Dra. Yasmin Medrano Avila» en la pestaña del navegador.
+  title: "Dashboard",
   robots: "noindex, nofollow",
 }
 

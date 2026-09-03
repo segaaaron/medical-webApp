@@ -27,6 +27,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { LoadingState } from "@/components/dashboard/ui/LoadingState"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
@@ -273,7 +274,7 @@ export default function DashboardHomePage() {
     return touched && error ? INPUT_ERROR_CLS : INPUT_CLS
   }
 
-  if (loading) return <p className="text-gray-400 text-sm" role="status">Cargando...</p>
+  if (loading) return <LoadingState />
 
   return (
     <FormikProvider value={formik}>

@@ -49,6 +49,8 @@ interface BackendTreatment {
   afterImageUrl: string | null
   after_image_url: string | null
   active: boolean
+  updatedAt?: string | null
+  createdAt?: string | null
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -85,7 +87,12 @@ async function getTreatment(slug: string): Promise<BackendTreatment | null> {
   const found = await findBySlug(slug)
   if (!found) return null
   const { data, error } = await backendFetch<BackendTreatment>(`/treatments/${found.id}`, { revalidate: 300 })
-  if (error || !data) return null
+  // `!data` no basta: si el backend responde 200 con un objeto vacío o de otra
+  // forma, `data` es «truthy» pero sin `name`, y al construir los metadatos se
+  // rompía con «Cannot read properties of undefined» — un 500 en la ficha del
+  // tratamiento, que para Google es una página muerta. Se exige el mínimo
+  // imprescindible antes de darla por válida.
+  if (error || !data || typeof data.name !== "string" || !data.name) return null
   const before = (data.beforeImageUrl ?? data.before_image_url) as string | null
   const after = (data.afterImageUrl ?? data.after_image_url) as string | null
   return {
@@ -202,29 +209,36 @@ export default async function TratamientoDetallePage({ params }: Props) {
     "@type": "FAQPage",
     mainEntity: [
       {
+        // Se usa `seoName`, no `treatment.name`: el nombre del panel viene en
+        // MAYÚSCULAS SOSTENIDAS y las preguntas salían gritando
+        // («¿Cuánto cuesta ÁCIDO HIALURÓNICO en Cochabamba?»).
         "@type": "Question",
-        name: `¿Cuánto cuesta ${treatment.name} en Cochabamba?`,
+        name: `¿Cuánto cuesta ${seoName} en Cochabamba?`,
         acceptedAnswer: {
           "@type": "Answer",
+          // Sin precio en el panel, la respuesta apunta a WhatsApp, que es el
+          // canal por el que el consultorio da precios. La versión anterior
+          // decía «agenda una consulta» sin explicar cómo: dejaba a la paciente
+          // con la pregunta sin responder y sin siguiente paso.
           text: treatment.price > 0
-            ? `El precio de ${treatment.name} en nuestro consultorio es Bs. ${treatment.price.toLocaleString("es-BO")}. Agenda una consulta para un presupuesto personalizado.`
-            : `El precio de ${treatment.name} varía según cada paciente. Agenda una consulta de valoración con la Dra. Yasmin Medrano para un presupuesto personalizado.`,
+            ? `El precio de ${seoName} en el consultorio de la Dra. Yasmin Medrano Avila es Bs. ${treatment.price.toLocaleString("es-BO")}. Escríbenos por WhatsApp para agendar tu valoración.`
+            : `El precio de ${seoName} depende de la valoración de cada paciente: la zona a tratar y el producto necesario cambian el presupuesto. Escríbenos por WhatsApp y te damos el precio para tu caso.`,
         },
       },
       {
         "@type": "Question",
-        name: `¿Es seguro el tratamiento de ${treatment.name}?`,
+        name: `¿Es seguro el tratamiento de ${seoName}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Sí. ${treatment.name} es realizado por la Dra. Yasmin Medrano Avila, médica especialista certificada con más de 10 años de experiencia en medicina estética en Cochabamba, Bolivia.`,
+          text: `${seoName} lo realiza la Dra. Yasmin Medrano Avila, médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia, siguiendo protocolos médicos certificados.`,
         },
       },
       {
         "@type": "Question",
-        name: `¿Dónde puedo realizarme ${treatment.name} en Cochabamba?`,
+        name: `¿Dónde puedo realizarme ${seoName} en Cochabamba?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `Puedes realizarte ${treatment.name} en el consultorio de la Dra. Yasmin Medrano Avila, ubicado en Cochabamba, Bolivia. Contáctanos por WhatsApp para agendar tu consulta.`,
+          text: `En el consultorio de la Dra. Yasmin Medrano Avila, en Cochabamba, Bolivia. Escríbenos por WhatsApp para agendar tu consulta de valoración.`,
         },
       },
     ],
@@ -232,9 +246,18 @@ export default async function TratamientoDetallePage({ params }: Props) {
 
   const procedureImages = [treatment.imageUrl, treatment.beforeImageUrl, treatment.afterImageUrl].filter(Boolean)
 
+  // Contenido de salud: Google pondera QUIÉN lo firma y CUÁNDO se revisó.
+  // `reviewedBy` apunta a la ficha Physician del sitio (@id #doctor), y
+  // `lastReviewed` sale de la última edición real en el panel — no de la fecha
+  // de hoy, que sería afirmar una revisión que nadie hizo.
+  const revisadoEl = treatment.updatedAt ?? treatment.createdAt ?? null
+
   const procedureLd = {
     "@context": "https://schema.org",
     "@type": "MedicalProcedure",
+    reviewedBy: { "@id": `${BASE_URL}/#doctor` },
+    ...(revisadoEl ? { lastReviewed: new Date(revisadoEl).toISOString().slice(0, 10) } : {}),
+    medicalAudience: { "@type": "MedicalAudience", audienceType: "Patient" },
     name: seoName,
     // El nombre clínico se conserva, y los términos por los que la gente busca
     // de verdad entran como alternativos: es la forma que entiende Google de

@@ -19,10 +19,6 @@ export const courseModules: CourseModule[] = [
   { title: "Peeling Químico", treatmentId: "peeling" },
   { title: "Tratamiento de Manchas", treatmentId: "manchas" },
   { title: "Hidratación Profunda", treatmentId: "hidratacion" },
-  { title: "Reducción de Medidas", treatmentId: "reduccion" },
-  { title: "Tratamiento de Celulitis", treatmentId: "celulitis" },
-  { title: "Depilación Láser", treatmentId: "depilacion" },
-  { title: "Tratamiento de Estrías", treatmentId: "estrias" },
 ]
 
 export const coursePricing: CoursePricing = {

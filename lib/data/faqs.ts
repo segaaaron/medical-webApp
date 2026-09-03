@@ -17,14 +17,14 @@ export const faqs: FAQ[] = [
       "Los rellenos con ácido hialurónico se aplican con anestesia tópica previa, lo que minimiza considerablemente las molestias. La mayoría de los pacientes lo describen como una ligera presión o sensación de pinchazo tolerable. La experiencia y técnica de la Dra. Yasmin garantizan un procedimiento lo más cómodo posible.",
   },
   {
-    question: "¿Cuántas sesiones necesito para ver resultados en tratamientos corporales?",
+    question: "¿Cuánto dura el efecto de la toxina botulínica?",
     answer:
-      "El número de sesiones varía según el tratamiento y el objetivo del paciente. Por ejemplo, para reducción de medidas o tratamiento de celulitis, generalmente se recomiendan entre 8 y 12 sesiones. La Dra. Yasmin realiza una valoración inicial personalizada para determinar el plan de tratamiento ideal para ti.",
+      "El efecto suele mantenerse entre cuatro y seis meses, según el metabolismo de cada paciente, la zona tratada y la dosis aplicada. La Dra. Yasmin valora cada caso para planificar el mantenimiento.",
   },
   {
-    question: "¿Cuánto tiempo dura una sesión de depilación láser?",
+    question: "¿Cuántas sesiones necesito para ver resultados?",
     answer:
-      "El tiempo de cada sesión depende del área a tratar. Zonas pequeñas como el labio superior pueden tomar 5-10 minutos, mientras que zonas más grandes como piernas completas pueden tomar entre 45 y 60 minutos. La depilación láser requiere varias sesiones (entre 6 y 8) para obtener resultados definitivos.",
+      "Depende del tratamiento. La toxina botulínica y los rellenos con ácido hialurónico muestran resultados con una sola sesión, mientras que la mesoterapia o el peeling químico suelen plantearse en varias. La valoración inicial define el plan concreto para ti.",
   },
   {
     question: "¿Qué debo hacer antes de mi primera consulta?",
@@ -44,7 +44,7 @@ export const faqs: FAQ[] = [
   {
     question: "¿Cuál es la formación y experiencia de la Dra. Yasmin Medrano Avila?",
     answer:
-      "La Dra. Yasmin Medrano Avila es médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Cuenta con formación especializada en toxina botulínica, rellenos con ácido hialurónico, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento avanzado. Su práctica se basa en protocolos médicos certificados que garantizan seguridad y resultados naturales.",
+      "La Dra. Yasmin Medrano Avila es médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Cuenta con formación especializada en toxina botulínica, rellenos con ácido hialurónico, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento avanzado. Su práctica se basa en protocolos médicos certificados, orientados a la seguridad de la paciente y a resultados de aspecto natural.",
   },
   {
     question: "¿Qué diferencia a la Dra. Yasmin de otros centros de estética?",

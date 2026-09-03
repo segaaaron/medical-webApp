@@ -14,7 +14,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 const LAST_UPDATED = "16 de junio de 2026"
 
 export const metadata: Metadata = {
-  title: "Términos y Condiciones — Dra. Yasmin Medrano Avila | Medicina Estética Cochabamba",
+  // Sin marca: el template del layout la añade.
+  title: "Términos y Condiciones",
   description:
     "Términos y condiciones de uso del sitio web y de la atención por WhatsApp del consultorio de la Dra. Yasmin Medrano Avila, en Cochabamba.",
   alternates: {

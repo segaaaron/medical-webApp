@@ -4,12 +4,13 @@ import { guardedFetch } from "@/lib/client-fetch"
 import { useEffect, useState } from "react"
 import { useFormik, FieldArray, FormikProvider } from "formik"
 import * as Yup from "yup"
-import { Plus, Trash2, User, MessageCircle, Facebook, Instagram, Link, Copyright } from "lucide-react"
+import { Plus, Trash2, User, MessageCircle, Facebook, Instagram, Music2, Link, Copyright } from "lucide-react"
 import { PageHeader } from "@/components/dashboard/PageHeader"
 import { SaveBar } from "@/components/dashboard/SaveBar"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
+import { LoadingState } from "@/components/dashboard/ui/LoadingState"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
@@ -29,6 +30,7 @@ interface FooterFormValues {
   whatsappUrl: string
   facebookUrl: string
   instagramUrl: string
+  tiktokUrl: string
   facialTreatments: LinkItem[]
   bodyTreatments: LinkItem[]
   officeLinks: LinkItem[]
@@ -49,6 +51,7 @@ const footerSchema = Yup.object({
   whatsappUrl: Yup.string().default(""),
   facebookUrl: Yup.string().default(""),
   instagramUrl: Yup.string().default(""),
+  tiktokUrl: Yup.string().default(""),
   facialTreatments: Yup.array(linkItemSchema).default([]),
   bodyTreatments: Yup.array(linkItemSchema).default([]),
   officeLinks: Yup.array(linkItemSchema).default([]),
@@ -66,6 +69,7 @@ const INITIAL_VALUES: FooterFormValues = {
   whatsappUrl: "",
   facebookUrl: "",
   instagramUrl: "",
+  tiktokUrl: "",
   facialTreatments: [],
   bodyTreatments: [],
   officeLinks: [],
@@ -83,6 +87,7 @@ function fromBackend(raw: any): FooterFormValues {
     whatsappUrl: raw.whatsappUrl ?? "",
     facebookUrl: raw.facebookUrl ?? "",
     instagramUrl: raw.instagramUrl ?? "",
+    tiktokUrl: raw.tiktokUrl ?? "",
     facialTreatments: Array.isArray(raw.facialTreatments) ? raw.facialTreatments : [],
     bodyTreatments: Array.isArray(raw.bodyTreatments) ? raw.bodyTreatments : [],
     officeLinks: Array.isArray(raw.officeLinks) ? raw.officeLinks : [],
@@ -196,7 +201,7 @@ export default function FooterDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (loading) return <p className="text-gray-400 text-sm" role="status">Cargando...</p>
+  if (loading) return <LoadingState />
 
   return (
     <FormikProvider value={formik}>
@@ -281,6 +286,25 @@ export default function FooterDashboardPage() {
                   {...formik.getFieldProps("instagramUrl")}
                   placeholder="https://instagram.com/dramedrano"
                 />
+              </FormField>
+
+              <div className="flex items-center gap-2 mt-2">
+                <Music2 size={16} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
+                <span className="text-sm text-gray-500">TikTok</span>
+              </div>
+              <FormField label="URL de TikTok" htmlFor="tiktokUrl">
+                <input
+                  id="tiktokUrl"
+                  className={INPUT_CLS}
+                  {...formik.getFieldProps("tiktokUrl")}
+                  placeholder="https://www.tiktok.com/@drayasminmedranoa"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Pega la direcci&oacute;n del perfil sin los par&aacute;metros que TikTok
+                  a&ntilde;ade al compartir (todo lo que va despu&eacute;s de{" "}
+                  <code>?</code>). Esta direcci&oacute;n le dice a Google que el perfil
+                  y la web son el mismo consultorio.
+                </p>
               </FormField>
             </div>
           </EditorCard>

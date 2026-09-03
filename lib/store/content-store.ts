@@ -102,6 +102,10 @@ export const DEFAULTS: ContentStore = {
     instagramUrl: "https://www.instagram.com/dra_yasmin.medrano",
     facebook: "DraMedranoMedesteticAntiaging",
     facebookUrl: "https://www.facebook.com/DraMedranoMedesteticAntiaging",
+    // Se cargan desde el panel (Dashboard → Contacto). Vacíos por defecto:
+    // sin perfil no se muestra la tarjeta ni se declara nada.
+    tiktok: "",
+    tiktokUrl: "",
     scheduleWeekdays: "9:00 AM – 7:00 PM",
     scheduleSaturday: "9:00 AM – 2:00 PM",
     scheduleSunday: "Cerrado",

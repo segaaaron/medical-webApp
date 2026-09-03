@@ -2,7 +2,9 @@
 
 import { m } from "framer-motion"
 import { Star } from "lucide-react"
+import Link from "next/link"
 import { SectionHeader } from "@/components/ui/SectionHeader"
+import { normalizeName } from "@/lib/seo/treatment-names"
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -21,59 +23,14 @@ export interface ReviewAggregate {
   total_count: number
 }
 
-// Static fallback shown when no DB reviews exist yet
-const FALLBACK_REVIEWS: PublicReview[] = [
-  {
-    id: "f1",
-    patient_name: "María José R.",
-    treatment: "Armonización Facial",
-    body: "Quedé encantada con los resultados. La Dra. Yasmin es muy profesional, me explicó todo el procedimiento con detalle y el resultado fue completamente natural. ¡Me siento más segura que nunca!",
-    rating: 5,
-    approved_at: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "f2",
-    patient_name: "Lucía F.",
-    treatment: "Toxina Botulínica",
-    body: "Llevaba años pensando en hacerme botox y siempre me daba miedo. La doctora me dio toda la confianza necesaria. El resultado es increíble, nadie nota que me hice algo, solo que me veo descansada y fresca.",
-    rating: 5,
-    approved_at: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "f3",
-    patient_name: "Carolina M.",
-    treatment: "Mesoterapia Facial",
-    body: "Mi piel cambió completamente. Después de tres sesiones noto la diferencia en la hidratación y la luminosidad. El trato es muy personalizado y el consultorio es muy agradable.",
-    rating: 5,
-    approved_at: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "f4",
-    patient_name: "Valentina S.",
-    treatment: "Depilación Láser",
-    body: "Excelente atención desde el primer día. Resultados visibles desde las primeras sesiones. Muy recomendable si buscas un tratamiento seguro y con resultados reales.",
-    rating: 5,
-    approved_at: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "f5",
-    patient_name: "Andrea P.",
-    treatment: "Rellenos con Ácido Hialurónico",
-    body: "La Dra. Medrano tiene una mano increíble. Los rellenos quedaron perfectos, muy naturales. Me dio exactamente lo que buscaba sin exagerar. Sin duda volveré.",
-    rating: 5,
-    approved_at: "2025-01-01T00:00:00Z",
-  },
-  {
-    id: "f6",
-    patient_name: "Gabriela T.",
-    treatment: "Radiofrecuencia Facial",
-    body: "Fui por el tratamiento de radiofrecuencia y los resultados superaron mis expectativas. La piel se ve más firme y rejuvenecida. El personal es muy amable y profesional.",
-    rating: 5,
-    approved_at: "2025-01-01T00:00:00Z",
-  },
-]
+// Sin reseñas reales no se muestra nada.
+//
+// Aquí vivían seis testimonios inventados —con nombres de pacientes ficticias
+// como «María José R.» o «Lucía F.»— que se mostraban si el backend fallaba.
+// Dos de ellos elogiaban armonización facial y depilación láser, servicios que
+// el consultorio no presta. Testimonios médicos falsos son publicidad
+// engañosa; con reseñas reales aprobadas ya no hacen ninguna falta.
 
-const FALLBACK_AGGREGATE: ReviewAggregate = { avg_rating: 5.0, total_count: 6 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
@@ -96,85 +53,124 @@ function StarRow({ count, size = 14 }: { count: number; size?: number }) {
   )
 }
 
+/** «2026-09-02T…» → «septiembre 2026». */
+function mesYAno(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ""
+  return d.toLocaleDateString("es-BO", { month: "long", year: "numeric" })
+}
+
+/**
+ * Tarjeta de reseña.
+ *
+ * Criterios, tomados de cómo resuelven esto las marcas que cuidan el detalle:
+ *
+ * - **Sin comillas.** Ni el glifo decorativo ni comillas alrededor del texto.
+ *   Ocupaban espacio sin aportar: que es una cita ya lo dicen las estrellas y
+ *   la firma.
+ * - **Aire.** El espacio generoso es lo que separa una reseña que parece
+ *   escogida de una que parece amontonada.
+ * - **Esquinas redondeadas.** Suavizan la tarjeta sin restarle seriedad.
+ * - **Fecha.** Estaba en los datos y no se usaba. Una reseña fechada se lee
+ *   como real; una sin fecha, como material de relleno.
+ *
+ * Jerarquía: de qué trata → valoración → qué dijo → quién y cuándo.
+ */
 function ReviewCard({ review, index }: { review: PublicReview; index: number }) {
+  const nombre = `${review.patient_name}${review.patient_lastname ? ` ${review.patient_lastname}` : ""}`
+  const fecha = mesYAno(review.approved_at)
+
   return (
     <m.article
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
-      className="p-6 flex flex-col"
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{
+        duration: 0.6,
+        delay: Math.min(index, 5) * 0.07,
+        ease: [0.16, 1, 0.3, 1],
+      }}
+      className="group flex flex-col p-8 transition-colors duration-300"
       style={{
         backgroundColor: "var(--prem-dark-surf)",
         border: "1px solid var(--prem-dark-border)",
-        borderRadius: "2px",
+        borderRadius: "var(--radius-xl)",
       }}
     >
-      {/* Decorative quote */}
-      <div
-        style={{
-          fontFamily: "var(--font-heading)",
-          fontSize: "80px",
-          lineHeight: 1,
-          color: "var(--prem-dark-border)",
-          marginBottom: "-28px",
-          userSelect: "none",
-        }}
-        aria-hidden="true"
-      >
-        &#8220;
+      {review.treatment && (
+        <p
+          className="mb-5 self-start px-3 py-1.5"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "9px",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "var(--vintage-gold)",
+            border: "1px solid color-mix(in oklab, var(--vintage-gold) 35%, transparent)",
+            borderRadius: "999px",
+          }}
+        >
+          {/* El tratamiento llega como texto libre guardado con la reseña, a
+              menudo en MAYÚSCULAS SOSTENIDAS («ÁCIDO HIALURÓNICO»). Se
+              normaliza igual que en el resto del sitio. */}
+          {normalizeName(review.treatment)}
+        </p>
+      )}
+
+      <div className="mb-6">
+        <StarRow count={review.rating} size={13} />
       </div>
 
-      <div className="mb-3">
-        <StarRow count={review.rating} size={14} />
-      </div>
-
+      {/* Sin comillas: el texto va desnudo, que es como se lee mejor. */}
       <p
-        className="text-sm leading-relaxed flex-1 mb-5"
+        className="flex-1"
         style={{
-          fontFamily: "var(--font-heading)",
+          fontFamily: "var(--font-display, Georgia, serif)",
           color: "var(--prem-dark-fg)",
-          fontSize: "15px",
-          lineHeight: 1.78,
-          fontStyle: "italic",
+          fontSize: "17.5px",
+          lineHeight: 1.8,
         }}
       >
         {review.body}
       </p>
 
-      <div
-        className="border-t pt-4 flex items-center gap-3"
-        style={{ borderColor: "var(--prem-dark-border)" }}
-      >
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
-          style={{ backgroundColor: "var(--prem-accent)", color: "white" }}
+      <footer className="mt-8 flex items-center gap-3.5">
+        {/* Monograma: no hay foto de las pacientes, y una silueta genérica se
+            lee como testimonio de archivo. */}
+        <span
           aria-hidden="true"
+          className="flex h-10 w-10 shrink-0 items-center justify-center text-sm"
+          style={{
+            border: "1px solid color-mix(in oklab, var(--vintage-gold) 45%, transparent)",
+            color: "var(--vintage-gold)",
+            borderRadius: "999px",
+            fontFamily: "var(--font-heading)",
+          }}
         >
           {review.patient_name.charAt(0).toUpperCase()}
-        </div>
-        <div>
+        </span>
+
+        <div className="min-w-0">
           <p
-            className="text-sm font-semibold"
+            className="truncate text-sm"
             style={{ color: "var(--prem-dark-fg)", fontFamily: "var(--font-heading)" }}
           >
-            {review.patient_name}{review.patient_lastname ? ` ${review.patient_lastname}` : ""}
+            {nombre}
           </p>
-          {review.treatment && (
-            <p
-              style={{
-                fontSize: "10px",
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--prem-dark-muted)",
-              }}
-            >
-              {review.treatment}
-            </p>
-          )}
+          <p
+            className="truncate"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "9px",
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "var(--prem-dark-muted)",
+            }}
+          >
+            {fecha ? `Verificada · ${fecha}` : "Paciente verificada"}
+          </p>
         </div>
-      </div>
+      </footer>
     </m.article>
   )
 }
@@ -184,11 +180,27 @@ function ReviewCard({ review, index }: { review: PublicReview; index: number }) 
 interface TestimonialsSectionProps {
   reviews?: PublicReview[]
   aggregate?: ReviewAggregate
+  /** Cuántas mostrar aquí. La página `/resenas` las lista todas paginadas. */
+  limit?: number
+  /** Oculta el enlace «ver todas» en la propia página de reseñas. */
+  showAllLink?: boolean
 }
 
-export function TestimonialsSection({ reviews, aggregate }: TestimonialsSectionProps) {
-  const displayReviews = reviews && reviews.length > 0 ? reviews : FALLBACK_REVIEWS
-  const displayAggregate = aggregate ?? FALLBACK_AGGREGATE
+export function TestimonialsSection({
+  reviews,
+  aggregate,
+  limit = 6,
+  showAllLink = true,
+}: TestimonialsSectionProps) {
+  // Sin reseñas aprobadas la sección no se pinta: mejor no mostrar nada que
+  // mostrar testimonios que nadie escribió.
+  if (!reviews || reviews.length === 0) return null
+
+  const displayReviews = reviews
+  const displayAggregate = aggregate ?? {
+    avg_rating: reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length,
+    total_count: reviews.length,
+  }
 
   const avgDisplay = displayAggregate.avg_rating.toFixed(1)
   const countLabel =
@@ -213,11 +225,41 @@ export function TestimonialsSection({ reviews, aggregate }: TestimonialsSectionP
           />
         </m.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayReviews.slice(0, 6).map((review, i) => (
+        {/* Rejilla con `items-start`.
+            Sin él, una reseña de dos líneas junto a otra de diez se estiraba
+            hasta igualar la alta y dejaba un hueco enorme dentro de la tarjeta.
+            Con `items-start` cada una ocupa solo su alto.
+
+            Se probó mampostería con columnas CSS y se descartó: dentro de un
+            contenedor multicolumna las animaciones `whileInView` de Framer
+            Motion no se disparaban bien y las tarjetas quedaban a media
+            opacidad. Verificado en navegador. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+          {displayReviews.slice(0, limit).map((review, i) => (
             <ReviewCard key={review.id} review={review} index={i} />
           ))}
         </div>
+
+        {/* Enlace al listado completo.
+            Solo aparece cuando hay más reseñas de las que caben aquí: con 5 no
+            tiene sentido mandar a una página que muestra lo mismo. */}
+        {showAllLink && displayAggregate.total_count > limit && (
+          <div className="mt-10 flex justify-center">
+            <Link
+              href="/resenas"
+              className="inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold transition-opacity hover:opacity-80"
+              style={{
+                border: "1px solid var(--vintage-gold)",
+                color: "var(--vintage-gold)",
+                borderRadius: "2px",
+                fontFamily: "var(--font-heading)",
+              }}
+            >
+              Ver las {displayAggregate.total_count} reseñas
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        )}
 
         {/* Aggregate rating badge */}
         <m.div

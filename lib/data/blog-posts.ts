@@ -6,6 +6,8 @@ export interface StaticBlogPost {
   content: string
   imageUrl: string
   publishedAt: string
+  /** Última edición en el panel. Alimenta `dateModified` del schema. */
+  updatedAt?: string | null
   author: string
   readTime: string
   tags: string[]

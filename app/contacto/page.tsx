@@ -1,6 +1,7 @@
 import { readContent, DEFAULTS } from "@/lib/store/content-store"
 import { safeJsonLd } from "@/lib/seo-utils"
-import { backendFetch } from "@/lib/backend-client"
+import { backendFetch, extractList } from "@/lib/backend-client"
+import { seoTitleFor, type TreatmentRef } from "@/lib/seo/treatment-names"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
@@ -35,18 +36,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Agenda tu Consulta en Cochabamba | Dra. Yasmin Medrano Avila",
     description:
-      "📲 Consulta de valoración con la Dra. Yasmin Medrano en Cochabamba. Escríbenos por WhatsApp o Instagram.",
+      "Consulta de valoración con la Dra. Yasmin Medrano en Cochabamba. Escríbenos por WhatsApp o Instagram.",
     url: `${BASE_URL}/contacto`,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Agenda tu consulta de medicina estética en Cochabamba — Dra. Yasmin Medrano Avila" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Agenda tu consulta de medicina estética en Cochabamba — Dra. Yasmin Medrano Avila" }],
     type: "website",
     locale: "es_BO",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Agenda tu Consulta en Cochabamba 📲 | Dra. Yasmin Medrano Avila",
+    images: ["/opengraph-image"],
+    title: "Agenda tu Consulta en Cochabamba | Dra. Yasmin Medrano Avila",
     description:
       "Agenda tu consulta de valoración en Cochabamba. Especialista en botox, rellenos y rejuvenecimiento facial.",
-    images: ["/og-image.jpg"],
   },
 }
 
@@ -98,6 +99,8 @@ function mapContact(raw: any): ContactData {
     instagramUrl: raw.instagramUrl ?? DEFAULTS.contact.instagramUrl,
     facebook: raw.facebookName ?? DEFAULTS.contact.facebook,
     facebookUrl: raw.facebookUrl ?? DEFAULTS.contact.facebookUrl,
+    tiktok: raw.tiktokUsername ?? DEFAULTS.contact.tiktok,
+    tiktokUrl: raw.tiktokUrl ?? DEFAULTS.contact.tiktokUrl,
     scheduleWeekdays: raw.mondayFridayHours ?? DEFAULTS.contact.scheduleWeekdays,
     scheduleSaturday: raw.saturdayHours ?? DEFAULTS.contact.scheduleSaturday,
     scheduleSunday: raw.sundayStatus ?? DEFAULTS.contact.scheduleSunday,
@@ -109,11 +112,23 @@ function mapContact(raw: any): ContactData {
 }
 
 export default async function ContactoPage() {
-  const [c, footerData, { data: backendContact }] = await Promise.all([
+  const [c, footerData, { data: backendContact }, treatmentsResult] = await Promise.all([
     readContent(),
     getFooterData(),
     backendFetch<unknown>("/contact"),
+      backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
   ])
+
+  // El desplegable de tratamientos sale del panel: antes ofrecía armonización
+  // facial y depilación láser, que el consultorio no presta, y un paciente
+  // podía pedir cita para algo inexistente.
+  const treatmentOptions =
+    treatmentsResult.error === null
+      ? extractList<TreatmentRef>(treatmentsResult.data)
+          .filter((t) => t.slug)
+          .map((t) => seoTitleFor(t.slug, t.name))
+      : []
+
   const ct: ContactData = backendContact ? mapContact(backendContact) : c.contact
 
   return (
@@ -202,7 +217,7 @@ export default async function ContactoPage() {
               {/* Contact form */}
               <div className="flex flex-col gap-4 md:col-span-2 xl:col-span-1">
                 <h2 className="text-2xl font-bold text-white mb-2">Envíanos un Mensaje</h2>
-                <ContactForm />
+                <ContactForm treatments={treatmentOptions} />
               </div>
             </div>
           </div>

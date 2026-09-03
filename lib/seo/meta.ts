@@ -33,3 +33,34 @@ export function buildMetaDescription(html: string, suffix: string, limit = 158):
 
   return `${head.trim()}${suffix}`
 }
+
+/**
+ * Normaliza la URL de un perfil social para `sameAs`.
+ *
+ * TikTok, Instagram y Facebook añaden parámetros de seguimiento al compartir
+ * («?_r=1&_t=ZS-99PdSx1EEbP»). En `sameAs` esas direcciones deben ser limpias y
+ * estables: la propiedad le dice a Google «este perfil y esta web son la misma
+ * entidad», y un enlace con seguimiento de sesión no identifica a nadie de
+ * forma permanente.
+ *
+ * Se aplica al leer del panel, no al guardar: la doctora pega el enlace tal
+ * como se lo da la app y no tiene por qué limpiarlo a mano.
+ *
+ * @returns La URL sin query ni fragmento, o cadena vacía si no es válida.
+ */
+export function normalizeSocialUrl(raw: string | null | undefined): string {
+  if (!raw) return ""
+  try {
+    const url = new URL(raw.trim())
+    if (url.protocol !== "https:" && url.protocol !== "http:") return ""
+    url.protocol = "https:"
+    url.search = ""
+    url.hash = ""
+    // Sin barra final: `.../@perfil` y `.../@perfil/` son la misma página, y
+    // repetirlas de dos formas distintas debilita la señal.
+    url.pathname = url.pathname.replace(/\/+$/, "") || "/"
+    return url.toString()
+  } catch {
+    return ""
+  }
+}

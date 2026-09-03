@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageCircle, Phone, Instagram, Facebook } from "lucide-react"
+import { MessageCircle, Phone, Instagram, Facebook, Music2 } from "lucide-react"
 import { m } from "framer-motion"
 import type { ContactData } from "@/types/content"
 import { trackWhatsAppClick } from "@/lib/analytics"
@@ -23,7 +23,7 @@ function hoverOut(e: React.MouseEvent<HTMLElement>) {
 }
 
 interface ContactCardsProps {
-  ct: Pick<ContactData, "whatsappUrl" | "whatsappNumber" | "phone" | "instagram" | "instagramUrl" | "facebook" | "facebookUrl">
+  ct: Pick<ContactData, "whatsappUrl" | "whatsappNumber" | "phone" | "instagram" | "instagramUrl" | "facebook" | "facebookUrl" | "tiktok" | "tiktokUrl">
 }
 
 export function ContactCards({ ct }: ContactCardsProps) {
@@ -56,6 +56,19 @@ export function ContactCards({ ct }: ContactCardsProps) {
       value: ct.facebook,
       sub: undefined,
     },
+    // Solo se pinta si hay perfil cargado: una tarjeta con enlace vacío lleva
+    // al paciente a ninguna parte.
+    ...(ct.tiktokUrl
+      ? [
+          {
+            href: ct.tiktokUrl,
+            icon: <Music2 size={22} style={{ color: "var(--meteorite)" }} />,
+            label: "TikTok",
+            value: ct.tiktok || "@drayasminmedranoa",
+            sub: undefined,
+          },
+        ]
+      : []),
   ]
 
   return (
