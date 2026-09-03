@@ -167,6 +167,10 @@ function buildSiteJsonLd(treatments: TreatmentRef[], perfiles: string[]) {
       hasMap: "https://www.google.com/maps?q=-17.386471,-66.152366",
       address: {
         "@type": "PostalAddress",
+        // `streetAddress` es lo que Google pide para `LocalBusiness`. Sin
+        // calle la dirección estaba incompleta y el factor «distancia» del
+        // ranking local no tenía con qué trabajar.
+        streetAddress: "Calle Paccieri #772, entre 16 de Julio y Antezana",
         addressLocality: "Cochabamba",
         addressRegion: "Cochabamba",
         addressCountry: "BO",
@@ -240,12 +244,18 @@ function buildSiteJsonLd(treatments: TreatmentRef[], perfiles: string[]) {
       // En salud Google pesa QUIÉN firma, no solo qué dice la página. Esto
       // conecta a la doctora con cada término por el que queremos aparecer.
       knowsAbout: doctorKnowsAbout(treatments),
-      // Credencial profesional. Es una de las señales más directas de que
-      // detrás del contenido hay una médica y no un sitio de afiliados.
+      // La matrícula profesional NO se publica aquí a propósito.
       //
-      // PENDIENTE: falta el número de registro del Colegio Médico. No se
-      // inventa — un identificador falso es peor que ninguno. Cuando la
-      // doctora lo facilite, se añade aquí como `identifier`.
+      // El JSON-LD viaja en el HTML: cualquiera lo lee con «ver código
+      // fuente». No es un canal privado hacia Google. Un número de matrícula
+      // expuesto facilita que alguien se haga pasar por la doctora, y ese
+      // riesgo pesa más que la señal de confianza que aportaría.
+      //
+      // El sitio dónde sí conviene declararla es la ficha de Google Business
+      // Profile, que la usa para verificar al profesional sin publicarla.
+      //
+      // Credencial sin número: describe la titulación, que es información
+      // pública de por sí y no sirve para suplantar a nadie.
       hasCredential: {
         "@type": "EducationalOccupationalCredential",
         credentialCategory: "degree",

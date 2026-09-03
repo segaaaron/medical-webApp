@@ -133,7 +133,9 @@ function buildLocalBusinessJsonLd(
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",
+      streetAddress: "Calle Paccieri #772, entre 16 de Julio y Antezana",
       addressLocality: "Cochabamba",
+      addressRegion: "Cochabamba",
       addressCountry: "BO",
     },
     geo: {

@@ -275,7 +275,9 @@ export default async function TratamientoDetallePage({ params }: Props) {
       medicalSpecialty: "Medicina Estética",
       address: {
         "@type": "PostalAddress",
+        streetAddress: "Calle Paccieri #772, entre 16 de Julio y Antezana",
         addressLocality: "Cochabamba",
+        addressRegion: "Cochabamba",
         addressCountry: "BO",
       },
     },
