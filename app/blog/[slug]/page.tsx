@@ -1,12 +1,16 @@
-import DOMPurify from "isomorphic-dompurify"
+import { sanitizeBody } from "@/lib/html/sanitize"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { DEFAULTS } from "@/lib/store/content-store"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
-import { matchTreatmentsInText, seoTitleFor } from "@/lib/seo/treatment-names"
+import { matchTreatmentsInText, seoTitleFor, normalizeHeadline } from "@/lib/seo/treatment-names"
 import { buildMetaDescription } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
+import { AuthorBox } from "@/components/blog/AuthorBox"
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
+import { normalizeSocialUrl } from "@/lib/seo/meta"
 import { staticBlogPosts, type StaticBlogPost } from "@/lib/data/blog-posts"
 import { BlogCard } from "@/components/blog/BlogCard"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
@@ -45,7 +49,6 @@ export async function generateStaticParams() {
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 interface BackendBlogPost {
   id: string
@@ -65,7 +68,9 @@ function toStaticPost(p: BackendBlogPost): StaticBlogPost {
   const body = p.content ?? ""
   return {
     id: p.id,
-    title: p.title,
+    // El panel a veces trae el titular EN MAYÚSCULAS y entrecomillado. Google
+    // lo respeta tal cual, y un resultado que grita pierde clics.
+    title: normalizeHeadline(p.title),
     slug: p.slug,
     excerpt: p.excerpt ?? "",
     content: body,
@@ -103,6 +108,15 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+/** Fecha legible, o `null` si el panel no mandó una válida. */
+function fechaLegible(iso: string | null | undefined): string | null {
+  if (!iso) return null
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime())
+    ? null
+    : d.toLocaleDateString("es-BO", { day: "2-digit", month: "long", year: "numeric" })
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const allPosts = await getAllPosts()
@@ -123,7 +137,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   )
 
   return {
-    title: post.title,
+    // Google corta en unos 60 caracteres. Con la plantilla del layout, un
+    // titular largo se veía truncado Y con media marca detrás: se perdía el
+    // final del titular, que es lo que responde a la búsqueda. Pasado ese
+    // umbral, el titular va solo y se lee completo.
+    title: post.title.length > 55 ? { absolute: post.title } : post.title,
     description,
     keywords: post.tags,
     alternates: { canonical: `${BASE_URL}/blog/${post.slug}` },
@@ -134,14 +152,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       publishedTime: post.publishedAt,
       authors: [post.author],
-      images: post.imageUrl ? [{ url: post.imageUrl, width: 1200, height: 630, alt: post.title }] : [],
+      // Sin foto NO se manda `images: []`: un array vacío pisaba el
+      // `opengraph-image.tsx` del sitio y el artículo se compartía en WhatsApp
+      // sin imagen. Omitir la clave deja que herede la del sitio.
+      ...(post.imageUrl
+        ? { images: [{ url: post.imageUrl, width: 1200, height: 630, alt: post.title }] }
+        : {}),
       locale: "es_BO",
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description,
-      images: post.imageUrl ? [post.imageUrl] : [],
+      ...(post.imageUrl ? { images: [post.imageUrl] } : {}),
     },
   }
 }
@@ -165,6 +188,14 @@ export default async function BlogPostPage({ params }: Props) {
   const c = DEFAULTS
   if (!post) notFound()
 
+  const perfilesSociales = [
+    footerData.facebookUrl,
+    footerData.instagramUrl,
+    footerData.tiktokUrl,
+  ]
+    .map(normalizeSocialUrl)
+    .filter(Boolean)
+
   // Related posts (exclude current)
   const related = allPosts.filter((p) => p.slug !== slug).slice(0, 2)
 
@@ -186,7 +217,9 @@ export default async function BlogPostPage({ params }: Props) {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
-    description: post.excerpt,
+    // El panel deja el resumen vacío a menudo; entonces se deriva del propio
+    // artículo, igual que la meta description.
+    description: buildMetaDescription(post.excerpt || post.content || "", ""),
     image: post.imageUrl,
     datePublished: post.publishedAt,
     // `dateModified` faltaba: sin él, Google no distingue un artículo revisado
@@ -195,24 +228,15 @@ export default async function BlogPostPage({ params }: Props) {
     // Quién responde del contenido médico.
     reviewedBy: { "@id": `${BASE_URL}/#doctor` },
     medicalAudience: { "@type": "MedicalAudience", audienceType: "Patient" },
-    author: {
-      "@type": "Person",
-      // `@id` apunta a la ficha Physician del layout: sin esto, el autor del
-      // artículo era una persona anónima sin relación con la doctora del sitio,
-      // y la autoridad del artículo no sumaba a la de ella (ni al revés).
-      "@id": `${BASE_URL}/#doctor`,
-      name: post.author,
-      jobTitle: "Médica Especialista en Medicina Estética",
-      sameAs: [
-        "https://www.instagram.com/dra_yasmin.medrano",
-        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-      ],
-    },
-    publisher: {
-      "@type": "MedicalBusiness",
-      name: "Dra. Yasmin Medrano Avila - Medicina Estetica",
-      url: BASE_URL,
-    },
+    // Solo la referencia: la ficha completa de la doctora vive en el `@graph`
+    // del layout. Repetir aquí nombre, cargo y redes con el MISMO `@id` servía
+    // una segunda versión de la misma entidad —y con un `sameAs` distinto, sin
+    // TikTok—, que es exactamente la contradicción que el `@id` viene a evitar.
+    author: { "@id": `${BASE_URL}/#doctor` },
+    // Referencia al negocio del `@graph` del layout, no una copia: la copia
+    // creaba un editor homónimo («Medicina Estetica», sin tilde) sin relación
+    // con la ficha real del consultorio.
+    publisher: { "@id": `${BASE_URL}/#business` },
     mainEntityOfPage: `${BASE_URL}/blog/${post.slug}`,
     keywords: post.tags.join(", "),
     speakable: {
@@ -247,6 +271,18 @@ export default async function BlogPostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
         />
 
+        {/* Mismo fondo que el artículo: `main` no pinta ninguno y las migas
+            quedaban sobre el blanco del body, como una franja suelta. */}
+        <div style={{ backgroundColor: "#F8F0E3" }}>
+          <Breadcrumbs
+            items={[
+              { label: "Inicio", href: "/" },
+              { label: "Blog", href: "/blog" },
+              { label: post.title },
+            ]}
+          />
+        </div>
+
         {/* Article content */}
         <article className="py-8 px-6" style={{ backgroundColor: "#F8F0E3" }}>
           <div className="max-w-3xl mx-auto">
@@ -279,18 +315,27 @@ export default async function BlogPostPage({ params }: Props) {
               <span className="text-sm font-medium" style={{ color: "var(--primary-darkest)" }}>
                 {post.author}
               </span>
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--vintage-gold)" }}>
-                <Calendar size={14} />
-                {new Date(post.publishedAt).toLocaleDateString("es-BO", {
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </span>
+              {/* Sin fecha válida no se pinta nada: «Invalid Date» bajo el
+                  titular de un artículo de salud es peor que no poner fecha. */}
+              {fechaLegible(post.publishedAt) && (
+                <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--vintage-gold)" }}>
+                  <Calendar size={14} />
+                  {fechaLegible(post.publishedAt)}
+                </span>
+              )}
               <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--vintage-gold)" }}>
                 <Clock size={14} />
                 {post.readTime} de lectura
               </span>
+              {/* La vigencia pesa en salud: un artículo revisado este mes vale
+                  más que uno abandonado hace dos años. Solo se muestra cuando
+                  la revisión existe de verdad. */}
+              {fechaLegible(post.updatedAt) &&
+                new Date(post.updatedAt as string).getTime() > new Date(post.publishedAt).getTime() && (
+                  <span className="text-sm" style={{ color: "var(--primary-darkest)", opacity: 0.7 }}>
+                    Revisado el {fechaLegible(post.updatedAt)}
+                  </span>
+                )}
             </div>
 
             {/* Cover image */}
@@ -308,15 +353,33 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Content */}
             <div
               className="blog-content"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeBody(post.content) }}
+            />
+
+            {/* Firma médica: lo que el JSON-LD ya afirma, dicho también en la
+                página. En contenido de salud Google exige ver quién responde. */}
+            <AuthorBox
+              name={post.author}
+              publishedAt={post.publishedAt}
+              updatedAt={post.updatedAt}
+              perfiles={perfilesSociales}
             />
           </div>
         </article>
 
-        {/* Related posts */}
+        {/* Tratamientos que menciona el artículo.
+            El fondo crema es explícito: la sección no declaraba ninguno, así
+            que caía sobre el `background-color: #3a0f20` del body y pintaba
+            texto `--primary-darkest` encima. El título y los tres enlaces a
+            tratamientos eran ILEGIBLES —pulsables, pero invisibles—, que es
+            justo la señal de enlace interno que este bloque existe para dar. */}
         {relatedTreatments.length > 0 && (
-          <section className="py-12 px-6" aria-labelledby="tratamientos-mencionados">
-            <div className="container-xl max-w-3xl">
+          <section
+            className="py-12 px-6"
+            aria-labelledby="tratamientos-mencionados"
+            style={{ backgroundColor: "#F8F0E3" }}
+          >
+            <div className="max-w-3xl mx-auto">
               <h2
                 id="tratamientos-mencionados"
                 className="text-xl font-bold mb-6"

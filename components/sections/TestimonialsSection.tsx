@@ -1,4 +1,5 @@
 "use client"
+import { trustedHtml } from "@/lib/html/safe-html"
 
 import { m } from "framer-motion"
 import { Star } from "lucide-react"
@@ -220,7 +221,7 @@ export function TestimonialsSection({
           <SectionHeader
             eyebrow="Lo que dicen nuestras pacientes"
             title="Resultados que Hablan por Sí Solos"
-            subtitle={`<span style="color:var(--vintage-gold);font-weight:700;">Todos nuestros pacientes</span> avalan nuestro trabajo. La confianza de cada uno es nuestra mayor motivación.`}
+            subtitle={trustedHtml(`<span style="color:var(--vintage-gold);font-weight:700;">Todos nuestros pacientes</span> avalan nuestro trabajo. La confianza de cada uno es nuestra mayor motivación.`)}
             light
           />
         </m.div>

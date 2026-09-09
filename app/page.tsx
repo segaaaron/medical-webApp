@@ -1,5 +1,10 @@
 import { getHomeData, getHomeDataService } from "@/lib/data/home"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { getFooterData } from "@/lib/data/footer"
+import { sanitizeHtml } from "@/lib/html/sanitize"
+import { mapTreatmentsPageInfo } from "@/lib/data/treatments-page"
+import { ADDRESS, AREA_SERVED, LANGUAGES, OPENING_HOURS, PHONE, geoFields } from "@/lib/seo/local"
+import { normalizeSocialUrl } from "@/lib/seo/meta"
 import { getPromoData } from "@/lib/data/promo"
 import { getAboutData } from "@/lib/data/about"
 import { backendFetch, resolveImageUrl, extractList, extractReviewAggregate } from "@/lib/backend-client"
@@ -31,9 +36,21 @@ const TreatmentsGrid = dynamic(() => import("@/components/sections/TreatmentsGri
 const FAQSection = dynamic(() => import("@/components/sections/FAQSection").then(m => ({ default: m.FAQSection })))
 const TestimonialsSection = dynamic(() => import("@/components/sections/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })))
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
-/** Campos de rating/reseñas para adjuntar al negocio (estrellas en Google). */
+/**
+ * Valoración media para adjuntar al negocio.
+ *
+ * Sin el array `review[]`: Google declara INELEGIBLES para el fragmento de
+ * estrellas las reseñas que la propia entidad aloja sobre sí misma en
+ * `LocalBusiness` u `Organization` («self-serving reviews»), y en julio de 2026
+ * endureció además la redacción sobre reseñas incentivadas. Ese bloque no podía
+ * ganar estrellas y sí podía leerse como auto-servicio. Las estrellas reales de
+ * un negocio local salen de la ficha de Google, no del schema de su web.
+ *
+ * El `aggregateRating` se mantiene: describe a la entidad, se calcula de las
+ * reseñas aprobadas y solo se emite si existen. Las reseñas siguen visibles en
+ * la página como contenido, que es donde le sirven al paciente.
+ */
 function buildRatingFields(reviews: PublicReview[], aggregate?: ReviewAggregate) {
   const hasReviews = reviews.length > 0
   const avg = aggregate?.avg_rating != null
@@ -51,12 +68,6 @@ function buildRatingFields(reviews: PublicReview[], aggregate?: ReviewAggregate)
       bestRating: "5",
       worstRating: "1",
     },
-    review: reviews.slice(0, 6).map((r) => ({
-      "@type": "Review",
-      author: { "@type": "Person", name: r.patient_lastname ? `${r.patient_name} ${r.patient_lastname}` : r.patient_name },
-      reviewRating: { "@type": "Rating", ratingValue: String(r.rating), bestRating: "5", worstRating: "1" },
-      reviewBody: r.body,
-    })),
   }
 }
 
@@ -75,10 +86,6 @@ function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   }
 }
 
-const SAME_AS = [
-  "https://www.instagram.com/dra_yasmin.medrano",
-  "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-]
 
 /** MedicalBusiness (subtipo de Organization) con datos del negocio + estrellas. */
 /**
@@ -121,38 +128,40 @@ function buildLocalBusinessJsonLd(
   reviews: PublicReview[],
   aggregate: ReviewAggregate | undefined,
   treatments: BackendTreatment[],
-  ubicacion: ConsultorioLocation | null
+  ubicacion: ConsultorioLocation | null,
+  perfiles: string[]
 ) {
   return {
     "@context": "https://schema.org",
-    "@type": "MedicalBusiness",
+    // `MedicalClinic` es subtipo de `MedicalBusiness` Y de `LocalBusiness` a la
+    // vez: hereda las funciones locales (Maps, 3-pack) y añade las médicas.
+    // Es el tipo que corresponde a una consulta privada; `MedicalBusiness` a
+    // secas dejaba fuera media descripción de lo que es el negocio.
+    "@type": "MedicalClinic",
     "@id": `${BASE_URL}/#business`,
-    name: "Dra. Yasmin Medrano Avila — Medicina Estética",
+    // Sin `name` ni `description`: los pone el `@graph` del layout, que va en
+    // TODAS las páginas. Aquí había un nombre distinto sobre el MISMO `@id`
+    // («Dra. Yasmin Medrano Avila — Medicina Estética» frente a «Consultorio
+    // Dra. Yasmin Medrano Avila»), o sea dos versiones de la misma entidad
+    // contradiciéndose en la misma página — el error que ya se corrigió una vez
+    // con el nodo `WebSite`. Este bloque solo AÑADE lo que el layout no puede
+    // saber: el catálogo de servicios y la valoración media.
     url: BASE_URL,
     logo: `${BASE_URL}/icon.svg`,
-    telephone: "+59178751894",
+    telephone: PHONE,
     image: `${BASE_URL}/images/DraMedrano.jpeg`,
     priceRange: "$$",
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Calle Paccieri #772, entre 16 de Julio y Antezana",
-      addressLocality: "Cochabamba",
-      addressRegion: "Cochabamba",
-      addressCountry: "BO",
-    },
+    address: ADDRESS,
+    // Área metropolitana de Cochabamba: quien busca «cerca de mí» escribe
+    // desde Quillacollo o Sacaba tanto como desde Cercado.
+    areaServed: AREA_SERVED,
+    availableLanguage: LANGUAGES,
+    currenciesAccepted: "BOB",
+    paymentAccepted: "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR",
     // Coordenadas del panel (Dashboard → Contacto). Estaban escritas a mano y
     // se quedaron desfasadas cuando la doctora corrigió el punto. Sin dato se
     // omite el `geo`: mejor ninguno que uno equivocado.
-    ...(ubicacion
-      ? {
-          geo: {
-            "@type": "GeoCoordinates",
-            latitude: ubicacion.latitude,
-            longitude: ubicacion.longitude,
-          },
-          hasMap: ubicacion.mapsUrl,
-        }
-      : {}),
+    ...geoFields(ubicacion),
     // Catálogo de servicios.
     //
     // El negocio declaraba su especialidad pero no QUÉ hace: nada conectaba la
@@ -178,11 +187,8 @@ function buildLocalBusinessJsonLd(
           },
         }
       : {}),
-    openingHoursSpecification: [
-      { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "09:00", closes: "19:00" },
-      { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday"], opens: "09:00", closes: "14:00" },
-    ],
-    sameAs: SAME_AS,
+    openingHoursSpecification: OPENING_HOURS,
+    sameAs: perfiles,
     medicalSpecialty: "Medicina Estética",
     ...buildRatingFields(reviews, aggregate),
   }
@@ -275,6 +281,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: `${lista} en Cochabamba`,
+    alternates: { canonical: BASE_URL },
     description:
       `${lista} y más tratamientos de medicina estética en Cochabamba, ` +
       "con la Dra. Yasmin Medrano Avila. Consulta de valoración personalizada.",
@@ -303,6 +310,15 @@ export default async function HomePage() {
     backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
     getConsultorioLocation(),
   ])
+
+  // Las respuestas del panel se sanean aquí, en el servidor, antes de cruzar al
+  // componente de cliente que las inyecta como HTML. Antes se limpiaban en el
+  // navegador: el texto sin sanear viajaba igual y DOMPurify se descargaba en
+  // todas las páginas para limpiarlo allí.
+  const faqsLimpias = homeData.faqs.map((faq) => ({
+    question: faq.question,
+    answer: sanitizeHtml(faq.answer),
+  }))
 
   const faqJsonLd = buildFaqJsonLd(homeData.faqs)
 
@@ -337,22 +353,27 @@ export default async function HomePage() {
         imageUrl: resolveImageUrl(t.imageUrl),
       }))
 
+  // Redes del panel: la lista fija de esta página no tenía TikTok y
+  // contradecía la del layout sobre la MISMA entidad (@id #business).
+  const perfilesSociales = [
+    footerData.facebookUrl,
+    footerData.instagramUrl,
+    footerData.tiktokUrl,
+  ]
+    .map(normalizeSocialUrl)
+    .filter(Boolean)
+
   const localBusinessJsonLd = buildLocalBusinessJsonLd(
     approvedReviews,
     reviewAggregate,
     backendTreatments,
-    ubicacion
+    ubicacion,
+    perfilesSociales
   )
 
-  const pageInfo: TreatmentsPageInfo | undefined =
-  infoResult.error === null && infoResult.data?.value
-    ? {
-        ...infoResult.data.value,
-        doctorImage: infoResult.data.value.doctorImage
-          ? resolveImageUrl(infoResult.data.value.doctorImage as string)
-          : undefined,
-      }
-    : undefined
+  const pageInfo =
+
+    infoResult.error === null ? mapTreatmentsPageInfo(infoResult.data?.value) : undefined
 
   const liveModules: CourseModule[] =
     backendTreatments.length > 0
@@ -424,7 +445,7 @@ export default async function HomePage() {
         <ValuePropositionSection features={aboutData.features} />
         <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} totalCount={backendTreatments.length} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
-        <FAQSection faqs={homeData.faqs} />
+        <FAQSection faqs={faqsLimpias} />
         <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate} />
       </main>
       </FadeIn>

@@ -1,6 +1,12 @@
-import type { FAQ } from "@/types"
+import type { FAQDraft } from "@/types"
 
-export const faqs: FAQ[] = [
+/**
+ * Respuestas por defecto, las que se muestran mientras el panel no las
+ * sobreescriba. Van como borrador —texto crudo— igual que las del panel: el
+ * saneado ocurre en un solo sitio, al renderizarlas, y no depende de por dónde
+ * llegó el texto.
+ */
+export const faqs: FAQDraft[] = [
   {
     question: "¿Los tratamientos de medicina estética son seguros?",
     answer:

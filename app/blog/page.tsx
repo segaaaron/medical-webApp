@@ -1,4 +1,6 @@
+import { normalizeHeadline } from "@/lib/seo/treatment-names"
 import { readContent } from "@/lib/store/content-store"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -10,7 +12,6 @@ import type { Metadata } from "next"
 
 export const revalidate = 300 // 5 minutos — ISR
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 const breadcrumbLd = {
   "@context": "https://schema.org",
@@ -23,8 +24,10 @@ const breadcrumbLd = {
 
 export const metadata: Metadata = {
   title: "Blog de Medicina Estética",
+  // 158 caracteres. La anterior medía 166 y Google la cortaba en «…explicados
+  // por una…», justo antes de la palabra que daba la autoridad: «médica».
   description:
-    "Guías reales de medicina estética en Bolivia por la Dra. Yasmin Medrano. Botox, ácido hialurónico, cuidado de piel y tratamientos estéticos explicados por una médica.",
+    "Botox, ácido hialurónico y cuidado de la piel explicados por la Dra. Yasmin Medrano, médica estética en Cochabamba. Guías reales, sin promesas de resultado.",
   keywords: [
     "blog medicina estética Bolivia",
     "consejos botox Cochabamba",
@@ -81,7 +84,9 @@ async function fetchPublishedPosts() {
     console.warn("[BlogPage] Backend unavailable, using static posts:", error)
     return staticBlogPosts.map((p) => ({
       id: p.id,
-      title: p.title,
+      // El panel a veces trae el titular EN MAYÚSCULAS y entrecomillado. Google
+    // lo respeta tal cual, y un resultado que grita pierde clics.
+    title: normalizeHeadline(p.title),
       slug: p.slug,
       excerpt: p.excerpt,
       content: p.content,
@@ -107,7 +112,9 @@ export default async function BlogPage() {
   // Single source: backend posts when available, static posts only as fallback (set in fetchPublishedPosts)
   const allPosts = publishedPosts.map((p) => ({
     id: p.id,
-    title: p.title,
+    // El panel a veces trae el titular EN MAYÚSCULAS y entrecomillado. Google
+    // lo respeta tal cual, y un resultado que grita pierde clics.
+    title: normalizeHeadline(p.title),
     slug: p.slug,
     excerpt: p.excerpt ?? "",
     imageUrl: resolveImageUrl(p.imageUrl),
@@ -121,11 +128,46 @@ export default async function BlogPage() {
 
   const [featured, ...rest] = allPosts
 
+  /**
+   * El listado como `Blog` con su índice de artículos.
+   *
+   * Sin esto la página era, para un buscador, una rejilla de enlaces sueltos:
+   * nada decía que fuera una publicación firmada por una médica ni qué
+   * artículos la componen. `blogPost` con el orden real es además lo que un
+   * motor de respuestas usa para enumerar («escribe sobre bótox, manchas…»),
+   * y `author`/`publisher` cuelgan de las entidades que ya sirve el layout.
+   */
+  const blogLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "@id": `${BASE_URL}/blog#blog`,
+    name: "Blog de medicina estética — Dra. Yasmin Medrano Avila",
+    description:
+      "Artículos sobre medicina estética, cuidado de la piel y tratamientos faciales, escritos y revisados por la Dra. Yasmin Medrano Avila en Cochabamba, Bolivia.",
+    url: `${BASE_URL}/blog`,
+    inLanguage: "es-BO",
+    author: { "@id": `${BASE_URL}/#doctor` },
+    publisher: { "@id": `${BASE_URL}/#business` },
+    blogPost: allPosts.slice(0, 30).map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title,
+      url: `${BASE_URL}/blog/${p.slug}`,
+      datePublished: p.publishedAt,
+      author: { "@id": `${BASE_URL}/#doctor` },
+      ...(p.imageUrl ? { image: p.imageUrl } : {}),
+      ...(p.excerpt ? { description: p.excerpt } : {}),
+    })),
+  }
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(blogLd) }}
       />
       <Navbar links={c.navLinks} />
       <main>

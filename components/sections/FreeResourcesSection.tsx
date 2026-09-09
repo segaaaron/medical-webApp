@@ -1,4 +1,5 @@
 "use client"
+import { trustedHtml } from "@/lib/html/safe-html"
 import { m } from "framer-motion"
 import { Mail, Phone } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
@@ -26,7 +27,7 @@ export function FreeResourcesSection({ pdfs }: FreeResourcesSectionProps) {
           <SectionHeader
             eyebrow="Recursos Gratuitos"
             title="Guías de Medicina Estética"
-            subtitle={`Descarga nuestras guías gratuitas y prepárate para tu consulta.<br/><span style="color:var(--vintage-gold);font-weight:700;">Información confiable de tu especialista de confianza.</span>`}
+            subtitle={trustedHtml(`Descarga nuestras guías gratuitas y prepárate para tu consulta.<br/><span style="color:var(--vintage-gold);font-weight:700;">Información confiable de tu especialista de confianza.</span>`)}
           />
         </m.div>
 

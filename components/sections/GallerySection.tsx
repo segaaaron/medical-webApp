@@ -6,6 +6,16 @@ import { ImageIcon, X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 
 interface GallerySectionProps {
+  /**
+   * Qué se ve en las fotos, para el texto alternativo.
+   *
+   * El `alt` era «Foto 3 de 8»: describe la posición en la galería, no la
+   * imagen. Para Google Imágenes —una fuente de tráfico real en estética— esa
+   * foto no trataba de nada, y para quien navega con lector de pantalla
+   * tampoco. Con un contexto por defecto, todas las galerías del sitio dicen al
+   * menos de qué consultorio y de qué ciudad son.
+   */
+  contexto?: string
   /** URLs de las fotos (hasta 10). Las posiciones vacías muestran un placeholder elegante. */
   images: string[]
 }
@@ -15,7 +25,10 @@ const SLOTS = 10
 const TILTS = [-8, 6, -4, 9, -7, 5, -10, 7, -5, 8]
 const Z = [3, 7, 2, 9, 5, 8, 1, 6, 4, 10]
 
-export function GallerySection({ images }: GallerySectionProps) {
+export function GallerySection({
+  images,
+  contexto = "Consultorio de la Dra. Yasmin Medrano Avila, medicina estética en Cochabamba",
+}: GallerySectionProps) {
   const slots = Array.from({ length: SLOTS }, (_, i) => images[i] ?? "")
   const filled = slots.filter(Boolean)
   const [lightbox, setLightbox] = useState<number | null>(null)
@@ -105,7 +118,7 @@ export function GallerySection({ images }: GallerySectionProps) {
                         <div className="relative overflow-hidden" style={{ width: "clamp(52px, 16.5vw, 160px)", aspectRatio: "3/4" }}>
                           <ImageWithFallback
                             src={src}
-                            alt={`Galería — foto ${i + 1}`}
+                            alt={`${contexto} — foto ${i + 1}`}
                             fill
                             variant="light"
                             loading="lazy"
@@ -187,7 +200,7 @@ export function GallerySection({ images }: GallerySectionProps) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={src}
-                    alt={`Foto ${i + 1} de ${filled.length}`}
+                    alt={`${contexto} — imagen ${i + 1} de ${filled.length}`}
                     className="max-h-[72vh] w-auto max-w-[78vw] object-contain rounded-2xl shadow-2xl"
                     style={{ border: "1px solid rgba(184,151,59,0.35)" }}
                   />

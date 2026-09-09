@@ -1,3 +1,5 @@
+import { sanitizeHtml } from "@/lib/html/sanitize"
+import { trustedHtml } from "@/lib/html/safe-html"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import type { BioDoc, BioSection } from "@/types/about"
 
@@ -25,8 +27,10 @@ const BIO_FALLBACK: BioDoc = {
 const FEATURES_FALLBACK: BioSection = {
   chooseUs: "¿Por Qué Elegirnos?",
   title: "Tu bienestar y belleza son nuestra prioridad",
-  description:
-    "En el consultorio de la Dra. Yasmin Medrano Avila encontrarás un espacio dedicado exclusivamente a realzar tu belleza natural con los más altos estándares médicos.",
+  // Literal del repositorio: no viene del panel, no hace falta sanearlo.
+  description: trustedHtml(
+    "En el consultorio de la Dra. Yasmin Medrano Avila encontrarás un espacio dedicado exclusivamente a realzar tu belleza natural con los más altos estándares médicos."
+  ),
   card1Title: "Resultados Naturales y Seguros",
   card1Description:
     "Cada tratamiento está diseñado para realzar tu belleza natural con procedimientos seguros, avalados y de alta efectividad.",
@@ -74,7 +78,10 @@ function mapAbout(raw: any): AboutData {
   const features: BioSection = {
     chooseUs: raw.whyChooseUsLabel?.trim() || FEATURES_FALLBACK.chooseUs,
     title: raw.whyChooseUsTitle?.trim() || FEATURES_FALLBACK.title,
-    description: raw.whyChooseUsDescription?.trim() || FEATURES_FALLBACK.description,
+    // Se limpia AQUÍ, en la frontera por donde el contenido del panel entra al
+    // sitio, y no en el componente: así el navegador no recibe nunca el HTML
+    // sin sanear ni tiene que cargar DOMPurify para limpiarlo.
+    description: sanitizeHtml(raw.whyChooseUsDescription?.trim() || FEATURES_FALLBACK.description),
     card1Title: raw.feature1Title?.trim() || FEATURES_FALLBACK.card1Title,
     card1Description: raw.feature1Description?.trim() || FEATURES_FALLBACK.card1Description,
     card2Title: raw.feature2Title?.trim() || FEATURES_FALLBACK.card2Title,

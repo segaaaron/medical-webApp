@@ -1,16 +1,17 @@
 import type { MetadataRoute } from "next"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { staticBlogPosts } from "@/lib/data/blog-posts"
-import { backendFetch, extractList } from "@/lib/backend-client"
+import { backendFetch, extractList, resolveImageUrl } from "@/lib/backend-client"
 
 export const revalidate = 86400
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com"
 
 interface BackendBlogPost {
   slug: string
   publishedAt: string | null
   createdAt: string
   published: boolean
+  imageUrl?: string | null
 }
 
 interface BackendTreatment {
@@ -19,6 +20,29 @@ interface BackendTreatment {
   active: boolean
   updatedAt?: string | null
   createdAt?: string | null
+  imageUrl?: string | null
+  beforeImageUrl?: string | null
+  afterImageUrl?: string | null
+}
+
+/**
+ * Imagen de una entrada del sitemap, en absoluto.
+ *
+ * En medicina estética, Google Imágenes es una vía de entrada real: la gente
+ * busca «antes y después relleno de labios» y llega por la foto. El sitemap no
+ * declaraba ninguna, así que el rastreo de esas imágenes dependía de que el bot
+ * las encontrara al renderizar la página. Declararlas las pone en cola directa.
+ *
+ * `resolveImageUrl` devuelve rutas relativas para lo que se sirve por el proxy
+ * del propio sitio (`/api/uploads/...`), y el sitemap las exige absolutas.
+ */
+function absoluteImages(...crudas: (string | null | undefined)[]): string[] {
+  const vistas = new Set<string>()
+  for (const cruda of crudas) {
+    const url = resolveImageUrl(cruda)
+    if (url) vistas.add(url.startsWith("http") ? url : `${BASE_URL}${url}`)
+  }
+  return [...vistas]
 }
 
 /**
@@ -32,6 +56,23 @@ interface BackendTreatment {
  * Esta constante se actualiza a mano cuando el contenido fijo cambia de verdad.
  */
 const STATIC_PAGES_LAST_MODIFIED = new Date("2026-09-02")
+
+/**
+ * Fecha del panel, o la de reserva si no es una fecha.
+ *
+ * Next llama `toISOString()` sobre cada `lastModified`, y eso LANZA con una
+ * fecha inválida: un campo vacío o mal formado en un solo post dejaba
+ * `/sitemap.xml` devolviendo 500. Sin sitemap, Google pierde el índice del
+ * sitio entero por culpa de un registro.
+ */
+function fecha(...candidatas: (string | null | undefined)[]): Date {
+  for (const c of candidatas) {
+    if (!c) continue
+    const d = new Date(c)
+    if (!Number.isNaN(d.getTime())) return d
+  }
+  return STATIC_PAGES_LAST_MODIFIED
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Ambas lecturas van cacheadas y en paralelo. Cacheadas porque, sin
@@ -51,13 +92,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter((p) => p.published)
         .map((post) => ({
           url: `${BASE_URL}/blog/${post.slug}`,
-          lastModified: new Date(post.publishedAt ?? post.createdAt),
+          lastModified: fecha(post.publishedAt, post.createdAt),
           changeFrequency: "monthly" as const,
           priority: 0.6,
+          images: absoluteImages(post.imageUrl),
         }))
     : staticBlogPosts.map((post) => ({
         url: `${BASE_URL}/blog/${post.slug}`,
-        lastModified: new Date(post.publishedAt),
+        lastModified: fecha(post.publishedAt),
         changeFrequency: "monthly" as const,
         priority: 0.6,
       }))
@@ -71,13 +113,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       // Fecha real de la última edición en el panel. Así, cuando la doctora
       // actualiza un tratamiento, su `lastmod` cambia y solo ese: es la señal
       // que hace que Google vuelva a rastrear esa página y no las demás.
-      lastModified: t.updatedAt
-        ? new Date(t.updatedAt)
-        : t.createdAt
-          ? new Date(t.createdAt)
-          : STATIC_PAGES_LAST_MODIFIED,
+      lastModified: fecha(t.updatedAt, t.createdAt),
       changeFrequency: "monthly" as const,
       priority: 0.8,
+      // Portada MÁS el antes y el después. Vienen en el mismo listado, así que
+      // declararlas no cuesta ni una llamada extra — y «antes y después» de un
+      // tratamiento concreto es de las búsquedas por imagen más frecuentes del
+      // sector.
+      images: absoluteImages(t.imageUrl, t.beforeImageUrl, t.afterImageUrl),
     }))
 
   return [

@@ -38,6 +38,11 @@ export async function getConsultorioLocation(): Promise<ConsultorioLocation | nu
   // como la ubicación del consultorio.
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null
 
+  // 0,0 es un punto real —en el Golfo de Guinea— y el que produce un campo
+  // vacío que se convirtió en número. Declararlo como sede del consultorio es
+  // peor que no declarar ninguna: Google mide la distancia hasta ahí.
+  if (latitude === 0 && longitude === 0) return null
+
   // El enlace se deriva de las coordenadas en vez de leer `mapsUrl` del panel:
   // ese campo se quedó apuntando al punto antiguo cuando se corrigieron las
   // coordenadas, y dos fuentes para el mismo dato acaban contradiciéndose.

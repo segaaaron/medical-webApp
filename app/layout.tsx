@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Roboto, Playfair_Display, Cormorant_Garamond, Source_Serif_4, JetBrains_Mono } from "next/font/google";
+import { BASE_URL } from "@/lib/seo/site-url"
+import { Playfair_Display, Cormorant_Garamond, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import { CustomCursorLoader } from "@/components/ui/CustomCursorLoader";
@@ -15,13 +16,14 @@ import { backendFetch, extractList } from "@/lib/backend-client"
 import { getFooterData } from "@/lib/data/footer"
 import { getConsultorioLocation, type ConsultorioLocation } from "@/lib/data/location"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
+import { ADDRESS, AREA_SERVED, LANGUAGES, OPENING_HOURS, PHONE, geoFields } from "@/lib/seo/local"
 
-const roboto = Roboto({
-  variable: "--font-roboto",
-  subsets: ["latin"],
-  weight: ["300", "400", "700"],
-  display: "swap",
-});
+/* Roboto se cargaba aquí con tres pesos —300, 400 y 700— y su variable
+   `--font-roboto` no la usaba NINGUNA regla de `globals.css`: el texto del
+   sitio sale de `--font-sans` (Source Serif) y los títulos de `--font-heading`
+   (Playfair). Eran tres archivos de fuente descargados en cada visita, con su
+   preload en el `<head>`, compitiendo por ancho de banda con el póster del
+   hero, que es el elemento LCP. */
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -52,7 +54,6 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://yasminmedrano.com";
 
 export const viewport = {
   themeColor: "#1a0510",
@@ -136,9 +137,17 @@ export const metadata: Metadata = {
     description:
       "Botox, ácido hialurónico y rellenos de labios en Cochabamba, con la Dra. Yasmin Medrano Avila. Más de 10 años de experiencia.",
   },
-  alternates: {
-    canonical: BASE_URL,
-  },
+  // SIN `alternates.canonical` aquí.
+  //
+  // Puesto en el layout raíz, TODA página que no declare el suyo hereda este —o
+  // sea, se declara copia de la portada—. Hoy afecta a las que van `noindex`
+  // (el formulario de reseña, el 404), donde el daño es pequeño; el problema es
+  // que cualquier página nueva que olvide su canonical nace diciendo que es la
+  // portada, y eso no falla en ninguna build. La portada declara el suyo en
+  // `generateMetadata` (app/page.tsx), como el resto.
+  //
+  // `metadataBase` se queda: sirve para resolver rutas relativas, no para
+  // inventar canonicals.
   category: "health",
 };
 
@@ -157,7 +166,9 @@ function buildSiteJsonLd(
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "MedicalBusiness",
+      // Subtipo de `MedicalBusiness` y de `LocalBusiness` a la vez: hereda las
+      // funciones locales (Maps, 3-pack) y añade las médicas.
+      "@type": "MedicalClinic",
       "@id": `${BASE_URL}/#business`,
       name: "Consultorio Dra. Yasmin Medrano Avila",
       alternateName: "Medicina Estética Avanzada — Dra. Yasmin",
@@ -167,51 +178,27 @@ function buildSiteJsonLd(
         "Consultorio de medicina estética en Cochabamba, Bolivia. Más de 10 años de experiencia, +5.000 pacientes atendidos. Tratamientos faciales y corporales seguros con tecnología de vanguardia.",
       priceRange: "$$",
       currenciesAccepted: "BOB, USD",
+      // Hasta dónde llega el servicio. Quien busca «cerca de mí» escribe desde
+      // todo el eje metropolitano, no solo desde Cercado.
+      areaServed: AREA_SERVED,
+      availableLanguage: LANGUAGES,
       paymentAccepted: "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR",
       medicalSpecialty: "Medicina Estética",
       // Mapa y coordenadas salen del panel (Dashboard → Contacto). Estaban
       // escritos a mano y apuntaban 90 metros más allá, sobre otra calle, aun
       // después de que la doctora corrigiera el punto en el panel.
-      ...(ubicacion ? { hasMap: ubicacion.mapsUrl } : {}),
-      address: {
-        "@type": "PostalAddress",
-        // `streetAddress` es lo que Google pide para `LocalBusiness`. Sin
-        // calle la dirección estaba incompleta y el factor «distancia» del
-        // ranking local no tenía con qué trabajar.
-        streetAddress: "Calle Paccieri #772, entre 16 de Julio y Antezana",
-        addressLocality: "Cochabamba",
-        addressRegion: "Cochabamba",
-        addressCountry: "BO",
-      },
+      // `streetAddress` es lo que Google pide para `LocalBusiness`. Sin calle
+      // la dirección está incompleta y el factor «distancia» del ranking local
+      // no tiene con qué trabajar. Fuente única: `lib/seo/local.ts`.
+      address: ADDRESS,
       // Sin coordenadas en el panel se omite el `geo` entero: declarar un punto
       // que ya no es cierto es peor que no declarar ninguno.
-      ...(ubicacion
-        ? {
-            geo: {
-              "@type": "GeoCoordinates",
-              latitude: ubicacion.latitude,
-              longitude: ubicacion.longitude,
-            },
-          }
-        : {}),
-      openingHoursSpecification: [
-        {
-          "@type": "OpeningHoursSpecification",
-          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          opens: "09:00",
-          closes: "19:00",
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          dayOfWeek: "Saturday",
-          opens: "09:00",
-          closes: "14:00",
-        },
-      ],
+      ...geoFields(ubicacion),
+      openingHoursSpecification: OPENING_HOURS,
       contactPoint: [
         {
           "@type": "ContactPoint",
-          telephone: "+59178751894",
+          telephone: PHONE,
           contactType: "customer service",
           areaServed: "BO",
           availableLanguage: "Spanish",
@@ -240,7 +227,7 @@ function buildSiteJsonLd(
         name: seoTitleFor(t.slug, t.name),
         url: `${BASE_URL}/tratamientos/${t.slug}`,
       })),
-      telephone: "+59178751894",
+      telephone: PHONE,
       sameAs: perfiles,
     },
     {
@@ -250,9 +237,15 @@ function buildSiteJsonLd(
       jobTitle: "Médica Especialista en Medicina Estética",
       description:
         "Médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, rellenos de labios, bioestimulación y técnicas de vanguardia.",
-      url: BASE_URL,
+      // «Casa de la entidad»: la URL que Google trata como fuente de verdad
+      // sobre quién es la doctora. Apuntaba a la portada, que habla del
+      // consultorio; la página que habla de ELLA es `/nosotros`, y es la que
+      // debe ganar cuando Google resuelva a qué se refieren las menciones
+      // repartidas entre la web, Instagram, Facebook y TikTok.
+      url: `${BASE_URL}/nosotros`,
+      mainEntityOfPage: `${BASE_URL}/nosotros`,
       image: `${BASE_URL}/images/DraMedrano.jpeg`,
-      telephone: "+59178751894",
+      telephone: PHONE,
       worksFor: { "@id": `${BASE_URL}/#business` },
       medicalSpecialty: "Medicina Estética",
       // En salud Google pesa QUIÉN firma, no solo qué dice la página. Esto
@@ -340,11 +333,11 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* hreflang — Spanish Bolivia */}
-        <link rel="alternate" hrefLang="es-BO" href={BASE_URL} />
-        <link rel="alternate" hrefLang="es" href={BASE_URL} />
-        <link rel="alternate" hrefLang="x-default" href={BASE_URL} />
-
+        {/* Sin `hreflang`: el sitio es monolingüe y no tiene versiones
+            alternativas. Los tres que había vivían aquí, en el layout raíz, así
+            que TODAS las páginas declaraban que su alternativa en es-BO era la
+            portada — contradiciendo el `canonical` de cada una. Una señal
+            contradictoria es peor que ninguna. */}
         {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/images/logo_dra_yasmin_cursiva.png" />
@@ -355,7 +348,7 @@ export default async function RootLayout({
           suppressHydrationWarning
         />
       </head>
-      <body className={`${roboto.variable} ${playfair.variable} ${cormorant.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
+      <body className={`${playfair.variable} ${cormorant.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} antialiased`} suppressHydrationWarning>
         <SkipNav />
         <WhatsAppProvider value={whatsapp}>
           <LazyMotion features={domAnimation}>

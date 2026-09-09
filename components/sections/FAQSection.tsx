@@ -1,5 +1,4 @@
 "use client"
-import DOMPurify from "isomorphic-dompurify"
 import { useState } from "react"
 import { m, AnimatePresence, useReducedMotion } from "framer-motion"
 import { ChevronDown } from "lucide-react"
@@ -121,7 +120,7 @@ function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps)
                       lineHeight: 1.75,
                       color: "oklch(35% 0.018 55)",
                     }}
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(faq.answer) }}
+                    dangerouslySetInnerHTML={{ __html: faq.answer }}
                   />
                 </div>
               </m.div>

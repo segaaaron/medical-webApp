@@ -5,6 +5,14 @@ on:
     branches: [develop, master]
   pull_request:
     branches: [master]
+  # Los alias de `/botox` y compañía apuntan a slugs que viven en el PANEL, no
+  # en el repositorio. Si la doctora renombra o desactiva un tratamiento, la
+  # redirección permanente empieza a apuntar a un 404 sin que nadie haya tocado
+  # código — así que un disparador por `push` no basta: haría falta un despliegue
+  # para enterarse. Esta revisión semanal cubre justo ese caso.
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
 
 jobs:
   build:
@@ -32,3 +40,24 @@ jobs:
           BACKEND_SERVICE_TOKEN: ${{ secrets.BACKEND_SERVICE_TOKEN }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DASHBOARD_SECRET: ${{ secrets.DASHBOARD_SECRET }}
+
+      - name: Las reglas de SEO detectan lo que deben
+        run: npm run check:seo -- --self-test
+
+      - name: Señales de SEO intactas en el HTML generado
+        run: npm run check:seo
+
+      - name: El JavaScript público cabe en su presupuesto
+        run: npm run check:bundle
+
+      - name: Los perfiles sociales declarados existen
+        run: npm run check:social
+        env:
+          BACKEND_URL: https://service.drayasminmedrano-services.cloud
+          BACKEND_SERVICE_TOKEN: ${{ secrets.BACKEND_SERVICE_TOKEN }}
+
+      - name: Alias de tratamientos apuntan a fichas que existen
+        run: npm run check:aliases
+        env:
+          BACKEND_URL: https://service.drayasminmedrano-services.cloud
+          BACKEND_SERVICE_TOKEN: ${{ secrets.BACKEND_SERVICE_TOKEN }}

@@ -1,8 +1,11 @@
 import { getAboutData } from "@/lib/data/about"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { getFooterData } from "@/lib/data/footer"
 import { readContent } from "@/lib/store/content-store"
 import { backendFetch, extractList, extractReviewAggregate } from "@/lib/backend-client"
 import { doctorKnowsAbout, type TreatmentRef } from "@/lib/seo/treatment-names"
+import { normalizeSocialUrl } from "@/lib/seo/meta"
+import { PHONE } from "@/lib/seo/local"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -15,7 +18,6 @@ import type { Metadata } from "next"
 
 export type { BioDoc, BioSection } from "@/types/about"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   // Absoluto: el template añadiría el nombre de la doctora por segunda vez.
@@ -67,7 +69,8 @@ const breadcrumbLd = {
 function buildAboutJsonLd(
   reviews: PublicReview[],
   aggregate: ReviewAggregate | undefined,
-  treatments: TreatmentRef[]
+  treatments: TreatmentRef[],
+  perfiles: string[]
 ) {
   const hasReviews = reviews.length > 0
   const avgRating = aggregate?.avg_rating != null
@@ -82,13 +85,18 @@ function buildAboutJsonLd(
     "@type": "ProfilePage",
     mainEntity: {
       "@type": "Physician",
+      // MISMO `@id` que la ficha del layout. Sin él esta página declaraba una
+      // SEGUNDA doctora, homónima y sin relación con la del resto del sitio:
+      // para Google eran dos entidades distintas y las señales de autoridad
+      // —reseñas incluidas— se repartían entre ambas en vez de sumar.
+      "@id": `${BASE_URL}/#doctor`,
       name: "Dra. Yasmin Medrano Avila",
       jobTitle: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia",
       description:
         "Médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia. Experta en toxina botulínica, ácido hialurónico, rellenos de labios, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento facial avanzadas.",
       url: `${BASE_URL}/nosotros`,
       image: `${BASE_URL}/images/DraMedrano.jpeg`,
-      telephone: "+59178751894",
+      telephone: PHONE,
       medicalSpecialty: "Medicina Estética",
       // Derivado del panel: la lista fija incluía armonización facial y
       // depilación láser, que el consultorio no ofrece.
@@ -111,10 +119,9 @@ function buildAboutJsonLd(
           worstRating: "1",
         },
       } : {}),
-      sameAs: [
-        "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-        "https://www.instagram.com/dra_yasmin.medrano",
-      ],
+      // Perfiles del panel, no escritos a mano: la lista fija se quedó sin
+      // TikTok y contradecía la del layout sobre la misma entidad.
+      sameAs: perfiles,
     },
   }
 }
@@ -154,7 +161,20 @@ export default async function NosotrosPage() {
           }
         : undefined
 
-  const aboutJsonLd = buildAboutJsonLd(approvedReviews, reviewAggregate, activeTreatments)
+  const perfilesSociales = [
+    footerData.facebookUrl,
+    footerData.instagramUrl,
+    footerData.tiktokUrl,
+  ]
+    .map(normalizeSocialUrl)
+    .filter(Boolean)
+
+  const aboutJsonLd = buildAboutJsonLd(
+    approvedReviews,
+    reviewAggregate,
+    activeTreatments,
+    perfilesSociales
+  )
 
   return (
     <>

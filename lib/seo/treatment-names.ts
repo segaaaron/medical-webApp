@@ -34,6 +34,8 @@
  * el tráfico que hoy se pierde.
  */
 
+import { concernsFor, bodyLocationsFor } from "@/lib/seo/vocabulary"
+
 /** Palabras que deben quedar en minúscula dentro de un título en español. */
 const LOWERCASE_WORDS = new Set([
   "de", "del", "la", "las", "el", "los", "con", "y", "en", "para", "por", "a", "al",
@@ -81,6 +83,44 @@ export function normalizeName(raw: string): string {
       return word.charAt(0).toLocaleUpperCase("es") + word.slice(1)
     })
     .join(" ")
+}
+
+/**
+ * Titular de artículo saneado: quita el grito y las comillas del panel.
+ *
+ * Mismo problema que ya se resolvió con los nombres de tratamiento, vivo
+ * todavía en el blog: la doctora escribe «OZONOTERAPIA "OZONO MÉDICO"» y
+ * Google respeta las mayúsculas tal cual. Un resultado que grita se lee como
+ * spam y pierde clics frente al competidor de al lado.
+ *
+ * A diferencia de `normalizeName`, que produce Título Con Mayúscula En Cada
+ * Palabra —correcto para el nombre de un procedimiento—, aquí se usa mayúscula
+ * solo al principio, que es como se escribe un titular en español. Las siglas
+ * declaradas (PRP, PDRN, BOTOX…) se conservan.
+ */
+export function normalizeHeadline(raw: string): string {
+  const limpio = raw.replace(/["""]/g, "").replace(/\s+/g, " ").trim()
+
+  const letras = limpio.replace(/[^A-Za-zÁÉÍÓÚÑÜáéíóúñü]/g, "")
+  const ratio = letras
+    ? letras.split("").filter((c) => c === c.toUpperCase()).length / letras.length
+    : 0
+
+  // Menos del 80 % en mayúsculas = el titular ya está escrito como tal.
+  if (ratio < 0.8) return limpio
+
+  const enMinusculas = limpio
+    .toLocaleLowerCase("es")
+    .split(" ")
+    .map((palabra) => {
+      const desnuda = palabra.replace(/[()«».,:;¿?¡!"-]/g, "")
+      return KEEP_UPPERCASE.has(desnuda.toUpperCase())
+        ? palabra.replace(desnuda, desnuda.toUpperCase())
+        : palabra
+    })
+    .join(" ")
+
+  return enMinusculas.charAt(0).toLocaleUpperCase("es") + enMinusculas.slice(1)
 }
 
 /**
@@ -142,6 +182,12 @@ const SEARCH_TERMS: Record<string, { title: string; aliases: string[] }> = {
 export interface TreatmentRef {
   slug: string
   name: string
+  /**
+   * Texto del panel. Opcional porque no todas las llamadas lo piden, pero
+   * cuando está, el vocabulario de zonas y motivos se deduce de él en vez de
+   * depender de una tabla escrita a mano.
+   */
+  description?: string | null
 }
 
 /** Nombre optimizado para el `<title>` y los metadatos. */
@@ -154,7 +200,9 @@ export function searchAliasesFor(slug: string, rawName: string): string[] {
   const entry = SEARCH_TERMS[slug]
   if (entry) return entry.aliases
   const name = normalizeName(rawName)
-  return [name.toLocaleLowerCase("es")]
+  // Un tratamiento sin nombre devolvía `[""]`, y esa cadena vacía acababa
+  // dentro de `alternateName` del schema y del listado de `llms.txt`.
+  return name ? [name.toLocaleLowerCase("es")] : []
 }
 
 /**
@@ -199,6 +247,25 @@ export function matchTreatmentsInText(
       const hits = haystack.split(needle).length - 1
       score += hits * weight
     }
+
+    // Y el vocabulario que se deduce del panel: los motivos de consulta y las
+    // zonas que la ficha trata.
+    //
+    // Sin esto había DOS vocabularios que no se hablaban. El artículo
+    // «Sudoración excesiva en axilas» y la ficha de hiperhidrosis tratan
+    // exactamente de lo mismo, y no se enlazaban: el emparejador solo conocía
+    // los sinónimos escritos a mano, no los términos derivados del texto.
+    //
+    // Pesan menos que un alias explícito —«arrugas» lo mencionan media docena
+    // de fichas—, así que orientan el desempate en vez de decidirlo.
+    for (const termino of concernsFor(t)) {
+      const needle = normalizeForMatch(termino)
+      if (needle && haystack.includes(needle)) score += 2
+    }
+    for (const zona of bodyLocationsFor(t)) {
+      const needle = normalizeForMatch(zona)
+      if (needle && haystack.includes(needle)) score += 1
+    }
     return { slug, score }
   })
 
@@ -238,6 +305,10 @@ export function doctorKnowsAbout(treatments: TreatmentRef[]): string[] {
     for (const alias of searchAliasesFor(t.slug, t.name)) {
       if (alias.includes(" ")) terms.add(alias)
     }
+    // Y los motivos de consulta que la propia ficha menciona. En salud Google
+    // pesa QUIÉN firma: esto conecta a la doctora con «sudoración excesiva» o
+    // «caída del cabello», que es como la paciente nombra su problema.
+    for (const motivo of concernsFor(t)) terms.add(motivo)
   }
   return [...terms]
 }

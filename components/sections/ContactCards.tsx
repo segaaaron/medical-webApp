@@ -94,7 +94,15 @@ export function ContactCards({ ct }: ContactCardsProps) {
               key={i}
               href={card.href}
               target="_blank"
-              rel="noopener noreferrer"
+              // `me` solo en los perfiles de la doctora: dice desde el HTML lo
+              // mismo que el `sameAs` del schema —«esta cuenta es mía»—, y es
+              // lo que vincula la web con sus redes como una sola entidad.
+              // WhatsApp y el teléfono son canales de contacto, no perfiles.
+              rel={
+                ["Instagram", "Facebook", "TikTok"].includes(card.label)
+                  ? "me noopener noreferrer"
+                  : "noopener noreferrer"
+              }
               onClick={card.label === "WhatsApp" ? () => trackWhatsAppClick("contact-cards") : undefined}
               className="flex items-center gap-5 p-6 rounded-2xl"
               style={CARD_STYLE}

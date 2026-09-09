@@ -1,4 +1,8 @@
-"use client"
+/**
+ * Envoltorio del hero. Sin `"use client"`: solo pasa props a `HeroLayout`, que
+ * ya trae su propia directiva. La que había aquí arrastraba este archivo al
+ * bundle del navegador sin que ejecute nada en él.
+ */
 import { HeroLayout } from "./HeroLayout"
 import type { HeroStat, HeroCTA } from "@/types"
 

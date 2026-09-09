@@ -1,4 +1,5 @@
 import { readContent, DEFAULTS } from "@/lib/store/content-store"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { backendFetch, extractList } from "@/lib/backend-client"
 import { seoTitleFor, type TreatmentRef } from "@/lib/seo/treatment-names"
@@ -13,7 +14,6 @@ import { PageHero } from "@/components/ui/PageHero"
 import { ContactForm } from "@/components/sections/ContactForm"
 import { ContactCards } from "@/components/sections/ContactCards"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const metadata: Metadata = {
   // La marca la pone el template del layout: llevarla aquí la repetía dos veces.
@@ -61,37 +61,38 @@ const breadcrumbLd = {
   ],
 }
 
+/**
+ * La página de contacto NO declara otro negocio: referencia el que ya sirve el
+ * layout en todas las páginas (@id #business).
+ *
+ * Antes creaba un `MedicalBusiness` anónimo, sin `@id`, con su propio horario y
+ * un `sameAs` distinto —sin TikTok—. Para Google eso no es la misma ficha
+ * repetida: son dos negocios que se contradicen sobre el mismo teléfono y la
+ * misma dirección, justo lo que el factor NAP del ranking local castiga.
+ */
 const contactJsonLd = {
   "@context": "https://schema.org",
   "@type": "ContactPage",
-  mainEntity: {
-    "@type": "MedicalBusiness",
-    name: "Consultorio Dra. Yasmin Medrano Avila",
-    telephone: "+59178751894",
-    url: `${BASE_URL}/contacto`,
-    openingHoursSpecification: [
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-        opens: "09:00",
-        closes: "19:00",
-      },
-      {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: "Saturday",
-        opens: "09:00",
-        closes: "14:00",
-      },
-    ],
-    sameAs: [
-      "https://www.facebook.com/DraMedranoMedesteticAntiaging",
-      "https://www.instagram.com/dra_yasmin.medrano",
-    ],
-  },
+  url: `${BASE_URL}/contacto`,
+  mainEntity: { "@id": `${BASE_URL}/#business` },
+}
+
+/** Coordenada del panel, o la de reserva si viene vacía o no es un número. */
+function coordenada(raw: unknown, porDefecto: string): string {
+  // `Number("")` y `Number("   ")` valen 0, que es finito: sin descartar la
+  // cadena vacía, un campo en blanco en el panel daba la coordenada 0,0 —el
+  // Golfo de Guinea— en vez del consultorio.
+  const texto = typeof raw === "string" ? raw.trim() : raw
+  if (texto === "" || texto == null) return porDefecto
+  const n = Number(texto)
+  return Number.isFinite(n) ? String(n) : porDefecto
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapContact(raw: any): ContactData {
+  const lat = coordenada(raw.latitude, DEFAULTS.contact.latitude)
+  const lng = coordenada(raw.longitude, DEFAULTS.contact.longitude)
+
   return {
     whatsappNumber: raw.whatsappNumber ?? DEFAULTS.contact.whatsappNumber,
     whatsappUrl: raw.whatsappUrl ?? DEFAULTS.contact.whatsappUrl,
@@ -108,9 +109,18 @@ function mapContact(raw: any): ContactData {
     scheduleSaturday: raw.saturdayHours ?? DEFAULTS.contact.scheduleSaturday,
     scheduleSunday: raw.sundayStatus ?? DEFAULTS.contact.scheduleSunday,
     location: raw.locationDescription ?? DEFAULTS.contact.location,
-    latitude: raw.latitude != null ? String(raw.latitude) : DEFAULTS.contact.latitude,
-    longitude: raw.longitude != null ? String(raw.longitude) : DEFAULTS.contact.longitude,
-    mapsUrl: raw.mapsUrl ?? DEFAULTS.contact.mapsUrl,
+    // Se exige un número válido, no solo «distinto de null». Con el mapa
+    // cableado daba igual, pero ahora el iframe se arma con estas coordenadas:
+    // un campo vacío en el panel producía `?q=,` y el mapa salía en blanco.
+    latitude: lat,
+    longitude: lng,
+    // Derivado de las coordenadas, NO leído del panel. El campo `mapsUrl` del
+    // panel se quedó apuntando al punto viejo cuando la doctora corrigió las
+    // coordenadas, así que viajaba al navegador un enlace que llevaba 90 metros
+    // más allá. Dos fuentes para el mismo dato acaban contradiciéndose: manda
+    // la coordenada, que es la que pinta el mapa. Mismo criterio que
+    // `lib/data/location.ts`.
+    mapsUrl: `https://www.google.com/maps?q=${lat},${lng}`,
   }
 }
 
@@ -191,9 +201,13 @@ export default async function ContactoPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: "#fce4ec" }}>
                     {ct.location}
                   </p>
+                  {/* Coordenadas del panel, no escritas a mano. El mapa
+                      apuntaba a un punto fijo aunque la doctora corrigiera la
+                      ubicación en Dashboard → Contacto — el mismo desfase que
+                      ya se arregló en los datos estructurados. */}
                   <div className="rounded-xl overflow-hidden">
                     <iframe
-                      src="https://www.google.com/maps?q=-17.386471,-66.152366&z=16&output=embed"
+                      src={`https://www.google.com/maps?q=${ct.latitude},${ct.longitude}&z=16&output=embed`}
                       width="100%"
                       height="220"
                       style={{ border: 0, aspectRatio: "16/9", width: "100%", height: "auto" }}
@@ -204,7 +218,7 @@ export default async function ContactoPage() {
                     />
                   </div>
                   <a
-                    href="https://www.google.com/maps?q=-17.386471,-66.152366"
+                    href={`https://www.google.com/maps?q=${ct.latitude},${ct.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 mt-3 text-xs font-semibold hover:opacity-80 transition-opacity py-2 -my-2"
@@ -215,6 +229,24 @@ export default async function ContactoPage() {
                   </a>
                 </div>
 
+              </div>
+
+              {/* Zona de atención.
+                  El schema ya declara `areaServed` con todo el eje
+                  metropolitano, pero la página no lo decía en ninguna parte, y
+                  Google pide que lo que afirman los datos estructurados sea
+                  visible. Además responde una duda real de quien escribe desde
+                  Quillacollo o Sacaba: «¿atienden a gente de fuera?». */}
+              <div className="p-6 rounded-2xl md:col-span-2 xl:col-span-3" style={{ backgroundColor: "var(--primary-darker)" }}>
+                <h2 className="text-sm uppercase tracking-widest font-semibold mb-3" style={{ color: "var(--meteorite)" }}>
+                  Zona de atención
+                </h2>
+                <p className="text-sm leading-relaxed" style={{ color: "#fce4ec" }}>
+                  El consultorio está en Cochabamba y atiende también a pacientes del
+                  área metropolitana —Quillacollo, Sacaba, Tiquipaya, Colcapirhua y
+                  Vinto— y de otras ciudades de Bolivia. La atención es con cita previa;
+                  si vienes de fuera, conviene coordinarla con antelación por WhatsApp.
+                </p>
               </div>
 
               {/* Contact form */}

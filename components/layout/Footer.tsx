@@ -80,6 +80,17 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
   )
 }
 
+/**
+ * Nota sobre `rel="me"` en los enlaces a Facebook, Instagram y TikTok.
+ *
+ * El `sameAs` del schema dice «estos perfiles son míos». `rel="me"` dice lo
+ * mismo desde el HTML visible, y es la convención que buscadores y agregadores
+ * leen para vincular una web con las cuentas de su autor. Declarar la identidad
+ * por los dos canales es lo que consolida a la doctora como UNA entidad en vez
+ * de como una web y tres perfiles sueltos.
+ *
+ * WhatsApp queda fuera a propósito: es un canal de contacto, no un perfil.
+ */
 export function Footer({ data }: { data: FooterData }) {
   const doctorName = data?.doctorName ?? ""
   const nameParts = doctorName.split(" ").slice(0, 2).join(" ")
@@ -119,7 +130,7 @@ export function Footer({ data }: { data: FooterData }) {
                 <a
                   href={data.facebookUrl}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="me noopener noreferrer"
                   aria-label="Facebook"
                   className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                   style={{ backgroundColor: "var(--prem-dark-border)" }}
@@ -131,7 +142,7 @@ export function Footer({ data }: { data: FooterData }) {
                 <a
                   href={data.instagramUrl}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="me noopener noreferrer"
                   aria-label="Instagram"
                   className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                   style={{ backgroundColor: "var(--prem-dark-border)" }}
@@ -143,7 +154,7 @@ export function Footer({ data }: { data: FooterData }) {
                 <a
                   href={data.tiktokUrl}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="me noopener noreferrer"
                   aria-label="TikTok"
                   className="w-10 h-10 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
                   style={{ backgroundColor: "var(--prem-dark-border)" }}

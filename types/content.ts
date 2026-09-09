@@ -9,7 +9,7 @@ import type {
   PresetCategory,
   FreePDF,
   AboutStat,
-  FAQ,
+  FAQDraft,
   NavLink,
   FooterGroup,
   BrandingData,
@@ -64,7 +64,7 @@ export interface ContentStore {
   freePDFs: FreePDF[]
   freeResourcesForm: FreeResourcesFormData
   about: AboutContent
-  faqs: FAQ[]
+  faqs: FAQDraft[]
   navLinks: NavLink[]
   footerGroups: FooterGroup[]
 }

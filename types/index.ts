@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react"
+import type { SafeHtml } from "@/lib/html/safe-html"
 
 // Icon name strings (used when data crosses server→client boundary)
 export type ValueFeatureIcon = "Eye" | "Zap" | "Award" | "TrendingUp"
@@ -104,9 +105,22 @@ export interface AboutStat {
 
 // ─── FAQ ─────────────────────────────────────────────────────────────────────
 
-export interface FAQ {
+/**
+ * Pregunta tal y como se EDITA en el panel: texto crudo, sin sanear. Es lo que
+ * la doctora escribe, y por tanto contenido en el que no se confía.
+ */
+export interface FAQDraft {
   question: string
   answer: string
+}
+
+/**
+ * Pregunta tal y como se RENDERIZA. La respuesta se inyecta como HTML, así que
+ * el tipo exige que haya pasado por `sanitizeHtml` en el servidor.
+ */
+export interface FAQ {
+  question: string
+  answer: SafeHtml
 }
 
 // ─── Promo Banner ─────────────────────────────────────────────────────────────
@@ -183,6 +197,11 @@ export type ButtonVariant = "primary" | "warning" | "outline"
 export interface SectionHeaderProps {
   eyebrow: string
   title: string
-  subtitle?: string
+  /**
+   * Se inyecta como HTML, así que el tipo exige que haya pasado por
+   * `lib/html/safe-html`: `sanitizeHtml` para contenido del panel,
+   * `trustedHtml` para un literal escrito aquí en el código.
+   */
+  subtitle?: SafeHtml
   light?: boolean   // true = texto blanco (sobre fondos oscuros)
 }

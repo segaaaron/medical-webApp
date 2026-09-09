@@ -1,4 +1,5 @@
 import { readContent } from "@/lib/store/content-store"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
@@ -7,11 +8,12 @@ import { ServiceSection, type TreatmentsPageInfo } from "@/components/sections/C
 import { PresetsSection } from "@/components/sections/PresetsSection"
 import { TreatmentsPaginated } from "@/components/sections/TreatmentsPaginated"
 import { getFooterData } from "@/lib/data/footer"
+import { notFound } from "next/navigation"
+import { mapTreatmentsPageInfo } from "@/lib/data/treatments-page"
 import { PageHero } from "@/components/ui/PageHero"
 import type { Metadata } from "next"
 import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 // Sin marca: el template del layout añade "| Dra. Yasmin Medrano Avila".
 // Con el sufijo el title queda en 64 caracteres; Google corta cerca de 60.
@@ -178,15 +180,8 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
   const backendResult = gridResult
 
   // Use site-content info only when the service responds correctly; otherwise undefined = fallback to hardcoded
-  const pageInfo: TreatmentsPageInfo | undefined =
-    infoResult.error === null && infoResult.data?.value
-      ? {
-          ...infoResult.data.value,
-          doctorImage: infoResult.data.value.doctorImage
-            ? resolveImageUrl(infoResult.data.value.doctorImage as string)
-            : undefined,
-        }
-      : undefined
+  const pageInfo =
+    infoResult.error === null ? mapTreatmentsPageInfo(infoResult.data?.value) : undefined
 
   const backendError = backendResult.error !== null
 
@@ -205,6 +200,17 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
           (meta.total && meta.limit ? Math.ceil(meta.total / meta.limit) : 1)
       )
     : 1
+  // Página fuera de rango → 404. Es exactamente el agujero que ya se tapó en
+  // `/resenas` y que aquí seguía abierto: `/tratamientos?page=99` respondía 200
+  // con las once fichas y un canonical apuntándose a sí mismo. O sea, tantas
+  // copias indexables del catálogo como números se quieran probar, cada una
+  // reclamando ser la original.
+  if (meta && requestedPage > totalPages) notFound()
+
+  // Y cuando el backend NO pagina —responde la lista suelta, sin metadatos—
+  // solo existe la página 1. Cualquier otra es la misma lista con otra URL.
+  if (!meta && requestedPage > 1) notFound()
+
   const currentPage = Math.min(requestedPage, totalPages)
 
   const pageItemsRaw = meta

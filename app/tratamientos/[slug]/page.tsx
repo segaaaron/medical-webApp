@@ -1,5 +1,11 @@
-import DOMPurify from "isomorphic-dompurify"
-import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
+import { BASE_URL } from "@/lib/seo/site-url"
+import { sanitizeBody } from "@/lib/html/sanitize"
+import { AREA_SERVED, phoneFromWhatsApp, formatPhone } from "@/lib/seo/local"
+import { bodyLocationsFor, concernsFor, derivedKeywords, concernSentence } from "@/lib/seo/vocabulary"
+import { AuthorBox } from "@/components/blog/AuthorBox"
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
+import { normalizeSocialUrl } from "@/lib/seo/meta"
+import { seoTitleFor, searchAliasesFor, matchTreatmentsInText, normalizeHeadline } from "@/lib/seo/treatment-names"
 import { buildMetaDescription } from "@/lib/seo/meta"
 import { permanentRedirect } from "next/navigation"
 import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
@@ -8,7 +14,7 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooterData } from "@/lib/data/footer"
 import { DEFAULTS, readContent } from "@/lib/store/content-store"
-import { ArrowLeft, MessageCircle } from "lucide-react"
+import { ArrowLeft, MessageCircle, Phone } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
@@ -33,7 +39,6 @@ export async function generateStaticParams() {
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 interface BackendTreatment {
   id: string
@@ -107,27 +112,24 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
-/**
- * Sanea el cuerpo del tratamiento y degrada sus encabezados un nivel.
- *
- * El hero de la página ya pinta el `<h1>`. El contenido que la doctora escribe
- * en el panel viene casi siempre con su propio `<h1>` («Bótox – Toxina
- * Botulínica»), así que la página servía DOS h1 compitiendo por el mismo
- * término. Se degradan a `<h2>` para que quede una jerarquía única: un h1 con
- * el nombre del tratamiento y el resto colgando por debajo.
- */
-function sanitizeBody(html: string): string {
-  return DOMPurify.sanitize(html)
-    .replace(/<h1(\s[^>]*)?>/gi, "<h2$1>")
-    .replace(/<\/h1>/gi, "</h2>")
+/** Mismos términos sin tildes: es como se teclean en un móvil con prisa. */
+function sinTilde(terms: string[]): string[] {
+  const out = terms
+    .map((t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+    .filter((t, i) => t !== terms[i])
+  return [...new Set(out)]
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const treatment = await getTreatment(slug)
   if (!treatment) return {}
+  // La frase de indicaciones va DELANTE del texto del panel: nombra el problema
+  // con las palabras que teclea la paciente («sudoración excesiva en axilas»),
+  // y es lo primero que se lee en el resultado de búsqueda.
+  const indicaciones = concernSentence(treatment)
   const description = buildMetaDescription(
-    treatment.description ?? "",
+    `${indicaciones} ${treatment.description ?? ""}`.trim(),
     " Consulta de valoración en Cochabamba con la Dra. Yasmin Medrano."
   )
 
@@ -142,10 +144,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // Medrano Avila" y el título salía con el nombre repetido dos veces.
     title: `${seoName} en Cochabamba`,
     description,
+    // Variantes geográficas y de escritura.
+    //
+    // `sinTilde` cubre la forma que sale de un teclado sin acentos —«botox»,
+    // «acido hialuronico»—, que en Bolivia es como se teclea la mayoría de las
+    // veces aunque la RAE prefiera «bótox». Y las ciudades del área
+    // metropolitana entran porque «bótox Quillacollo» es una búsqueda real de
+    // alguien que está a quince minutos del consultorio.
     keywords: [
       ...aliases,
-      ...aliases.slice(0, 2).map((a) => `${a} Cochabamba`),
+      ...sinTilde(aliases),
+      // Derivadas del texto que la doctora escribió en el panel: las zonas y
+      // los motivos de consulta que la ficha menciona de verdad. Es lo que
+      // permite que «sudor en las axilas» encuentre la ficha de hiperhidrosis
+      // sin que nadie haya escrito esa frase en una tabla.
+      ...derivedKeywords(treatment),
+      ...aliases.slice(0, 2).flatMap((a) =>
+        ["Cochabamba", "Bolivia", "Quillacollo", "Sacaba"].map((lugar) => `${a} ${lugar}`)
+      ),
       ...aliases.slice(0, 2).map((a) => `${a} precio Bolivia`),
+      ...aliases.slice(0, 1).map((a) => `${a} cerca de mí`),
       "medicina estética Cochabamba",
       "Dra. Yasmin Medrano Avila",
     ],
@@ -155,10 +173,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       url: `${BASE_URL}/tratamientos/${slug}`,
       type: "website",
-      images: treatment.imageUrl ? [{ url: treatment.imageUrl, width: 1200, height: 630, alt: `${seoName} — Dra. Yasmin Medrano Avila, Cochabamba` }] : [],
+      // Sin foto se OMITE la clave: `images: []` pisaba el `opengraph-image`
+      // del sitio y la ficha se compartía en WhatsApp sin imagen.
+      ...(treatment.imageUrl
+        ? { images: [{ url: treatment.imageUrl, width: 1200, height: 630, alt: `${seoName} — Dra. Yasmin Medrano Avila, Cochabamba` }] }
+        : {}),
       locale: "es_BO",
     },
   }
+}
+
+/** Lo mínimo que se necesita de un artículo para saber si trata de esta ficha. */
+interface BackendPostRef {
+  slug: string
+  title: string
+  excerpt?: string | null
+  content?: string | null
+  published: boolean
 }
 
 export default async function TratamientoDetallePage({ params }: Props) {
@@ -173,6 +204,18 @@ export default async function TratamientoDetallePage({ params }: Props) {
   if (!treatment || !treatment.active) notFound()
 
   const navLinks = c?.navLinks ?? DEFAULTS.navLinks
+
+  // Teléfono derivado del WhatsApp del panel: un solo número editable en un
+  // solo sitio, sin una segunda copia que se quede vieja.
+  const telefono = phoneFromWhatsApp(whatsapp.url)
+
+  const perfilesSociales = [
+    footerData.facebookUrl,
+    footerData.instagramUrl,
+    footerData.tiktokUrl,
+  ]
+    .map(normalizeSocialUrl)
+    .filter(Boolean)
 
   // Mismo nombre optimizado que usan los metadatos, para que el schema y el
   // título digan lo mismo que la página muestra.
@@ -192,6 +235,30 @@ export default async function TratamientoDetallePage({ params }: Props) {
   )
   const otherTreatments = extractList<BackendTreatment>(allActive)
     .filter((t) => t.slug && t.slug !== slug)
+    .slice(0, 3)
+
+  /**
+   * Artículos del blog que hablan de ESTE tratamiento.
+   *
+   * El enlace ya existía en un solo sentido: un artículo que menciona botox
+   * enlaza a la ficha de botox. Al revés, no — y esa mitad es la que convierte.
+   * Quien está leyendo la ficha y duda («¿duele?», «¿cuánto dura?») se iba del
+   * sitio a buscarlo en Google, cuando la respuesta estaba dos clics más allá.
+   *
+   * Se reutiliza el emparejador del blog en sentido inverso: para cada artículo
+   * se calcula qué tratamientos menciona y se conservan los que nombran este.
+   * Mismo vocabulario, ninguna lista nueva que mantener.
+   */
+  const { data: rawPosts } = await backendFetch("/blog?published=true", { revalidate: 3600 })
+  const activeRefs = extractList<BackendTreatment>(allActive)
+    .filter((t) => t.slug)
+    .map((t) => ({ slug: t.slug, name: t.name }))
+  const relatedPosts = extractList<BackendPostRef>(rawPosts)
+    .filter((p) => p.published && p.slug)
+    .filter((p) => {
+      const texto = `${p.title} ${p.excerpt ?? ""} ${p.content ?? ""}`.replace(/<[^>]+>/g, " ")
+      return matchTreatmentsInText(texto, activeRefs, 5).includes(slug)
+    })
     .slice(0, 3)
 
   const breadcrumbLd = {
@@ -222,7 +289,11 @@ export default async function TratamientoDetallePage({ params }: Props) {
           // con la pregunta sin responder y sin siguiente paso.
           text: treatment.price > 0
             ? `El precio de ${seoName} en el consultorio de la Dra. Yasmin Medrano Avila es Bs. ${treatment.price.toLocaleString("es-BO")}. Escríbenos por WhatsApp para agendar tu valoración.`
-            : `El precio de ${seoName} depende de la valoración de cada paciente: la zona a tratar y el producto necesario cambian el presupuesto. Escríbenos por WhatsApp y te damos el precio para tu caso.`,
+            // Con el número dentro de la respuesta: es lo que un motor de
+            // respuestas puede citar entero cuando alguien pregunta «cuánto
+            // cuesta el bótox en Cochabamba», y lo que evita que la paciente
+            // tenga que volver a buscar cómo contactar.
+            : `El precio de ${seoName} depende de la valoración de cada paciente: la zona a tratar y el producto necesario cambian el presupuesto. Escribe al ${formatPhone(telefono)} por WhatsApp y te damos el precio para tu caso.`,
         },
       },
       {
@@ -268,25 +339,47 @@ export default async function TratamientoDetallePage({ params }: Props) {
     description: (treatment.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300),
     url: `${BASE_URL}/tratamientos/${slug}`,
     ...(procedureImages.length ? { image: procedureImages } : {}),
-    provider: {
-      "@type": "Physician",
-      name: "Dra. Yasmin Medrano Avila",
-      url: BASE_URL,
-      medicalSpecialty: "Medicina Estética",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "Calle Paccieri #772, entre 16 de Julio y Antezana",
-        addressLocality: "Cochabamba",
-        addressRegion: "Cochabamba",
-        addressCountry: "BO",
-      },
-    },
+    // Referencias a las entidades que el layout ya sirve en todas las páginas,
+    // en vez de volver a describirlas. Repetidas creaban una doctora y un
+    // consultorio NUEVOS por cada ficha de tratamiento: once entidades
+    // homónimas, todas con el mismo teléfono, ninguna relacionada con las
+    // demás. Un `@id` cuesta una línea y las une.
+    provider: { "@id": `${BASE_URL}/#doctor` },
+    availableAtOrFrom: { "@id": `${BASE_URL}/#business` },
+    // Dónde se presta. Quien busca desde Quillacollo o Sacaba está a quince
+    // minutos del consultorio, y es tráfico que el schema no declaraba.
+    areaServed: AREA_SERVED,
+    // Zonas del cuerpo y motivos de consulta, deducidos del texto del panel.
+    // `bodyLocation` es el campo con el que un buscador entiende que esta
+    // página trata de las axilas; sin él, «axila» no llevaba a ninguna parte.
+    ...(bodyLocationsFor(treatment).length
+      ? { bodyLocation: bodyLocationsFor(treatment) }
+      : {}),
+    // Sin `relevantSpecialty`: `MedicalSpecialty` es una enumeración cerrada de
+    // schema.org y «Medicina Estética» no es uno de sus valores, así que
+    // declararlo como objeto con `name` es un tipo mal usado. La especialidad
+    // ya la declara el negocio y la doctora en el `@graph` del layout.
+    ...(concernsFor(treatment).length
+      ? {
+          indication: concernsFor(treatment).map((motivo) => ({
+            "@type": "MedicalIndication",
+            name: motivo,
+          })),
+        }
+      : {}),
   }
 
   return (
     <>
       <Navbar links={navLinks} />
       <main style={{ backgroundColor: "#F8F0E3", minHeight: "100vh" }}>
+        <Breadcrumbs
+          items={[
+            { label: "Inicio", href: "/" },
+            { label: "Tratamientos", href: "/tratamientos" },
+            { label: seoName },
+          ]}
+        />
         <TreatmentPageTracker id={treatment.id} name={treatment.name} />
         <script
           type="application/ld+json"
@@ -429,10 +522,34 @@ export default async function TratamientoDetallePage({ params }: Props) {
               <p className="text-base font-medium mb-4 text-white">
                 ¿Te interesa este tratamiento? Agenda una consulta con la Dra. Yasmin Medrano Avila.
               </p>
-              {treatment.price > 0 && (
+              {/* Con precio en el panel se muestra. Sin precio NO se calla:
+                  «cuánto cuesta» es la primera pregunta de quien llega buscando
+                  este tratamiento, y una ficha que no la menciona la manda a
+                  buscarla a otra parte. Se dice por qué depende de la
+                  valoración y se da el número, que además es un dato de
+                  contacto visible — lo que Google espera de un negocio local. */}
+              {treatment.price > 0 ? (
                 <p className="text-3xl font-bold mb-6" style={{ color: "var(--vintage-gold)" }}>
                   Bs. {treatment.price.toLocaleString("es-BO")}
                 </p>
+              ) : (
+                <div className="mb-6">
+                  <p className="text-2xl font-bold mb-2" style={{ color: "var(--vintage-gold)" }}>
+                    Precio a consultar
+                  </p>
+                  <p className="text-sm mb-3" style={{ color: "rgba(255,255,255,0.7)" }}>
+                    El presupuesto depende de la zona a tratar y del producto que necesite
+                    cada paciente. Se define en la consulta de valoración.
+                  </p>
+                  <a
+                    href={`tel:${telefono}`}
+                    className="inline-flex items-center gap-2 text-base font-semibold hover:opacity-80 transition-opacity py-2 -my-2"
+                    style={{ color: "#fff" }}
+                  >
+                    <Phone size={16} aria-hidden="true" />
+                    {formatPhone(telefono)}
+                  </a>
+                </div>
               )}
               <TrackWhatsAppLink
                 href={`${whatsapp.url}?text=${encodeURIComponent(`Hola, me interesa el tratamiento de ${treatment.name}`)}`}
@@ -452,11 +569,33 @@ export default async function TratamientoDetallePage({ params }: Props) {
               </div>
             </div>
           </div>
+          {/* Firma médica visible.
+              El `MedicalProcedure` ya declara `reviewedBy` y `lastReviewed`,
+              pero eso solo lo lee un buscador. En contenido de salud Google
+              pide ver en la página quién responde de lo que se afirma, y el
+              paciente que llega desde Instagram también. */}
+          <div className="max-w-3xl mx-auto px-6 pb-4">
+            <AuthorBox
+              name="Dra. Yasmin Medrano Avila"
+              publishedAt={treatment.createdAt ?? new Date().toISOString()}
+              updatedAt={treatment.updatedAt}
+              perfiles={perfilesSociales}
+              eyebrow="INFORMACIÓN REVISADA POR"
+              publishedLabel="Publicado el"
+            />
+          </div>
         </article>
       </main>
+      {/* Mismo caso que en el blog: esta sección vive FUERA de `<main>`, que es
+          quien pinta el crema, así que caía sobre el fondo oscuro del body y
+          sus enlaces quedaban invisibles. */}
       {otherTreatments.length > 0 && (
-        <section className="py-14 px-6" aria-labelledby="otros-tratamientos">
-          <div className="container-xl max-w-4xl">
+        <section
+          className="py-14 px-6"
+          aria-labelledby="otros-tratamientos"
+          style={{ backgroundColor: "#F8F0E3" }}
+        >
+          <div className="max-w-3xl mx-auto">
             <h2
               id="otros-tratamientos"
               className="text-xl font-bold mb-6"
@@ -478,6 +617,41 @@ export default async function TratamientoDetallePage({ params }: Props) {
                   >
                     {seoTitleFor(t.slug, t.name)}
                     <span aria-hidden="true">→</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {relatedPosts.length > 0 && (
+        <section
+          className="py-14 px-6"
+          aria-labelledby="articulos-del-tratamiento"
+          style={{ backgroundColor: "#F8F0E3" }}
+        >
+          <div className="max-w-3xl mx-auto">
+            <h2
+              id="articulos-del-tratamiento"
+              className="text-xl font-bold mb-6"
+              style={{ color: "var(--primary-darkest)" }}
+            >
+              Artículos sobre {seoName}
+            </h2>
+            <ul className="flex flex-col gap-3">
+              {relatedPosts.map((p) => (
+                <li key={p.slug}>
+                  <Link
+                    href={`/blog/${p.slug}`}
+                    className="flex items-baseline gap-3 text-sm font-semibold transition-opacity hover:opacity-80"
+                    style={{ color: "var(--primary-darkest)" }}
+                  >
+                    <span aria-hidden="true" style={{ color: "var(--vintage-gold)" }}>→</span>
+                    {/* Tercer consumidor del título del panel, y el que se me
+                        escapó al sanear los otros dos: aquí salía «SUDORACIÓN
+                        EXCESIVA EN AXILAS - BOTOX UNA SOLUCIÓN» gritando. */}
+                    {normalizeHeadline(p.title)}
                   </Link>
                 </li>
               ))}

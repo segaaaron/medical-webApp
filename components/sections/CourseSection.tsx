@@ -1,4 +1,5 @@
 "use client"
+import { trustedHtml, type SafeHtml } from "@/lib/html/safe-html"
 import { m } from "framer-motion"
 import { CheckCircle, Play, FileText, Download } from "lucide-react"
 import { SectionHeader } from "@/components/ui/SectionHeader"
@@ -20,7 +21,8 @@ const ICON_MAP: Record<CourseItemIcon, React.ElementType> = {
 export interface TreatmentsPageInfo {
   label?: string
   title?: string
-  subtitle?: string
+  /** Se inyecta como HTML: llega limpio desde `lib/data/treatments-page.ts`. */
+  subtitle?: SafeHtml
   consultationTitle?: string
   consultationItems?: string[]
   doctorImage?: string
@@ -41,7 +43,9 @@ export function ServiceSection({ included, modules, info }: CourseSectionProps) 
   const eyebrow = info?.label || "Nuestros Servicios"
   const title = info?.title || "Tratamientos de Medicina Estética"
   const subtitle = info?.subtitle ||
-    "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:var(--vintage-gold);font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
+    trustedHtml(
+      "Ofrecemos una amplia gama de tratamientos faciales y corporales con <span style='color:var(--vintage-gold);font-weight:700;'>tecnología de vanguardia</span> y los más altos estándares de seguridad médica."
+    )
   const consultationTitle = info?.consultationTitle || "Lo Que Incluye Cada Consulta"
   const doctorImage = info?.doctorImage || "/images/draMedrano2.jpeg"
   const ctaTitle = info?.ctaTitle || "Agenda tu Cita"

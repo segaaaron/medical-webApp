@@ -1,4 +1,5 @@
 "use client"
+import { trustedHtml } from "@/lib/html/safe-html"
 import { useState } from "react"
 import { m } from "framer-motion"
 import { normalizeName } from "@/lib/seo/treatment-names"
@@ -311,11 +312,11 @@ export function TreatmentsGrid({ treatments, isHome, pager, totalCount }: Treatm
         <SectionHeader
           eyebrow={isHome ? "Áreas de Especialidad" : "Catálogo de Servicios"}
           title={isHome ? "Algunas Categorías de Tratamiento" : "Todos Nuestros Tratamientos"}
-          subtitle={
+          subtitle={trustedHtml(
             isHome
               ? `Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:${GOLD};font-weight:700;">resultados visibles y duraderos.</span>`
               : `Encuentra el tratamiento ideal para ti. <span style="color:${GOLD};font-weight:700;">Agenda una consulta</span> y recibe un plan personalizado.`
-          }
+          )}
           light
         />
 

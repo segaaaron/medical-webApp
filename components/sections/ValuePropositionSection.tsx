@@ -18,7 +18,7 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
           <SectionHeader
             eyebrow={features?.chooseUs ?? ""}
             title={features?.title ?? ""}
-            subtitle={features?.description ?? ""}
+            subtitle={features?.description}
           />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

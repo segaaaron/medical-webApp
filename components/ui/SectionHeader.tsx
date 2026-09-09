@@ -1,6 +1,5 @@
 "use client"
 
-import DOMPurify from "isomorphic-dompurify"
 import { clsx } from "clsx"
 import { m, useReducedMotion } from "framer-motion"
 import type { SectionHeaderProps } from "@/types"
@@ -99,7 +98,10 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
             "text-lg max-w-2xl mx-auto leading-relaxed",
             light ? "text-[#fce4ec]" : "text-[#4a3540]"
           )}
-          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(subtitle) }}
+          // Ya viene limpio del servidor: el tipo `SafeHtml` de la prop
+          // garantiza que pasó por `lib/html/safe-html`. Sanear aquí obligaba a
+          // enviar DOMPurify al navegador en todas las páginas.
+          dangerouslySetInnerHTML={{ __html: subtitle }}
         />
       )}
     </div>

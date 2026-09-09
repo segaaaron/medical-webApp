@@ -1,4 +1,5 @@
 "use client"
+import { trustedHtml } from "@/lib/html/safe-html"
 import Image from "next/image"
 import { m } from "framer-motion"
 import { SectionHeader } from "@/components/ui/SectionHeader"
@@ -37,7 +38,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           <SectionHeader
             eyebrow="Áreas de Especialidad"
             title="Nuestras Categorías de Tratamiento"
-            subtitle={`Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:var(--vintage-gold);font-weight:600;">resultados visibles y duraderos</span>.`}
+            subtitle={trustedHtml(`Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:var(--vintage-gold);font-weight:600;">resultados visibles y duraderos</span>.`)}
             light
           />
         </m.div>

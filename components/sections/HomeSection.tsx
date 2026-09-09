@@ -1,4 +1,7 @@
-"use client"
+/**
+ * Envoltorio del hero servido desde el panel. Mismo caso que `HeroSection`: la
+ * interactividad vive en `HeroLayout`, no aquí.
+ */
 import { HeroLayout } from "./HeroLayout"
 import type { HeroCTA, HeroStat } from "@/types"
 

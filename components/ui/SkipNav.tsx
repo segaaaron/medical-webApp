@@ -1,4 +1,8 @@
-"use client"
+/**
+ * Enlace de salto al contenido. Marcado estático: no necesita ser componente de
+ * cliente, y al vivir en el layout raíz su directiva `"use client"` abría una
+ * frontera de cliente en TODAS las páginas para un `<a>` sin estado.
+ */
 
 export function SkipNav() {
   return (

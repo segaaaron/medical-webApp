@@ -1,3 +1,5 @@
+import { aliasRedirects } from "./lib/seo/treatment-aliases.mjs"
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   /**
@@ -7,6 +9,16 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      /**
+       * URLs cortas de palabra clave: `/botox` → la ficha real.
+       *
+       * El slug del panel es un nombre clínico largo que nadie teclea ni puede
+       * dictar por teléfono. Estos alias dan una dirección memorizable para la
+       * bio de Instagram, un flyer o el boca a boca, y consolidan en la ficha
+       * la autoridad de cualquier enlace entrante. Ver
+       * `lib/seo/treatment-aliases.mjs`.
+       */
+      ...(await aliasRedirects()),
       {
         /**
          * www → apex, permanente.

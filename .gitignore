@@ -44,3 +44,9 @@ next-env.d.ts
 
 # superpowers plans/specs (dev tooling, not production code)
 docs/superpowers/
+
+# Notas y documentación de trabajo: viven en la máquina, no en el repositorio.
+CLAUDE.md
+docs/backend/
+docs/handoffs/
+.claude/settings.local.json.bak

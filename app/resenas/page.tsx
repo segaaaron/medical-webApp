@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { notFound } from "next/navigation"
 import { backendFetch, extractList, extractReviewAggregate } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
@@ -25,7 +26,6 @@ import {
  * backend fijando el tamaño de página— para no inventar una convención nueva.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 export const revalidate = 300
 

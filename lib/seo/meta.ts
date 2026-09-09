@@ -59,8 +59,38 @@ export function normalizeSocialUrl(raw: string | null | undefined): string {
     // Sin barra final: `.../@perfil` y `.../@perfil/` son la misma página, y
     // repetirlas de dos formas distintas debilita la señal.
     url.pathname = url.pathname.replace(/\/+$/, "") || "/"
-    return url.toString()
+    return esPerfil(url) ? url.toString() : ""
   } catch {
     return ""
   }
+}
+
+/**
+ * ¿La dirección apunta a un PERFIL, y no a una publicación suelta?
+ *
+ * `sameAs` significa «esta cuenta es la misma entidad que este sitio». Si en el
+ * panel se pega el enlace de un reel —lo que devuelve el botón «compartir» de
+ * Instagram— se le está diciendo a Google que la doctora «es» esa publicación.
+ * Eso no refuerza la identidad: la confunde, y es un fallo que nadie ve porque
+ * el enlace funciona perfectamente al hacer clic.
+ *
+ * Se validan las formas de perfil de las tres redes que usa el consultorio.
+ * Un dominio desconocido se acepta tal cual: puede ser un directorio médico o
+ * un colegio profesional, que también son `sameAs` legítimos, y no es este el
+ * sitio para llevar una lista cerrada de internet.
+ */
+function esPerfil(url: URL): boolean {
+  const host = url.hostname.replace(/^www\./, "")
+  const ruta = url.pathname.replace(/^\//, "")
+
+  // Rutas que existen en varias redes y NUNCA son un perfil.
+  const NO_PERFIL = /^(p|reel|reels|share|stories|explore|tv|video|photo|posts|watch|groups|events|permalink\.php|story\.php)(\/|$)/i
+
+  if (host.endsWith("instagram.com") || host.endsWith("tiktok.com") || host.endsWith("facebook.com")) {
+    if (!ruta || NO_PERFIL.test(ruta)) return false
+    // Un perfil es un solo segmento: `/dra_yasmin.medrano`, `/@usuario`.
+    // `/dra_yasmin.medrano/reel/ABC` son dos, y es una publicación.
+    return ruta.split("/").filter(Boolean).length === 1
+  }
+  return true
 }

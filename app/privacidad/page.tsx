@@ -1,4 +1,5 @@
 import { readContent } from "@/lib/store/content-store"
+import { BASE_URL } from "@/lib/seo/site-url"
 import { getFooterData } from "@/lib/data/footer"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
@@ -7,7 +8,6 @@ import { PageHero } from "@/components/ui/PageHero"
 import { ShieldCheck, MessageCircle } from "lucide-react"
 import type { Metadata } from "next"
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? ""
 
 // Última actualización del documento. Cambiar al editar el contenido legal.
 const LAST_UPDATED = "16 de junio de 2026"
@@ -31,6 +31,9 @@ export const metadata: Metadata = {
     url: `${BASE_URL}/privacidad`,
     type: "website",
     locale: "es_BO",
+    // Sin esta línea la página se compartía sin imagen: declarar `openGraph`
+    // sin `images` pisa el `opengraph-image.tsx` del sitio en vez de heredarlo.
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Dra. Yasmin Medrano Avila — Medicina estética en Cochabamba" }],
   },
 }
 
