@@ -9,19 +9,20 @@ function applySecurityHeaders(response: NextResponse, requestId?: string): NextR
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
   // 'unsafe-eval' only in development (Next.js dev runtime needs it).
-  // GA4 (googletagmanager), Meta Pixel (connect.facebook.net) and TikTok Pixel
-  // (analytics.tiktok.com) need script-src + connect-src entries; pixel beacons
-  // are covered by img-src https:.
+  // OJO: por el matcher del final, estas cabeceras solo se emiten en /dashboard/*.
+  // Ninguna página pública (/, /contacto, /blog) recibe CSP, que es donde corre
+  // gtag. Las entradas de GA4/Google Ads, Meta Pixel y TikTok Pixel quedan puestas
+  // para cuando la CSP se extienda a las páginas públicas.
   const isDev = process.env.NODE_ENV !== "production"
   response.headers.set(
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com`,
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://www.googleadservices.com https://googleads.g.doubleclick.net`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://*.tiktok.com https://*.byteoversea.com",
+      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://analytics.tiktok.com https://*.tiktok.com https://*.byteoversea.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com",
       "frame-src 'none'",
       "object-src 'none'",
       "base-uri 'self'",

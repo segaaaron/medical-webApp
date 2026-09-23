@@ -1,8 +1,14 @@
 import Script from "next/script"
-import { UMAMI_URL, UMAMI_WEBSITE_ID, META_PIXEL_ID, TIKTOK_PIXEL_ID } from "@/lib/analytics"
+import {
+  UMAMI_URL,
+  UMAMI_WEBSITE_ID,
+  META_PIXEL_ID,
+  TIKTOK_PIXEL_ID,
+  GOOGLE_ADS_ID,
+} from "@/lib/analytics"
 
 /**
- * Umami (self-hosted, privacy-first) + optional Meta / TikTok Pixel.
+ * Umami (self-hosted, privacy-first) + optional Meta / TikTok Pixel / Google Ads.
  * Scripts only load when env vars are set — dev/staging stay clean.
  */
 export function AnalyticsScripts() {
@@ -56,6 +62,23 @@ export function AnalyticsScripts() {
             }(window, document, 'ttq');
           `}
         </Script>
+      )}
+
+      {GOOGLE_ADS_ID && (
+        <>
+          <Script
+            src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+            strategy="afterInteractive"
+          />
+          <Script id="google-ads-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GOOGLE_ADS_ID}');
+            `}
+          </Script>
+        </>
       )}
     </>
   )
