@@ -6,6 +6,7 @@ import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { PageHero } from "@/components/ui/PageHero"
+import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ScrollText, MessageCircle } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -271,16 +272,15 @@ export default async function TerminosPage() {
               </Block>
             </div>
 
-            <a
+            <TrackWhatsAppLink
               href="https://wa.me/59178751894"
-              target="_blank"
-              rel="noopener noreferrer"
+              source="terminos"
               className="flex items-center justify-center gap-3 w-full mt-12 py-4 rounded-full text-base font-bold uppercase tracking-wide hover:brightness-110 transition-all"
               style={{ backgroundColor: "var(--vintage-gold)", color: "white" }}
             >
               <MessageCircle size={18} />
               Escríbenos por WhatsApp
-            </a>
+            </TrackWhatsAppLink>
           </div>
         </section>
       </main>

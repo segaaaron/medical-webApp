@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { MessageCircle, Facebook, Instagram, Music2 } from "lucide-react"
-import { trackWhatsAppClick } from "@/lib/analytics"
+import { isWhatsAppHref, trackWhatsAppClick } from "@/lib/analytics"
 
 const LINK_STYLE = { color: "rgba(255,255,255,0.65)" }
 const setWhite = (e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#ffffff" }
@@ -64,10 +64,12 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
               ) : (
                 <a
                   href={link.href}
+                  {...(isWhatsAppHref(link.href) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className="text-sm transition-colors"
                   style={LINK_STYLE}
                   onMouseEnter={setWhite}
                   onMouseLeave={setMuted}
+                  onClick={() => { if (isWhatsAppHref(link.href)) trackWhatsAppClick("footer-links") }}
                 >
                   {link.label}
                 </a>

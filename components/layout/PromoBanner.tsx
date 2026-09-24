@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react"
 import { X, MessageCircle, Sparkles } from "lucide-react"
 import type { PromoDisplayData } from "@/lib/data/promo"
+import { isWhatsAppHref, trackWhatsAppClick } from "@/lib/analytics"
 
 interface PromoBannerProps {
   data: PromoDisplayData
@@ -172,6 +173,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
               href={data.ctaHref}
               target={external ? "_blank" : undefined}
               rel={external ? "noopener noreferrer" : undefined}
+              onClick={() => { if (isWhatsAppHref(data.ctaHref)) trackWhatsAppClick("promo-banner") }}
               className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm"
               style={{ backgroundColor: "#25D366", color: "white", boxShadow: "0 8px 22px rgba(37,211,102,0.4)" }}
             >

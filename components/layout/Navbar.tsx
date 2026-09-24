@@ -188,7 +188,7 @@ export function Navbar({ links }: NavbarProps) {
                     fontSize: "11px",
                     letterSpacing: "0.14em",
                   }}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() => { trackWhatsAppClick("navbar-mobile"); setMobileOpen(false) }}
                 >
                   <Phone size={14} />
                   Agendar Cita

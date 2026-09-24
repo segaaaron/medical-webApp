@@ -99,9 +99,15 @@ export function trackBlogClick(params: { slug: string; title: string }) {
   umami("blog_click", { slug: params.slug, title: params.title })
 }
 
-/** Hero CTA clicked (primary/secondary buttons in hero). */
+/** Enlace que abre WhatsApp (wa.me o api.whatsapp.com). */
+export function isWhatsAppHref(href: string) {
+  return /(^|\/\/)(wa\.me|api\.whatsapp\.com)\//.test(href)
+}
+
+/** Hero CTA clicked (primary/secondary buttons in hero). Si va a WhatsApp, cuenta también como conversión. */
 export function trackHeroCTA(params: { label: string; href: string }) {
   umami("hero_cta_click", { label: params.label, href: params.href })
+  if (isWhatsAppHref(params.href)) trackWhatsAppClick("hero")
 }
 
 /** Scroll depth milestones (25/50/75/100%). */
