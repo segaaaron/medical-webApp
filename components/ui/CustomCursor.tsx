@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react"
 import { usePathname } from "next/navigation"
 import { motion, useSpring, useReducedMotion } from "framer-motion"
 
-const VINTAGE_GOLD = "var(--vintage-gold)"
+const VINTAGE_GOLD = "var(--vintage-gold-dark)"
 const ROSE = "var(--meteorite)"
 
 // External-store subscription for pointer-device capability — avoids
@@ -44,16 +44,13 @@ function SyringeSVG({ color, scale }: { color: string; scale: number }) {
         {/* ── Needle hub ─────────────────────────────────── */}
         <rect x="13" y="-3" width="3" height="6" rx="1" fill={color} />
 
-        {/* ── Barrel (outline) ───────────────────────────── */}
-        <rect x="16" y="-5.5" width="22" height="11" rx="2.5" fill="none" stroke={color} strokeWidth="1.5" />
-
-        {/* ── Liquid fill ────────────────────────────────── */}
-        <rect x="17.5" y="-4" width="13" height="8" rx="1.5" fill={color} opacity="0.22" />
+        {/* ── Barrel (solid) ─────────────────────────────── */}
+        <rect x="16" y="-5.5" width="22" height="11" rx="2.5" fill={color} stroke={color} strokeWidth="1.5" />
 
         {/* ── Graduation marks ───────────────────────────── */}
-        <line x1="23" y1="-4.5" x2="23" y2="4.5" stroke={color} strokeWidth="0.8" opacity="0.55" />
-        <line x1="28" y1="-4.5" x2="28" y2="4.5" stroke={color} strokeWidth="0.8" opacity="0.55" />
-        <line x1="33" y1="-4.5" x2="33" y2="4.5" stroke={color} strokeWidth="0.8" opacity="0.55" />
+        <line x1="23" y1="-4.5" x2="23" y2="4.5" stroke="#fff" strokeWidth="0.8" opacity="0.6" />
+        <line x1="28" y1="-4.5" x2="28" y2="4.5" stroke="#fff" strokeWidth="0.8" opacity="0.6" />
+        <line x1="33" y1="-4.5" x2="33" y2="4.5" stroke="#fff" strokeWidth="0.8" opacity="0.6" />
 
         {/* ── Plunger rod ────────────────────────────────── */}
         <rect x="38" y="-1" width="4" height="2" fill={color} />
@@ -62,8 +59,8 @@ function SyringeSVG({ color, scale }: { color: string; scale: number }) {
         <rect x="42" y="-5.5" width="3.5" height="11" rx="1.5" fill={color} />
 
         {/* ── Plunger finger flanges (thumb grips) ───────── */}
-        <rect x="41" y="-8" width="5.5" height="2.5" rx="1" fill={color} opacity="0.8" />
-        <rect x="41" y="5.5" width="5.5" height="2.5" rx="1" fill={color} opacity="0.8" />
+        <rect x="41" y="-8" width="5.5" height="2.5" rx="1" fill={color} />
+        <rect x="41" y="5.5" width="5.5" height="2.5" rx="1" fill={color} />
       </g>
     </svg>
   )
@@ -156,9 +153,6 @@ export function CustomCursor() {
           translateY: `${TIP_OFFSET}px`,
           opacity: visible ? 1 : 0,
           transition: "opacity 0.2s",
-          filter: hovering
-            ? `drop-shadow(0 0 6px ${ROSE}80)`
-            : `drop-shadow(0 0 4px ${VINTAGE_GOLD}60)`,
         }}
       >
         <SyringeSVG color={color} scale={clicked ? 0.88 : 1} />
