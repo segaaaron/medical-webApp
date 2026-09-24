@@ -17,7 +17,8 @@ export function AnalyticsScripts() {
       {UMAMI_URL && UMAMI_WEBSITE_ID && (
         <Script
           defer
-          src={`${UMAMI_URL}/script.js`}
+          // Mismo origen: ver rewrites en next.config.mjs y app/api/send.
+          src="/script.js"
           data-website-id={UMAMI_WEBSITE_ID}
           strategy="afterInteractive"
         />

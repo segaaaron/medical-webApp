@@ -56,6 +56,23 @@ const nextConfig = {
     ]
   },
 
+  /**
+   * El tracker de Umami se sirve desde nuestro dominio: los bloqueadores que
+   * filtran hosts `analytics.*` no lo ven. El script es un archivo estático y
+   * basta el rewrite; el recolector (`/api/send`) es un Route Handler porque
+   * tiene que pasarle a Umami la IP real del visitante.
+   *
+   * beforeFiles: se resuelve antes que `public/` y las rutas de la app.
+   * NEXT_PUBLIC_UMAMI_URL llega en build (ARG del Dockerfile), que es cuando
+   * se congelan los rewrites.
+   */
+  async rewrites() {
+    const umami = process.env.NEXT_PUBLIC_UMAMI_URL
+    return {
+      beforeFiles: umami ? [{ source: "/script.js", destination: `${umami}/script.js` }] : [],
+    }
+  },
+
   output: "standalone",
 
   /**
