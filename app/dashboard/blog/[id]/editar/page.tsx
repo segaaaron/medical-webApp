@@ -1,5 +1,7 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
+import { ensureSession } from "@/lib/session-state"
+import { compressImage } from "@/lib/image-compress"
 
 import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
@@ -12,6 +14,7 @@ import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 import { resolveImageUrl } from "@/lib/image-utils"
 import RichTextEditor from "@/components/dashboard/RichTextEditor"
+import { BlogDraftBanner, blogDraftKey, useBlogDraft } from "@/components/dashboard/BlogDraft"
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
@@ -46,13 +49,16 @@ export default function EditarBlogPage() {
     validationSchema: blogSchema,
     enableReinitialize: true,
     onSubmit: async (values) => {
+      // Sesión expirada → aviso inmediato, en vez de subir la imagen minutos
+      // para recibir un 401 al final. El borrador local ya tiene el texto.
+      if (!(await ensureSession())) return
       try {
         const fd = new FormData()
         fd.append("title", values.title)
         fd.append("excerpt", values.excerpt)
         fd.append("content", values.content)
         fd.append("published", String(values.published))
-        if (imageFile) fd.append("image", imageFile)
+        if (imageFile) fd.append("image", await compressImage(imageFile))
         else if (imageRemoved) fd.append("image", "")
 
         const res = await guardedFetch(`/api/blog/${id}`, {
@@ -61,6 +67,7 @@ export default function EditarBlogPage() {
         })
 
         if (res.ok) {
+          draft.clear()
           showToast("success", "¡Artículo actualizado exitosamente!")
           router.push("/dashboard/blog")
         } else {
@@ -71,6 +78,15 @@ export default function EditarBlogPage() {
         showToast("error", "No se pudo conectar al servidor.")
       }
     },
+  })
+
+  const draft = useBlogDraft({
+    storageKey: blogDraftKey(id),
+    values: formik.values,
+    baseline: formInitialValues,
+    ready: !loading,
+    hasImage: imageFile !== null,
+    onRecover: (values) => formik.setValues(values),
   })
 
   useEffect(() => {
@@ -133,6 +149,8 @@ export default function EditarBlogPage() {
 
       <h1 className="text-2xl font-bold text-gray-800 mb-1">Editar articulo</h1>
       <p className="text-sm text-gray-500 mb-6">Modifica los campos y guarda los cambios.</p>
+
+      <BlogDraftBanner draft={draft} />
 
       <form onSubmit={formik.handleSubmit} noValidate>
         <EditorCard title="Contenido del articulo">

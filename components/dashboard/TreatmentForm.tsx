@@ -8,6 +8,7 @@ import { Check } from "lucide-react"
 import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { ImageDropzone } from "@/components/ui/ImageDropzone"
+import { compressImage } from "@/lib/image-compress"
 import RichTextEditor from "@/components/dashboard/RichTextEditor"
 
 const TAGS = ["POPULAR", "INNOVADOR", "RECOMENDADO", "DEFINITIVO", "ESENCIAL", "ESPECIALIZADO"]
@@ -272,18 +273,18 @@ export function TreatmentForm({
   )
 }
 
-export function buildTreatmentFormData(values: TreatmentFormValues): FormData {
+export async function buildTreatmentFormData(values: TreatmentFormValues): Promise<FormData> {
   const fd = new FormData()
   fd.append("name", values.name)
   fd.append("tag", values.tag ?? "")
   fd.append("description", values.description)
   fd.append("price", values.price ?? "")
   fd.append("active", String(values.active))
-  if (values.imageFile) fd.append("image", values.imageFile)
+  if (values.imageFile) fd.append("image", await compressImage(values.imageFile))
   else if (values.imageRemoved) fd.append("image", "")
-  if (values.beforeImageFile) fd.append("beforeImage", values.beforeImageFile)
+  if (values.beforeImageFile) fd.append("beforeImage", await compressImage(values.beforeImageFile))
   else if (values.beforeImageRemoved) fd.append("beforeImage", "")
-  if (values.afterImageFile) fd.append("afterImage", values.afterImageFile)
+  if (values.afterImageFile) fd.append("afterImage", await compressImage(values.afterImageFile))
   else if (values.afterImageRemoved) fd.append("afterImage", "")
   return fd
 }

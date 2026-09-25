@@ -1,7 +1,30 @@
 // Web Crypto API — compatible with Node.js 18+ (API routes) and Edge Runtime (middleware)
 
 export const COOKIE_NAME = "jn_session"
-const TOKEN_TTL_MS = 2 * 60 * 60 * 1000 // 2 hours
+
+// OWASP Session Management: timeout por inactividad + timeout absoluto.
+// Antes el token vivía 2 h ABSOLUTAS y nunca se renovaba: la doctora escribió
+// un artículo durante más de 2 h, pulsó Guardar y el servidor respondió 401.
+// Ahora cada renovación (ver `/api/auth/session`) corre la ventana de
+// inactividad, pero nunca más allá de `iat + ABSOLUTE_TTL_MS`.
+export const IDLE_TTL_MS = 60 * 60 * 1000 // 60 min sin actividad
+export const ABSOLUTE_TTL_MS = 8 * 60 * 60 * 1000 // 8 h desde el login
+// Duración fija de los tokens antiguos (`user:exp`), para deducir su login.
+const LEGACY_TTL_MS = 2 * 60 * 60 * 1000
+// La cookie sobrevive un día al límite absoluto: un token caducado es inútil
+// (verifyToken lo rechaza) pero, si el navegador lo borrara justo a las 8 h, al
+// recargar el login aparecería sin «Tu sesión expiró».
+const COOKIE_GRACE_MS = 24 * 60 * 60 * 1000
+
+export interface Session {
+  user: string
+  /** Momento del login (ms). */
+  iat: number
+  /** Expira si no se renueva antes de este instante (ms). */
+  idleExp: number
+  /** Límite duro: iat + 8 h (ms). */
+  absExp: number
+}
 
 function getSecret(): string {
   const secret = process.env.DASHBOARD_SECRET
@@ -33,15 +56,38 @@ async function hmac(data: string, secret: string): Promise<string> {
     .join("")
 }
 
-export async function signToken(user: string): Promise<string> {
-  const exp = Date.now() + TOKEN_TTL_MS
-  const payload = `${user}:${exp}`
+/**
+ * Firma un token de sesión. `iat` = momento del login: al renovar se pasa el
+ * original para que la ventana de inactividad nunca supere el límite absoluto.
+ * Payload v2: `v2:user:iat:idleExp`.
+ */
+export async function signToken(user: string, iat = Date.now(), now = Date.now()): Promise<string> {
+  const idleExp = Math.min(now + IDLE_TTL_MS, iat + ABSOLUTE_TTL_MS)
+  const payload = `v2:${user}:${iat}:${idleExp}`
   const signature = await hmac(payload, getSecret())
   // Token = base64(payload) + "." + hex(signature)
   return `${btoa(payload)}.${signature}`
 }
 
-export async function verifyToken(token: string): Promise<{ user: string } | null> {
+/**
+ * Opciones de la cookie de sesión. Vive hasta el límite ABSOLUTO, no la ventana
+ * de inactividad: así un token caducado por inactividad sigue llegando al
+ * middleware, que lo rechaza (verifyToken aplica la inactividad) y manda al
+ * login con `reason=expired` → «Tu sesión expiró». Si el navegador borrara la
+ * cookie, el login aparecería sin explicación (de ahí también COOKIE_GRACE_MS).
+ * Logout la borra (absExp 0).
+ */
+export function sessionCookieOptions(session: Pick<Session, "absExp">, now = Date.now()) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    path: "/",
+    maxAge: session.absExp ? Math.max(0, Math.ceil((session.absExp + COOKIE_GRACE_MS - now) / 1000)) : 0,
+  }
+}
+
+export async function verifyToken(token: string, now = Date.now()): Promise<Session | null> {
   try {
     const dotIndex = token.indexOf(".")
     if (dotIndex === -1) return null
@@ -60,11 +106,26 @@ export async function verifyToken(token: string): Promise<{ user: string } | nul
     }
     if (diff !== 0) return null
 
-    const [user, expStr] = payload.split(":")
-    const exp = Number(expStr)
-    if (!user || isNaN(exp) || Date.now() > exp) return null
+    const parts = payload.split(":")
+    let session: Session
+    if (parts.length === 4 && parts[0] === "v2") {
+      const iat = Number(parts[2])
+      const idleExp = Number(parts[3])
+      session = { user: parts[1], iat, idleExp, absExp: iat + ABSOLUTE_TTL_MS }
+    } else if (parts.length === 2) {
+      // Token antiguo `user:exp` (2 h fijas): válido hasta su exp. Al renovarlo
+      // se toma como login exp − 2 h, así también queda sujeto al límite de 8 h.
+      const exp = Number(parts[1])
+      session = { user: parts[0], iat: exp - LEGACY_TTL_MS, idleExp: exp, absExp: exp }
+    } else {
+      return null
+    }
 
-    return { user }
+    const { user, iat, idleExp, absExp } = session
+    if (!user || !Number.isFinite(iat) || !Number.isFinite(idleExp)) return null
+    if (now > idleExp || now > absExp) return null
+
+    return session
   } catch {
     return null
   }

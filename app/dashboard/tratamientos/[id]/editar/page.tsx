@@ -62,7 +62,7 @@ export default function EditarTratamientoPage() {
     try {
       const res = await guardedFetch(`/api/treatments/${id}`, {
         method: "PUT",
-        body: buildTreatmentFormData(values),
+        body: await buildTreatmentFormData(values),
       })
 
       if (res.ok) {

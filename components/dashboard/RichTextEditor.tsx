@@ -159,7 +159,10 @@ export default function RichTextEditor({
   useEffect(() => {
     if (!editor) return
     if (editor.getHTML() !== value && value !== undefined) {
-      editor.commands.setContent(value || "")
+      // Sin emitir onUpdate: sincronizar un valor externo no es una edición. Si no,
+      // el HTML normalizado por TipTap volvía a formik como cambio y el borrador
+      // del blog se guardaba (y se ofrecía recuperar) sin haber tocado nada.
+      editor.commands.setContent(value || "", { emitUpdate: false })
     }
   }, [value, editor])
 

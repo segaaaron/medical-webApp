@@ -18,7 +18,10 @@ function LoginForm() {
   const router = useRouter()
   const params = useSearchParams()
   const rawFrom = params.get("from") ?? "/dashboard"
-  const from = rawFrom.startsWith("/") && !rawFrom.startsWith("//") ? rawFrom : "/dashboard"
+  // Solo rutas del panel. `/\evil.com` pasaba el filtro anterior y el navegador
+  // lo trata como `//evil.com` (redirección abierta tras el login).
+  const from = rawFrom.startsWith("/dashboard") && !rawFrom.includes("\\") ? rawFrom : "/dashboard"
+  const sessionExpired = params.get("reason") === "expired"
 
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -77,6 +80,11 @@ function LoginForm() {
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <h2 className="font-bold text-gray-800 text-lg mb-6">Iniciar sesión</h2>
+          {sessionExpired && (
+            <p role="status" className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-4">
+              Tu sesión expiró. Vuelve a iniciar sesión para continuar donde te quedaste.
+            </p>
+          )}
 
           <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">

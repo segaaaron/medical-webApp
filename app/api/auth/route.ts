@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { signToken, verifyToken, COOKIE_NAME } from "@/lib/auth/session"
+import { signToken, verifyToken, sessionCookieOptions, ABSOLUTE_TTL_MS, COOKIE_NAME } from "@/lib/auth/session"
 import {
   BACKEND_ACCESS_COOKIE,
   BACKEND_REFRESH_COOKIE,
@@ -50,14 +50,6 @@ function isRateLimited(ip: string): boolean {
   return false
 }
 
-const SESSION_COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 2 * 60 * 60, // 2 horas
-}
-
 // POST /api/auth — login
 export async function POST(req: NextRequest) {
   try {
@@ -104,9 +96,10 @@ export async function POST(req: NextRequest) {
     const { accessToken, refreshToken, user } = await backendRes.json()
 
     // Create dashboard session cookie (HMAC-based, compatible with middleware)
+    // maxAge = límite absoluto (8 h); la inactividad la aplica verifyToken.
     const sessionToken = await signToken(user.email)
     const cookieStore = await cookies()
-    cookieStore.set(COOKIE_NAME, sessionToken, SESSION_COOKIE_OPTIONS)
+    cookieStore.set(COOKIE_NAME, sessionToken, sessionCookieOptions({ absExp: Date.now() + ABSOLUTE_TTL_MS }))
 
     // Store backend JWT tokens for use in API routes
     cookieStore.set(BACKEND_ACCESS_COOKIE, accessToken, ACCESS_COOKIE_OPTIONS)
@@ -130,7 +123,7 @@ export async function DELETE() {
     await revokeBackendRefreshToken(refreshToken)
   }
 
-  cookieStore.set(COOKIE_NAME, "", { ...SESSION_COOKIE_OPTIONS, maxAge: 0 })
+  cookieStore.set(COOKIE_NAME, "", sessionCookieOptions({ absExp: 0 }))
   cookieStore.set(BACKEND_ACCESS_COOKIE, "", CLEAR_COOKIE_OPTIONS)
   cookieStore.set(BACKEND_REFRESH_COOKIE, "", CLEAR_COOKIE_OPTIONS)
 

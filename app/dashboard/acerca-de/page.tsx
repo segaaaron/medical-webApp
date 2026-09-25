@@ -1,5 +1,6 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
+import { compressImage } from "@/lib/image-compress"
 
 import { useEffect, useState } from "react"
 import { useFormik } from "formik"
@@ -149,16 +150,16 @@ export default function AcercaDeDashboardPage() {
       try {
         // Siempre multipart: soporta imagen del doctor + archivos de galería + campos string.
         const fd = new FormData()
-        if (imageFile) fd.append("image", imageFile)
+        if (imageFile) fd.append("image", await compressImage(imageFile))
         Object.entries(values).forEach(([key, val]) => {
           if (key === "imageUrl") return
           fd.append(key, val)
         })
         // Galería por posición: archivo nuevo (galleryImage{i}) o URL existente a conservar (galleryUrl{i}).
-        gallery.forEach((slot, i) => {
-          if (slot.file) fd.append(`galleryImage${i}`, slot.file)
+        for (const [i, slot] of gallery.entries()) {
+          if (slot.file) fd.append(`galleryImage${i}`, await compressImage(slot.file))
           else if (slot.url) fd.append(`galleryUrl${i}`, slot.url)
-        })
+        }
 
         const res = await guardedFetch("/api/about", { method: "PUT", body: fd })
 

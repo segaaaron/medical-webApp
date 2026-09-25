@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useRef, useState } from "react"
 import { CheckCircle2, XCircle, X } from "lucide-react"
+import { getSessionSnapshot } from "@/lib/session-state"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const showToast = useCallback(
     (variant: ToastVariant, message: string) => {
+      // Con la sesión expirada, el error real ya lo explica el aviso de
+      // `SessionKeeper`; un «No se pudo guardar» genérico encima confunde.
+      if (variant === "error" && getSessionSnapshot().expired) return
       const id = ++counter.current
       setToasts((prev) => [...prev, { id, variant, message }])
       setTimeout(() => dismiss(id), 4000)

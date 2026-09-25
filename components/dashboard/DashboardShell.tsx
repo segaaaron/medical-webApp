@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar"
 import { ToastProvider } from "./Toast"
 import { GlobalLoadingProvider } from "./GlobalLoadingProvider"
 import { ConfirmProvider } from "./ConfirmDialog"
+import { SessionKeeper } from "./SessionKeeper"
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -52,6 +53,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </div>
+    <SessionKeeper />
     </ConfirmProvider>
     </GlobalLoadingProvider>
     </ToastProvider>

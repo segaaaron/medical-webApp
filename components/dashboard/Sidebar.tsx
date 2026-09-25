@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useConfirm, LOGOUT_CONFIRM } from "./ConfirmDialog"
+import { endSession } from "@/lib/session-state"
 import { useEffect, useState } from "react"
 import {
   LayoutDashboard,
@@ -125,7 +126,9 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
   async function handleLogout() {
     if (!(await confirm(LOGOUT_CONFIRM))) return
-    await fetch("/api/auth", { method: "DELETE" })
+    await endSession()
+    // Sin `catch`, un fallo de red dejaba la pestaña sin renovar ni avisar.
+    await fetch("/api/auth", { method: "DELETE" }).catch(() => {})
     window.location.href = "/dashboard/login"
   }
 

@@ -1,5 +1,6 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
+import { compressImage } from "@/lib/image-compress"
 
 import { useEffect, useState } from "react"
 import { useFormik } from "formik"
@@ -90,7 +91,7 @@ export default function PromocionesPage() {
           fd.append(key, String(val))
         })
         if (imageFile) {
-          fd.append("image", imageFile)
+          fd.append("image", await compressImage(imageFile))
         }
 
         const res = await guardedFetch("/api/promo-banner", { method: "PUT", body: fd })

@@ -1,5 +1,6 @@
 "use client"
 import { guardedFetch } from "@/lib/client-fetch"
+import { compressImage } from "@/lib/image-compress"
 
 import { useEffect, useState } from "react"
 import { useFormik } from "formik"
@@ -78,7 +79,7 @@ export default function TratamientosInfoPage() {
         responseData.append("consultationTitle", values.consultationTitle)
         responseData.append("consultationItems", JSON.stringify(values.consultationItems))
         if (imageFile) {
-          responseData.append("doctorImage", imageFile)
+          responseData.append("doctorImage", await compressImage(imageFile))
         } else {
           responseData.append("doctorImage", "")
         }

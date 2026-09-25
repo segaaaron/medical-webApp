@@ -24,7 +24,7 @@ export default function NuevoTratamientoPage() {
     try {
       const res = await guardedFetch("/api/treatments", {
         method: "POST",
-        body: buildTreatmentFormData(values),
+        body: await buildTreatmentFormData(values),
       })
 
       if (res.ok) {

@@ -65,6 +65,8 @@ export async function middleware(request: NextRequest) {
   if (!valid) {
     const loginUrl = new URL("/dashboard/login", request.url)
     loginUrl.searchParams.set("from", pathname)
+    // Había cookie pero caducó: el login lo explica en vez de aparecer sin más.
+    loginUrl.searchParams.set("reason", "expired")
     return applySecurityHeaders(NextResponse.redirect(loginUrl), requestId)
   }
 

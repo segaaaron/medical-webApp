@@ -1,6 +1,7 @@
 "use client"
 
 import { startLoading } from "./global-loading"
+import { checkSession } from "./session-state"
 
 export interface GuardedFetchOptions {
   /** Skip the global loading overlay (polling / background refreshes). */
@@ -13,7 +14,10 @@ export interface GuardedFetchOptions {
  * Drop-in replacement for fetch() in dashboard Client Components.
  * Drives the global loading overlay (see `lib/global-loading.ts`) so feedback
  * is full-screen instead of living inside each button.
- * On 401, attempts session cleanup and redirects to login.
+ * On 401, opens the "session expired" dialog (see `SessionKeeper`) and returns
+ * the response untouched — never a silent logout/redirect: the page keeps its
+ * unsaved state until the user chooses to log in again. Error toasts are
+ * muted while that dialog is open, so callers need no special handling.
  * Only use in authenticated dashboard context — never for public web fetches.
  */
 export async function guardedFetch(
@@ -30,15 +34,9 @@ export async function guardedFetch(
     stopLoading?.()
   }
 
-  if (res.status === 401) {
-    try {
-      await fetch("/api/auth", { method: "DELETE" })
-    } catch {
-      // best-effort logout
-    }
-    const from = encodeURIComponent(window.location.pathname)
-    window.location.href = `/dashboard/login?from=${from}`
-  }
+  // Confirms with /api/auth/session before showing the dialog (a 401 forwarded
+  // from the backend is not a dashboard-session expiry); if expired, it opens.
+  if (res.status === 401) await checkSession()
 
   return res
 }
