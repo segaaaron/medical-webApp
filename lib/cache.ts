@@ -99,9 +99,8 @@ function invalidate(
 }
 
 /**
- * Reseñas: se listan en la home y en Sobre Nosotros, y alimentan el
- * `aggregateRating` del JSON-LD de ambas. Aprobar o borrar una reseña debe
- * reflejarse al instante.
+ * Reseñas: se listan en la home y en Sobre Nosotros. Aprobar o borrar una
+ * reseña debe reflejarse al instante.
  */
 export function revalidateReviews(): void {
   invalidate("reviews", [

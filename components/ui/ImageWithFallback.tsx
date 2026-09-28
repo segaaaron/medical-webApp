@@ -204,6 +204,7 @@ export function ImageWithFallback({
       alt={alt}
       loading={loading}
       decoding={decoding}
+      fetchPriority={loading === "eager" ? "high" : undefined}
       className={imgClassName}
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition }}
       onLoad={() => setLoaded(true)}
@@ -219,6 +220,9 @@ export function ImageWithFallback({
       className={imgClassName}
       style={{ objectFit: "cover", objectPosition }}
       priority={loading === "eager"}
+      // `priority` solo precarga; sin esto el <img> sale con prioridad baja
+      // y en la ficha de tratamiento (donde es el LCP) llegaba tarde.
+      fetchPriority={loading === "eager" ? "high" : undefined}
       onLoad={() => setLoaded(true)}
       onError={() => setFailed(true)}
     />

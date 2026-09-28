@@ -2,7 +2,7 @@ import { getAbout, statsClaim } from "@/lib/content/about"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { getFooter } from "@/lib/content/footer"
 import { getNavLinks } from "@/lib/content/site-main"
-import { getReviews, type PublicReview, type ReviewAggregate } from "@/lib/content/reviews"
+import { getReviews } from "@/lib/content/reviews"
 import { getActiveTreatments } from "@/lib/content/treatments"
 import { getContact, businessContactOf } from "@/lib/content/contact"
 import { getSiteSeo } from "@/lib/content/seo"
@@ -40,8 +40,6 @@ const breadcrumbLd = {
 }
 
 function buildAboutJsonLd(
-  reviews: PublicReview[],
-  aggregate: ReviewAggregate | null,
   treatments: TreatmentRef[],
   perfiles: string[],
   // Teléfono de Dashboard → Contacto (o de su respaldo entero).
@@ -79,15 +77,9 @@ function buildAboutJsonLd(
           containedInPlace: { "@type": "Country", name: "Bolivia" },
         },
       },
-      ...(reviews.length > 0 && aggregate ? {
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: aggregate.avg_rating.toFixed(1),
-          reviewCount: String(aggregate.total_count),
-          bestRating: "5",
-          worstRating: "1",
-        },
-      } : {}),
+      // Sin `aggregateRating`: reseñas que la propia entidad publica sobre sí
+      // misma («self-serving») son inelegibles para las estrellas en Google y
+      // marcarlas arriesga una acción manual. Se muestran solo como contenido.
       // Perfiles del panel, no escritos a mano: la lista fija se quedó sin
       // TikTok y contradecía la del layout sobre la misma entidad.
       sameAs: perfiles,
@@ -116,8 +108,6 @@ export default async function NosotrosPage() {
     .filter(Boolean)
 
   const aboutJsonLd = buildAboutJsonLd(
-    approvedReviews,
-    reviewAggregate,
     treatments.data,
     perfilesSociales,
     businessContactOf(contact.data).telephone,

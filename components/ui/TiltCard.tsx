@@ -1,6 +1,7 @@
 "use client"
 import { useRef, useState, useEffect } from "react"
-import { m, useSpring, useReducedMotion } from "framer-motion"
+import { m, useSpring } from "framer-motion"
+import { useReducedMotionSafe } from "@/lib/hooks/use-reduced-motion"
 
 interface TiltCardProps {
   children: React.ReactNode
@@ -17,7 +18,7 @@ export function TiltCard({
   glowColor = "var(--vintage-gold)",
   intensity = 8,
 }: TiltCardProps) {
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = useReducedMotionSafe()
   const ref = useRef<HTMLDivElement>(null)
   const isHoverDevice = useRef(false)
   const [hovered, setHovered] = useState(false)

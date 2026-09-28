@@ -15,24 +15,56 @@ import type { Metadata } from "next"
  * @param suffix Cierre fijo (marca, ciudad, llamada a la acción).
  * @param limit  Longitud máxima del resultado completo.
  */
-export function buildMetaDescription(html: string, suffix: string, limit = 158): string {
-  const plain = (html ?? "")
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
+export function buildMetaDescription(html: string, suffix: string, limit = 155): string {
+  const plain = decodeEntities(
+    (html ?? "")
+      // Fin de bloque = salto de línea, para reconocer la firma como línea propia.
+      .replace(/<\/(p|div|h[1-6]|li)>|<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]*>/g, " ")
+  )
+    // Firma inicial («Por: Dra. …»): no describe nada.
+    .replace(/^\s*Por:[^\n]*\n/i, "")
+  // Rótulos iniciales (títulos, credenciales, «Introducción»): bloques cortos
+  // sin puntuación final. La descripción empieza en el primer bloque con frase.
+  const blocks = plain.split("\n").map((b) => b.replace(/\s+/g, " ").trim()).filter(Boolean)
+  const first = blocks.findIndex((b) => b.length > 80 || /[.?!:…"”»)]$/.test(b))
+  const text = (first > 0 ? blocks.slice(first) : blocks)
+    .join(" ")
+    .replace(/^\d+\.\s+/, "") // numeración suelta («1. »)
 
-  if (!plain) return suffix.trim()
+  if (!text) return suffix.trim()
 
   const room = limit - suffix.length
-  if (plain.length <= room) return `${plain}${suffix}`
+  if (text.length <= room) return `${text}${suffix}`
 
-  const cut = plain.slice(0, room)
+  const cut = text.slice(0, room)
   // Preferir cerrar en frase completa; si no la hay, en la última palabra entera.
   const sentence = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("? "), cut.lastIndexOf("! "))
   const word = cut.lastIndexOf(" ")
   const head = sentence > room * 0.5 ? cut.slice(0, sentence + 1) : `${cut.slice(0, word)}…`
 
   return `${head.trim()}${suffix}`
+}
+
+const ENTIDADES: Record<string, string> = {
+  nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'",
+  laquo: "«", raquo: "»", ldquo: "“", rdquo: "”", lsquo: "‘", rsquo: "’",
+  hellip: "…", ndash: "–", mdash: "—", iexcl: "¡", iquest: "¿", ordm: "º", ordf: "ª", deg: "°",
+  aacute: "á", eacute: "é", iacute: "í", oacute: "ó", uacute: "ú", ntilde: "ñ", uuml: "ü",
+  Aacute: "Á", Eacute: "É", Iacute: "Í", Oacute: "Ó", Uacute: "Ú", Ntilde: "Ñ", Uuml: "Ü",
+}
+
+/**
+ * Decodifica entidades HTML (las nombradas comunes y todas las numéricas) en
+ * una sola pasada: `&amp;nbsp;` queda como «&nbsp;» literal, no como espacio.
+ * Sin esto, Google mostraba «&nbsp;» tal cual en el fragmento.
+ */
+function decodeEntities(text: string): string {
+  return text.replace(/&(#x[\da-f]+|#\d+|[a-z]+);/gi, (m, e: string) => {
+    if (e[0] !== "#") return ENTIDADES[e] ?? m
+    const code = e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)
+    return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : m
+  })
 }
 
 /**

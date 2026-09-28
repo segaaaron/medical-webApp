@@ -30,6 +30,9 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "700"],
   display: "swap",
+  // Sin preload: Playfair solo aparece en los h2 bajo el pliegue; precargarla
+  // competía con el texto del hero (LCP). El fallback ajustado evita el salto.
+  preload: false,
 });
 
 const cormorant = Cormorant_Garamond({
@@ -52,6 +55,9 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400"],
   display: "swap",
+  // Sin preload: solo etiquetas pequeñas (navbar, eyebrows); con swap no
+  // retrasan el LCP y su hueco no cambia el tamaño de la línea.
+  preload: false,
 });
 
 
@@ -92,6 +98,8 @@ export async function generateMetadata(): Promise<Metadata> {
       google: "mP89lsorVeyGLDWP6kHRjQUcD-TGByGX1O9b5324zf8",
       other: {
         "facebook-domain-verification": "t2p54dlzm9nvsr88bfsq4mum6ylk48",
+        // Bing Webmaster Tools: el código vive en el panel de despliegue.
+        ...(process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : {}),
       },
     },
     robots: {
@@ -203,9 +211,9 @@ function buildSiteJsonLd(
       // páginas y llevaba "4.9 sobre 523 reseñas" escrito a mano, un dato que
       // no existe en ninguna parte. Reseñas inventadas en datos estructurados
       // violan las directrices de Google (penalización manual) y, en salud,
-      // son publicidad engañosa. El rating real —calculado de las reseñas
-      // aprobadas— lo aportan `/` y `/nosotros` sobre esta misma entidad
-      // (@id #business), y solo cuando hay reseñas que respalden el número.
+      // son publicidad engañosa. Tampoco el rating real de las reseñas
+      // aprobadas: reseñas de la propia entidad sobre sí misma («self-serving»)
+      // son inelegibles para las estrellas. Ver app/page.tsx.
       // Servicios que el consultorio presta, derivados del panel. La lista
       // anterior estaba escrita a mano y anunciaba depilación láser, reducción
       // de medidas, celulitis y estrías, que no se ofrecen. Un dato falso en el

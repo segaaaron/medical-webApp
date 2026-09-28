@@ -115,7 +115,7 @@ export function AuthorBox({
         <div className="flex flex-col gap-2">
           <p
             className="text-xs font-semibold"
-            style={{ color: "var(--vintage-gold)", letterSpacing: "0.12em" }}
+            style={{ color: "var(--prem-accent-ink)", letterSpacing: "0.12em" }}
           >
             {eyebrow}
           </p>
@@ -147,7 +147,7 @@ export function AuthorBox({
                     target="_blank"
                     rel="noopener noreferrer me"
                     className="text-sm underline underline-offset-4 hover:opacity-80 transition-opacity"
-                    style={{ color: "var(--vintage-gold)" }}
+                    style={{ color: "var(--prem-accent-ink)" }}
                   >
                     {nombreDeRed(url)}
                   </a>
@@ -156,7 +156,7 @@ export function AuthorBox({
             </ul>
           )}
 
-          <p className="text-xs mt-2" style={{ color: "var(--primary-darkest)", opacity: 0.6 }}>
+          <p className="text-xs mt-2" style={{ color: "var(--primary-darkest)", opacity: 0.75 }}>
             Esta información es general y no sustituye una consulta médica presencial.
             Los resultados de cualquier procedimiento varían según cada paciente, y
             solo una valoración individual determina si es candidata.

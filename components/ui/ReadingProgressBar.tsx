@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect } from "react"
-import { m, useMotionValue, useSpring, useReducedMotion } from "framer-motion"
+import { m, useMotionValue, useSpring } from "framer-motion"
+import { useReducedMotionSafe } from "@/lib/hooks/use-reduced-motion"
 
 export function ReadingProgressBar() {
-  const prefersReduced = useReducedMotion()
+  const prefersReduced = useReducedMotionSafe()
   const raw = useMotionValue(0)
   const scaleX = useSpring(raw, { stiffness: 200, damping: 30, mass: 0.5 })
 

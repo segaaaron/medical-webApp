@@ -10,7 +10,9 @@ import { useToast } from "@/components/dashboard/Toast"
 import {
   CountedField,
   SEO_DESCRIPTION_MAX,
+  SEO_DESCRIPTION_RECOMMENDED,
   SEO_TITLE_MAX,
+  SEO_TITLE_RECOMMENDED,
   seoDescriptionSchema,
   seoTitleSchema,
 } from "@/components/dashboard/SeoFields"
@@ -108,6 +110,7 @@ export default function SeoPage() {
               label="Título en Google"
               hint="Título completo tal como aparece en Google (sin añadir la marca)."
               max={SEO_TITLE_MAX}
+              recommended={SEO_TITLE_RECOMMENDED}
               field={formik.getFieldProps(`${key}.title`)}
               error={formik.errors[key]?.title}
             />
@@ -115,6 +118,7 @@ export default function SeoPage() {
               id={`seo-${key}-description`}
               label="Descripción en Google"
               max={SEO_DESCRIPTION_MAX}
+              recommended={SEO_DESCRIPTION_RECOMMENDED}
               field={formik.getFieldProps(`${key}.description`)}
               error={formik.errors[key]?.description}
               multiline

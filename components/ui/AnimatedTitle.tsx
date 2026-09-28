@@ -1,7 +1,8 @@
 "use client"
 
 import { useRef } from "react"
-import { m, useInView, useReducedMotion } from "framer-motion"
+import { m, useInView } from "framer-motion"
+import { useReducedMotionSafe } from "@/lib/hooks/use-reduced-motion"
 
 interface AnimatedTitleProps {
   text: string
@@ -18,7 +19,7 @@ export function AnimatedTitle({
   delay = 0,
   light = false,
 }: AnimatedTitleProps) {
-  const shouldReduceMotion = useReducedMotion()
+  const shouldReduceMotion = useReducedMotionSafe()
   const ref = useRef<HTMLElement>(null)
   const inView = useInView(ref, { once: true, amount: 0.1 })
 

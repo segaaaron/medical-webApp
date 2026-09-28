@@ -1,23 +1,21 @@
 "use client"
 
-import { m, useReducedMotion } from "framer-motion"
+import { m } from "framer-motion"
 
 /**
  * Decorative ECG/heartbeat line that draws in on mount.
  * aria-hidden — purely visual.
  */
 export function EcgHero() {
-  const prefersReduced = useReducedMotion()
-
   // ECG path: flat → P-wave → flat → QRS spike → flat → T-wave → flat
   const path =
     "M0,30 L80,30 Q90,30 95,26 Q100,22 105,26 Q110,30 115,30 L160,30 L170,5 L180,55 L190,25 L200,30 L280,30 Q290,30 295,24 Q300,18 305,24 Q310,30 315,30 L600,30"
 
-  if (prefersReduced) return null
-
   return (
     <div
-      className="absolute left-0 right-0 pointer-events-none overflow-hidden"
+      // Oculto por CSS, no con `return null` según useReducedMotion: eso difería
+      // del HTML del servidor y rompía la hidratación de la página (#418).
+      className="absolute left-0 right-0 pointer-events-none overflow-hidden motion-reduce:hidden"
       style={{ bottom: "72px", height: "60px", opacity: 0.18 }}
       aria-hidden="true"
     >

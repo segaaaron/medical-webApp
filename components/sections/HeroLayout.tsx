@@ -1,13 +1,14 @@
 "use client"
 
 import { m, useReducedMotion, useScroll, useTransform } from "framer-motion"
-import { useSyncExternalStore } from "react"
+import { Fragment, useSyncExternalStore, type CSSProperties } from "react"
 import { LinkButton } from "@/components/ui/Button"
 import { StatCard } from "@/components/ui/StatCard"
 import { trackHeroCTA } from "@/lib/analytics"
 import type { HeroStat, HeroCTA } from "@/types"
 
-const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1]
+/** Estilo inline con las custom properties que leen las clases `hero-in*`. */
+type HeroStyle = CSSProperties & Record<`--${string}`, string>
 const VINTAGE_GOLD = "var(--vintage-gold)"
 
 /**
@@ -75,13 +76,7 @@ export interface HeroLayoutProps {
 
 export function HeroLayout({ tagline, doctorName, specialty, description, ctas, stats }: HeroLayoutProps) {
   const prefersReduced = useReducedMotion()
-  const charCount = doctorName.length
-  const center = (charCount - 1) / 2
-  // Last char animates at: delay 0.15 + (charCount-1)*0.028 + duration 0.55
-  const titleDuration = prefersReduced ? 0 : 0.15 + (charCount - 1) * 0.028 + 0.55
-  const specialtyWords = specialty.split(" ")
-  // Subtitle ends at: titleDuration + (words-1)*0.07 + duration 0.6
-  const subtitleDuration = prefersReduced ? 0 : titleDuration + (specialtyWords.length - 1) * 0.07 + 0.6
+  const center = (doctorName.length - 1) / 2
 
   const { scrollY } = useScroll()
   const videoY = useTransform(scrollY, [0, 600], ["0%", "30%"])
@@ -170,16 +165,17 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           Padding simétrico: el indicador de scroll ya no ocupa espacio en móvil
           —está oculto— y el `pb` grande desplazaba el centrado hacia arriba. */}
       <div className="hero__content relative z-[10] text-center text-white px-5 sm:px-6 max-w-5xl mx-auto py-10 sm:py-20">
-        {/* Eyebrow tagline — texto vacío en el panel = elemento oculto */}
-        {tagline && <m.p
-          initial={prefersReduced ? false : { opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
-          className="text-xs sm:text-sm md:text-base uppercase tracking-[0.22em] sm:tracking-[0.3em] mb-5 sm:mb-4 font-medium"
-          style={{ color: "var(--meteorite)" }}
+        {/* Entrada del hero SOLO con CSS y SIN opacidad (clases `hero-in*` en
+            globals.css). Antes era Framer Motion con `initial={{ opacity: 0 }}`:
+            el HTML del servidor llegaba invisible y el texto no se pintaba hasta
+            hidratar — el párrafo de descripción era el LCP y tardaba 11 s en
+            móvil. Ahora todo se pinta en el primer frame y solo se desplaza. */}
+        {tagline && <p
+          className="hero-in text-xs sm:text-sm md:text-base uppercase tracking-[0.22em] sm:tracking-[0.3em] mb-5 sm:mb-4 font-medium"
+          style={{ color: "var(--meteorite)", "--hero-from": "-14px" } as HeroStyle}
         >
           {tagline}
-        </m.p>}
+        </p>}
 
         {/* Doctor name — letter assembly from sides */}
         {doctorName && <h1
@@ -193,29 +189,15 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
               <span key={wordIdx} aria-hidden="true" style={{ display: "inline-flex", whiteSpace: "nowrap" }}>
                 {word.split("").map((char, charIdx) => {
                   const i = charOffset + charIdx
-                  const dist = i - center
-                  // `initial` NO puede depender de estado que cambie tras
-                  // hidratar. Si lo hace, Framer Motion recibe un valor inicial
-                  // distinto en el re-render posterior a la hidratación,
-                  // reinicia la animación y las letras se quedan congeladas en
-                  // opacity 0. Este cálculo es constante a propósito.
-                  const xStart = dist < 0
-                    ? Math.max(-600, dist * 48)
-                    : Math.min(600, dist * 48)
+                  const x = Math.max(-140, Math.min(140, (i - center) * 12))
                   return (
-                    <m.span
+                    <span
                       key={charIdx}
-                      style={{ display: "inline-block" }}
-                      initial={prefersReduced ? false : { x: xStart, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
-                      transition={{
-                        duration: 0.55,
-                        delay: 0.15 + i * 0.028,
-                        ease: EASE_OUT_EXPO,
-                      }}
+                      className="hero-in-letter"
+                      style={{ "--hero-x": `${x}px`, "--hero-delay": `${0.1 + i * 0.022}s` } as HeroStyle}
                     >
                       {char}
-                    </m.span>
+                    </span>
                   )
                 })}
               </span>
@@ -223,54 +205,47 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           })}
         </h1>}
 
-        {/* Specialty subtitle — word-by-word slide up, after title */}
+        {/* Specialty subtitle — word-by-word rise, after title.
+            Sin aria-label: en un <p> está prohibido. Las palabras son texto real
+            y el espacio entre ellas lo lee el lector (flex no lo pinta). */}
         {specialty && <p
           className="italic font-light text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-6 sm:mb-6 leading-snug"
-          style={{ color: "#fce4ec", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 0.25em" }}
-          aria-label={specialty}
+          style={{ color: "var(--meteorite-light)", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 0.25em" }}
         >
           {specialty.split(" ").map((word, i) => (
-            <span key={i} style={{ overflow: "hidden", display: "inline-block" }}>
-              <m.span
-                aria-hidden="true"
-                style={{ display: "inline-block" }}
-                initial={prefersReduced ? false : { y: "110%", opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: titleDuration + i * 0.07, ease: EASE_OUT_EXPO }}
+            <Fragment key={i}>
+              {i > 0 && " "}
+              <span
+                className="hero-in-soft"
+                style={{ display: "inline-block", "--hero-delay": `${0.45 + i * 0.07}s` } as HeroStyle}
               >
                 {word}
-              </m.span>
-            </span>
+              </span>
+            </Fragment>
           ))}
         </p>}
 
         {/* Gold divider */}
-        <m.div
-          initial={prefersReduced ? false : { opacity: 0, scaleX: 0 }}
-          animate={{ opacity: 1, scaleX: 1 }}
-          transition={{ duration: 0.6, delay: subtitleDuration + 0.05, ease: EASE_OUT_EXPO }}
-          className="w-20 sm:w-24 h-0.5 mx-auto mb-7 sm:mb-8 origin-center"
-          style={{ backgroundColor: VINTAGE_GOLD }}
+        <div
+          className="hero-in-line w-20 sm:w-24 h-0.5 mx-auto mb-7 sm:mb-8 origin-center"
+          style={{ backgroundColor: VINTAGE_GOLD, "--hero-delay": "0.7s" } as HeroStyle}
         />
 
         {/* Description */}
-        {description && <m.p
-          initial={prefersReduced ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: subtitleDuration + 0.2 }}
+        {description && <p
           className="hero__description text-base sm:text-lg md:text-2xl mb-9 sm:mb-10 max-w-3xl mx-auto font-light leading-relaxed"
-          style={{ color: "#fce4ec" }}
+          // Sin animación a propósito: es el LCP de la home y debe pintarse
+          // estable en el primer frame, sin transform ni filtro pendientes.
+          style={{ color: "var(--meteorite-light)" }}
         >
           {description}
-        </m.p>}
+        </p>}
 
         {/* CTAs — a ancho completo en móvil (objetivo táctil holgado),
             en fila desde sm. */}
-        <m.div
-          initial={prefersReduced ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: subtitleDuration + 0.45 }}
-          className="flex flex-col sm:flex-row gap-3.5 sm:gap-4 justify-center items-stretch sm:items-center w-full max-w-sm sm:max-w-none mx-auto"
+        <div
+          className="hero-in flex flex-col sm:flex-row gap-3.5 sm:gap-4 justify-center items-stretch sm:items-center w-full max-w-sm sm:max-w-none mx-auto"
+          style={{ "--hero-delay": "0.75s" } as HeroStyle}
         >
           {ctas.map((cta, idx) => (
             <LinkButton
@@ -283,28 +258,22 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
               {cta.label}
             </LinkButton>
           ))}
-        </m.div>
+        </div>
 
         {/* Stats — en fila de 3 desde el móvil.
             Apiladas con gap-8 y mt-16 añadían ~250px de alto y eran la causa
             principal de que el contenido rebasara la pantalla. */}
-        <m.div
-          initial={prefersReduced ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: subtitleDuration + 0.75 }}
-          className="mt-11 sm:mt-12 md:mt-16 grid grid-cols-3 gap-3 sm:flex sm:flex-row sm:gap-8 justify-center items-start sm:items-center"
-        >
+        <div className="mt-11 sm:mt-12 md:mt-16 grid grid-cols-3 gap-3 sm:flex sm:flex-row sm:gap-8 justify-center items-start sm:items-center">
           {stats.map((stat, i) => (
-            <m.div
+            <div
               key={`${stat.label}-${i}`}
-              initial={prefersReduced ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: subtitleDuration + 0.75 + i * 0.1, ease: EASE_OUT_EXPO }}
+              className="hero-in"
+              style={{ "--hero-delay": `${0.85 + i * 0.1}s` } as HeroStyle}
             >
               <StatCard value={stat.value} label={stat.label} light />
-            </m.div>
+            </div>
           ))}
-        </m.div>
+        </div>
       </div>
 
       {/* Scroll indicator — oculto en móvil: el contenido ya llega al borde

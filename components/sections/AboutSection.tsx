@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react"
 import { m, useInView, useReducedMotion } from "framer-motion"
 import type { BioDoc } from "@/types/about"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
+import { useReducedMotionSafe } from "@/lib/hooks/use-reduced-motion"
 
 interface AboutSectionProps {
   bio: BioDoc | null
@@ -43,11 +44,12 @@ function useCountUp(target: string, duration = 2000, prefersReduced = false) {
 interface CredProps {
   value: string
   label: string
-  prefersReduced: boolean | null
 }
 
-function Cred({ value, label, prefersReduced }: CredProps) {
-  const { ref, display } = useCountUp(value, 2000, prefersReduced ?? false)
+function Cred({ value, label }: CredProps) {
+  // Cambia texto y nodos según la preferencia: solo tras hidratar (#418).
+  const prefersReduced = useReducedMotionSafe()
+  const { ref, display } = useCountUp(value, 2000, prefersReduced)
   const inView = useInView(ref as React.RefObject<Element>, { once: true, margin: "-60px" })
 
   return (
@@ -192,7 +194,6 @@ export function AboutSection({ bio }: AboutSectionProps) {
                     key={`${s.value}-${s.label}`}
                     value={s.value}
                     label={s.label}
-                    prefersReduced={prefersReduced}
                   />
                 ) : null
               )}
@@ -236,7 +237,6 @@ export function AboutSection({ bio }: AboutSectionProps) {
                 alt="Dra. Yasmin Medrano Avila — Médica especialista en medicina estética"
                 variant="light"
                 objectPosition="top"
-                loading="eager"
                 fill
                 sizes="(max-width: 768px) 100vw, 50vw"
               />

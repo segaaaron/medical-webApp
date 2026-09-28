@@ -195,11 +195,11 @@ export function Footer({ data }: { data: FooterData }) {
       <div className="border-t px-6 py-8" style={{ borderColor: "oklch(16% 0.01 52)" }}>
         <div className="container-xl flex flex-col md:flex-row items-center justify-between gap-4">
           {data.copyrightText && (
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.6)" }}>
               {data.copyrightText}
             </p>
           )}
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.6)" }}>
             Desarrollado por{" "}
             <a
               href="https://www.ms-tech-stack.cloud"
@@ -214,7 +214,7 @@ export function Footer({ data }: { data: FooterData }) {
             </a>
           </p>
           {data.designedByText && (
-            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.6)" }}>
               {data.designedByText}
             </p>
           )}

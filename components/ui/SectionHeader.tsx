@@ -1,12 +1,13 @@
 "use client"
 
 import { clsx } from "clsx"
-import { m, useReducedMotion } from "framer-motion"
+import { m } from "framer-motion"
+import { useReducedMotionSafe } from "@/lib/hooks/use-reduced-motion"
 import type { SectionHeaderProps } from "@/types"
 import { AnimatedTitle } from "./AnimatedTitle"
 
 export function SectionHeader({ eyebrow, title, subtitle, light = false }: SectionHeaderProps) {
-  const shouldReduceMotion = useReducedMotion()
+  const shouldReduceMotion = useReducedMotionSafe()
 
   const revealTransition = { duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }
 
@@ -81,7 +82,7 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
           fontSize: "10.5px",
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: light ? "var(--prem-dark-muted)" : "var(--prem-accent)",
+          color: light ? "var(--prem-dark-muted)" : "var(--prem-accent-ink)",
         }}
       >
         {eyebrow}

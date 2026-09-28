@@ -14,6 +14,9 @@ body {
 
   /* Premium design system tokens */
   --prem-accent:      oklch(58% 0.16 35);
+  /* Acento como TEXTO sobre crema: el de arriba da 4.07:1 en letra pequeña
+     (falla WCAG AA). Mismo tono, algo más oscuro: 4.8:1. */
+  --prem-accent-ink:  oklch(54% 0.16 35);
   --prem-bg:          #F8F0E3;
   --prem-surface:     #FDF8F2;
   --prem-fg:          oklch(20% 0.02 60);
@@ -22,7 +25,7 @@ body {
   --prem-dark:        oklch(13% 0.01 55);
   --prem-dark-surf:   oklch(17% 0.01 55);
   --prem-dark-fg:     oklch(93% 0.008 75);
-  --prem-dark-muted:  oklch(55% 0.01 65);
+  --prem-dark-muted:  oklch(62% 0.01 65); /* 55% daba 4.0-4.2:1 sobre fondos oscuros */
   --prem-dark-border: oklch(24% 0.01 55);
 
   --primary: oklch(0.205 0 0);
@@ -393,6 +396,35 @@ h1, h2, h3, h4 {
   top: -50%;
   filter: blur(52px);
   animation: lightLeak2 24s ease-in-out 8s infinite;
+}
+
+/* ── Hero: entrada sin ocultar ────────────────────────────────────────────────
+   El texto del hero se pinta en el PRIMER frame, desde el HTML del servidor, sin
+   esperar a hidratar: ninguna de estas animaciones toca la opacidad. Solo se
+   desplaza (y, en letras y subtítulo, se desenfoca un instante). Con opacity 0
+   de partida el navegador no cuenta el texto como pintado y el LCP se iba a
+   11 s en móvil. Variables: --hero-delay, --hero-from, --hero-x. */
+.hero-in,
+.hero-in-soft,
+.hero-in-letter,
+.hero-in-line {
+  animation: heroRise var(--duration-enter) var(--ease-out-expo) var(--hero-delay, 0s) both;
+}
+.hero-in-soft { animation-name: heroRiseSoft; }
+.hero-in-letter {
+  display: inline-block;
+  animation-name: heroAssemble;
+  animation-duration: 0.9s;
+}
+.hero-in-line { animation-name: heroLine; }
+
+@keyframes heroRise { from { transform: translateY(var(--hero-from, 14px)); } }
+@keyframes heroRiseSoft { from { transform: translateY(0.35em); filter: blur(4px); } }
+@keyframes heroAssemble { from { transform: translateX(var(--hero-x, 0)); filter: blur(3px); } }
+@keyframes heroLine { from { transform: scaleX(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-in, .hero-in-soft, .hero-in-letter, .hero-in-line { animation: none; }
 }
 
 /* Premium eyebrow label */

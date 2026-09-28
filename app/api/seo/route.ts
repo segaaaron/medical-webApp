@@ -12,6 +12,8 @@ import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-help
  */
 
 const PAGES = ["home", "nosotros", "tratamientos", "contacto", "blog"] as const
+// Tope duro, no la recomendación (60/155): el panel avisa al pasar esta y
+// bloquea al pasar aquel, para que los valores ya guardados sigan valiendo.
 const TITLE_MAX = 70
 const DESCRIPTION_MAX = 170
 

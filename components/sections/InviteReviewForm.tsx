@@ -5,11 +5,11 @@ import Image from "next/image";
 import {
   m,
   AnimatePresence,
-  useReducedMotion,
   type Variants,
 } from "framer-motion";
 import { Star, CheckCircle, XCircle } from "lucide-react";
 import { INVITE_REASON_COPY } from "@/lib/invite-copy";
+import { useReducedMotionSafe } from "@/lib/hooks/use-reduced-motion";
 import {
   MIN_REVIEW_BODY,
   MAX_REVIEW_BODY,
@@ -388,7 +388,7 @@ export function InviteReviewForm({
   patientName,
   treatments,
 }: InviteReviewFormProps) {
-  const reduced = useReducedMotion() ?? false;
+  const reduced = useReducedMotionSafe();
 
   const [rating, setRating] = useState(0);
   const [treatment, setTreatment] = useState("");

@@ -8,13 +8,17 @@ import { FormField } from "@/components/ui/FormField"
 /**
  * Campos «SEO / Google» de una ficha (tratamiento o artículo).
  *
- * El backend no valida los límites: Google corta el título en ~60-70
- * caracteres y la descripción en ~160, así que el tope se exige aquí.
+ * El backend no valida los límites: Google corta el título en ~60
+ * caracteres y la descripción en ~155. El contador avisa (ámbar) al pasar la
+ * recomendación; el tope duro (70/170, igual que /api/seo) sigue siendo el
+ * error, para que los valores ya guardados sigan siendo válidos.
  * Vacío = el sitio lo deriva del nombre y la descripción.
  */
 
 export const SEO_TITLE_MAX = 70
 export const SEO_DESCRIPTION_MAX = 170
+export const SEO_TITLE_RECOMMENDED = 60
+export const SEO_DESCRIPTION_RECOMMENDED = 155
 
 const INPUT_CLS =
   "w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[var(--vintage-gold)] focus:ring-1 focus:ring-[var(--vintage-gold)] transition-colors"
@@ -57,6 +61,8 @@ interface CountedFieldProps {
   id: string
   label: string
   max: number
+  /** Longitud recomendada: por encima, aviso suave (no bloquea). */
+  recommended?: number
   field: FieldInputProps<string>
   error?: string
   multiline?: boolean
@@ -64,18 +70,24 @@ interface CountedFieldProps {
   hint?: string
 }
 
-/** Input con contador de caracteres. El contador se pone rojo al pasarse. */
-export function CountedField({ id, label, max, field, error, multiline, placeholder, hint }: CountedFieldProps) {
+/** Input con contador: ámbar al pasar la recomendación, rojo al pasar el máximo. */
+export function CountedField({ id, label, max, recommended, field, error, multiline, placeholder, hint }: CountedFieldProps) {
   const length = (field.value ?? "").length
   const over = length > max
+  const long = !over && recommended !== undefined && length > recommended
   const props = { id, className: INPUT_CLS, ...field, value: field.value ?? "", placeholder, "aria-invalid": over || undefined }
   return (
     <FormField label={label} htmlFor={id} hint={hint}>
       {multiline ? <textarea rows={3} {...props} /> : <input {...props} />}
       <div className="flex justify-between gap-2 text-xs">
-        <span className="text-red-500">{error}</span>
-        <span className={over ? "text-red-500 font-semibold" : "text-gray-400"} aria-live="polite">
-          {length}/{max}
+        <span className={error ? "text-red-500" : "text-amber-600"}>
+          {error ?? (long ? `Google suele cortar a partir de ${recommended} caracteres.` : "")}
+        </span>
+        <span
+          className={over ? "text-red-500 font-semibold" : long ? "text-amber-600 font-semibold" : "text-gray-400"}
+          aria-live="polite"
+        >
+          {length}/{recommended ?? max}
         </span>
       </div>
     </FormField>
@@ -121,6 +133,7 @@ export function SeoFields({ formik, idPrefix, kind }: { formik: SeoFormik; idPre
         label={copy.label}
         hint={copy.hint}
         max={SEO_TITLE_MAX}
+        recommended={SEO_TITLE_RECOMMENDED}
         field={formik.getFieldProps("seoTitle")}
         error={err("seoTitle")}
         placeholder={copy.placeholder}
@@ -129,6 +142,7 @@ export function SeoFields({ formik, idPrefix, kind }: { formik: SeoFormik; idPre
         id={`${idPrefix}-seo-description`}
         label="Descripción en Google"
         max={SEO_DESCRIPTION_MAX}
+        recommended={SEO_DESCRIPTION_RECOMMENDED}
         field={formik.getFieldProps("seoDescription")}
         error={err("seoDescription")}
         multiline

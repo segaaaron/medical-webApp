@@ -8,7 +8,7 @@ import { normalizeSocialUrl } from "@/lib/seo/meta"
 import { getPromo, type PromoDisplayData } from "@/lib/content/promo"
 import { getAbout } from "@/lib/content/about"
 import { getActiveTreatments, type Treatment } from "@/lib/content/treatments"
-import { getReviews, type PublicReview, type ReviewAggregate } from "@/lib/content/reviews"
+import { getReviews } from "@/lib/content/reviews"
 import { getContact, locationOf, businessContactOf, type ConsultorioLocation } from "@/lib/content/contact"
 import { getNavLinks } from "@/lib/content/site-main"
 import { getSiteSeo } from "@/lib/content/seo"
@@ -35,33 +35,6 @@ const TreatmentsGrid = dynamic(() => import("@/components/sections/TreatmentsGri
 const FAQSection = dynamic(() => import("@/components/sections/FAQSection").then(m => ({ default: m.FAQSection })))
 const TestimonialsSection = dynamic(() => import("@/components/sections/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })))
 
-
-/**
- * Valoración media para adjuntar al negocio.
- *
- * Sin el array `review[]`: Google declara INELEGIBLES para el fragmento de
- * estrellas las reseñas que la propia entidad aloja sobre sí misma en
- * `LocalBusiness` u `Organization` («self-serving reviews»), y en julio de 2026
- * endureció además la redacción sobre reseñas incentivadas. Ese bloque no podía
- * ganar estrellas y sí podía leerse como auto-servicio. Las estrellas reales de
- * un negocio local salen de la ficha de Google, no del schema de su web.
- *
- * El `aggregateRating` se mantiene: describe a la entidad, se calcula de las
- * reseñas aprobadas y solo se emite si existen. Las reseñas siguen visibles en
- * la página como contenido, que es donde le sirven al paciente.
- */
-function buildRatingFields(reviews: PublicReview[], aggregate: ReviewAggregate | null) {
-  if (reviews.length === 0 || !aggregate) return {}
-  return {
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: aggregate.avg_rating.toFixed(1),
-      reviewCount: String(aggregate.total_count),
-      bestRating: "5",
-      worstRating: "1",
-    },
-  }
-}
 
 function buildFaqJsonLd(faqs: { question: string; answer: string }[]) {
   return {
@@ -117,8 +90,6 @@ function buildPromoJsonLd(promo: PromoDisplayData) {
 }
 
 function buildLocalBusinessJsonLd(
-  reviews: PublicReview[],
-  aggregate: ReviewAggregate | null,
   treatments: Treatment[],
   ubicacion: ConsultorioLocation | null,
   perfiles: string[],
@@ -185,7 +156,10 @@ function buildLocalBusinessJsonLd(
     ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
     sameAs: perfiles,
     medicalSpecialty: "Medicina Estética",
-    ...buildRatingFields(reviews, aggregate),
+    // Sin `aggregateRating` ni `review`: Google declara inelegibles para las
+    // estrellas las reseñas que un LocalBusiness/MedicalClinic publica sobre sí
+    // mismo («self-serving») y marcar reseñas no visibles arriesga una acción
+    // manual. Las estrellas de un negocio local salen de su ficha de Google.
   }
 }
 
@@ -325,8 +299,6 @@ export default async function HomePage() {
     .filter(Boolean)
 
   const localBusinessJsonLd = buildLocalBusinessJsonLd(
-    approvedReviews,
-    reviewAggregate,
     backendTreatments,
     locationOf(contact.data),
     perfilesSociales,

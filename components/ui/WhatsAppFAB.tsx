@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
-import { m, AnimatePresence, useReducedMotion } from "framer-motion"
+import { m, AnimatePresence } from "framer-motion"
+import { useReducedMotionSafe } from "@/lib/hooks/use-reduced-motion"
 import { trackWhatsAppClick } from "@/lib/analytics"
 import { useWhatsAppLink } from "@/components/providers/WhatsAppProvider"
 
@@ -33,7 +34,7 @@ export function WhatsAppFAB() {
   const [visible, setVisible] = useState(false)
   const [labelOpen, setLabelOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
-  const prefersReduced = useReducedMotion()
+  const prefersReduced = useReducedMotionSafe()
   // El panel es una herramienta interna: nadie se escribe a sí mismo por
   // WhatsApp, y el botón se colaba por encima del overlay de carga.
   const isDashboard = usePathname()?.startsWith("/dashboard") ?? false

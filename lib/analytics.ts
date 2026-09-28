@@ -17,6 +17,9 @@ declare global {
     fbq?: FbqFn
     ttq?: TtqFn
     gtag?: (...args: unknown[]) => void
+    /** Eventos anteriores a la carga diferida del pixel; los vacía AnalyticsScripts. */
+    __fbqPending?: unknown[][]
+    __ttqPending?: [string, Record<string, unknown> | undefined][]
   }
 }
 
@@ -35,16 +38,18 @@ function umami(eventName: string, data?: Record<string, unknown>) {
   }
 }
 
+// Los pixels cargan con lazyOnload: si aún no están, el evento se encola y el
+// script de inicio lo envía tras `init` (ver AnalyticsScripts). Sin ID, no-op.
 function fbq(...args: unknown[]) {
-  if (typeof window !== "undefined" && typeof window.fbq === "function") {
-    window.fbq(...args)
-  }
+  if (typeof window === "undefined" || !META_PIXEL_ID) return
+  if (typeof window.fbq === "function") window.fbq(...args)
+  else (window.__fbqPending ??= []).push(args)
 }
 
 function ttq(event: string, params?: Record<string, unknown>) {
-  if (typeof window !== "undefined" && typeof window.ttq?.track === "function") {
-    window.ttq.track(event, params)
-  }
+  if (typeof window === "undefined" || !TIKTOK_PIXEL_ID) return
+  if (typeof window.ttq?.track === "function") window.ttq.track(event, params)
+  else (window.__ttqPending ??= []).push([event, params])
 }
 
 function gtag(...args: unknown[]) {

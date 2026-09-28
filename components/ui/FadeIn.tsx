@@ -1,20 +1,13 @@
-"use client"
-
-import { m, useReducedMotion } from "framer-motion"
-
 /**
- * Fade-in de entrada (solo al montar). Se usa en la home para enmascarar la
- * carga del hero/poster. No se aplica globalmente para no animar cada navegación.
+ * Antes: fade de opacidad 0 → 1 con Framer Motion envolviendo TODO el <main>
+ * de la home. El HTML del servidor llegaba con `style="opacity:0"` y el
+ * navegador no contaba nada del hero como pintado hasta hidratar (~3 s con CPU
+ * lenta): el párrafo del hero era el LCP y Lighthouse le atribuía 5 s de
+ * "render delay". El hero ya tiene su propia entrada CSS que no oculta nada
+ * (clases `hero-in*` en globals.css) y el póster va precargado, así que este
+ * envoltorio no aporta nada: se deja como paso directo, sin nodo extra.
+ * ponytail: queda solo para no tocar app/page.tsx; borrar el import y este archivo.
  */
 export function FadeIn({ children }: { children: React.ReactNode }) {
-  const reduce = useReducedMotion()
-  return (
-    <m.div
-      initial={reduce ? false : { opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.55, ease: "easeOut" }}
-    >
-      {children}
-    </m.div>
-  )
+  return <>{children}</>
 }

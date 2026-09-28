@@ -421,7 +421,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
               <div className="text-center mb-8">
                 <p
                   className="text-xs uppercase mb-3"
-                  style={{ color: "var(--vintage-gold)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.22em" }}
+                  style={{ color: "var(--prem-accent-ink)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.22em" }}
                 >
                   Resultados
                 </p>
@@ -441,7 +441,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 name={treatment.name}
               />
 
-              <p className="mt-5 text-center text-xs" style={{ color: "rgba(58,15,32,0.45)" }}>
+              <p className="mt-5 text-center text-xs" style={{ color: "rgba(58,15,32,0.75)" }}>
                 * Imágenes referenciales. Los resultados varían según cada paciente.
               </p>
             </section>
@@ -495,13 +495,14 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 href={`${whatsapp.url}?text=${encodeURIComponent(`Hola, me interesa el tratamiento de ${treatment.name}`)}`}
                 source="treatment-detail-cta"
                 treatment={treatment.name}
-                className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-sm font-bold text-white transition-all hover:brightness-110"
-                style={{ backgroundColor: "var(--vintage-gold)" }}
+                className="inline-flex items-center gap-2 px-10 py-4 rounded-full text-sm font-bold transition-all hover:brightness-110"
+                // Texto vino sobre oro (5.9:1). Blanco sobre oro daba 2.8:1.
+                style={{ backgroundColor: "var(--vintage-gold)", color: "var(--primary-darkest)" }}
               >
                 <MessageCircle size={16} aria-hidden="true" />
                 {treatment.price > 0 ? "Agendar consulta" : "Consultar por WhatsApp"}
               </TrackWhatsAppLink>
-              <p className="text-xs mt-4" style={{ color: "rgba(255,255,255,0.35)" }}>
+              <p className="text-xs mt-4" style={{ color: "rgba(255,255,255,0.6)" }}>
                 Sin compromiso · Atención personalizada garantizada
               </p>
               <div className="mt-6 pt-6" style={{ borderTop: "1px solid rgba(184,151,59,0.2)" }}>
