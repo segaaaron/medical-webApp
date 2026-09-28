@@ -249,7 +249,8 @@ export async function generateMetadata(): Promise<Metadata> {
     description: seo.description
       ? seo.description
       : `${lista} y más tratamientos de medicina estética en Cochabamba, ` +
-        "con la Dra. Yasmin Medrano Avila. Consulta de valoración personalizada.",
+        // Cola corta a propósito: con la lista al tope (PRESUPUESTO) cabe en 160.
+        "con la Dra. Yasmin Medrano Avila. Consulta de valoración.",
     // `keywords` se deriva de lo que el consultorio ofrece de verdad. Google
     // ignora esta etiqueta desde 2009, así que no posiciona: se mantiene
     // sincronizada por coherencia, no porque trabaje.

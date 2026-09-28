@@ -151,6 +151,12 @@ export default async function TratamientoDetallePage({ params }: Props) {
     getAbout(),
   ])
 
+  // Servicio caído (o la ficha por id no respondió): error, no 404. Un 404
+  // quedaba cacheado por ISR y una ficha real desaparecía minutos tras un
+  // corte; con un error, Next sigue sirviendo la última versión buena.
+  if (!treatment && (activos.source === "fallback" || activos.data.some((t) => t.slug === slug))) {
+    throw new Error(`treatment ${slug}: service unavailable`)
+  }
   if (!treatment || !treatment.active) notFound()
 
   // Teléfono derivado del WhatsApp del panel: un solo número editable en un

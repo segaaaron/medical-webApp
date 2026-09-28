@@ -149,8 +149,10 @@ const reglas = [
       if (!m) return "falta la meta description"
       // Google corta por el final: pasarse significa perder el cierre, que es
       // justo donde suele ir la ciudad o la llamada a la acción.
-      return m[1].length > LIMITE_DESCRIPTION
-        ? `${m[1].length} caracteres`
+      // Se mide el texto, no el HTML: `&quot;` cuenta como un carácter.
+      const texto = m[1].replace(/&(quot|amp|lt|gt|#x27|#39);/g, "_")
+      return texto.length > LIMITE_DESCRIPTION
+        ? `${texto.length} caracteres`
         : null
     },
   },

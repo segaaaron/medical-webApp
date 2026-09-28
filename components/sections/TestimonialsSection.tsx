@@ -58,7 +58,8 @@ function StarRow({ count, size = 14 }: { count: number; size?: number }) {
 function mesYAno(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return ""
-  return d.toLocaleDateString("es-BO", { month: "long", year: "numeric" })
+  // Zona fija: servidor (UTC) y navegador deben coincidir (#418).
+  return d.toLocaleDateString("es-BO", { month: "long", year: "numeric", timeZone: "America/La_Paz" })
 }
 
 /**

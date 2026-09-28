@@ -98,8 +98,6 @@ export async function generateMetadata(): Promise<Metadata> {
       google: "mP89lsorVeyGLDWP6kHRjQUcD-TGByGX1O9b5324zf8",
       other: {
         "facebook-domain-verification": "t2p54dlzm9nvsr88bfsq4mum6ylk48",
-        // Bing Webmaster Tools: el código vive en el panel de despliegue.
-        ...(process.env.BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION } : {}),
       },
     },
     robots: {

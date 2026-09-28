@@ -63,7 +63,7 @@ function formatearFecha(iso: string | null | undefined): string | null {
   if (!iso) return null
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return null
-  return d.toLocaleDateString("es-BO", { day: "2-digit", month: "long", year: "numeric" })
+  return d.toLocaleDateString("es-BO", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/La_Paz" })
 }
 
 /** Etiqueta legible para un perfil social, deducida del dominio. */

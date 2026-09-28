@@ -18,10 +18,13 @@ interface BlogCardProps {
 }
 
 function formatDate(dateStr: string) {
+  // Zona fija: servidor (UTC) y navegador deben formatear la misma fecha, o
+  // React descarta el HTML del servidor (#418).
   return new Date(dateStr).toLocaleDateString("es-BO", {
     day: "2-digit",
     month: "long",
     year: "numeric",
+    timeZone: "America/La_Paz",
   })
 }
 

@@ -81,7 +81,9 @@ export default function TratamientosInfoPage() {
         if (imageFile) {
           responseData.append("doctorImage", await compressImage(imageFile))
         } else {
-          responseData.append("doctorImage", "")
+          // La ruta actual ("" si se quitó): el backend reemplaza `value` entero
+          // y sin ella cada guardado borraba la foto.
+          responseData.append("doctorImage", values.doctorImage)
         }
         responseData.append("ctaTitle", values.ctaTitle)
         responseData.append("ctaSubtitle", values.ctaSubtitle)

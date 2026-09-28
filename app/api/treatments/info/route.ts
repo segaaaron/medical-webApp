@@ -44,7 +44,11 @@ export async function PUT(req: NextRequest) {
   // Collect all text fields into a value object, except "doctorImage" and "key"
   const value: Record<string, unknown> = {}
   for (const [key, val] of incoming.entries()) {
-    if (key === "doctorImage") continue
+    // Ruta existente (texto) se conserva; un archivo nuevo va aparte como `image`.
+    if (key === "doctorImage") {
+      if (typeof val === "string") value.doctorImage = val
+      continue
+    }
     // Parse consultationItems back into an array
     if (key === "consultationItems") {
       try {

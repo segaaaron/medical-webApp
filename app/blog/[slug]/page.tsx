@@ -55,7 +55,7 @@ function fechaLegible(iso: string | null | undefined): string | null {
   const d = new Date(iso)
   return Number.isNaN(d.getTime())
     ? null
-    : d.toLocaleDateString("es-BO", { day: "2-digit", month: "long", year: "numeric" })
+    : d.toLocaleDateString("es-BO", { day: "2-digit", month: "long", year: "numeric", timeZone: "America/La_Paz" })
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -127,6 +127,9 @@ export default async function BlogPostPage({ params }: Props) {
     getNavLinks(),
     getAbout(),
   ])
+  // Servicio caído y el slug no está en el respaldo: error, no 404 (un 404
+  // quedaba cacheado por ISR; con un error se sigue sirviendo la última buena).
+  if (!post && posts.source === "fallback") throw new Error(`post ${slug}: service unavailable`)
   if (!post) notFound()
   const allPosts = posts.data
 
