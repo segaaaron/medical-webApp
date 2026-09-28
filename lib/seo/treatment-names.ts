@@ -23,15 +23,23 @@
  *
  * La doctora debe poder seguir escribiendo el nombre clínico en el panel —es su
  * lenguaje profesional y así debe aparecer en la página—. Lo que cambia es que
- * el título para buscadores se deriva de él en vez de copiarlo.
+ * el título para buscadores sale de su `seoTitle` (Dashboard → SEO / Google) o,
+ * si está vacío, del nombre sin el grito.
+ *
+ * REGLA: el `seoTitle` NUNCA llega a texto visible. Solo alimenta `<title>`,
+ * metadatos, keywords, `alternateName` del schema y los términos de `llms.txt`.
+ * Todo lo que ve el paciente —footer, listados, desplegables, enlaces— usa
+ * `displayNameFor`, que es el nombre del panel con solo la limpieza de
+ * mayúsculas de `normalizeName`. Si la doctora escribe «Toxina Botulínica», el
+ * sitio dice «Toxina Botulínica», no «Botox».
  *
  * ────────────────────────────────────────────────────────────────────────────
  * CÓMO SE MANTIENE
  *
  * Un tratamiento nuevo NO necesita tocarse aquí: `normalizeName` ya arregla
- * mayúsculas, comillas y espacios dobles. `SEARCH_TERMS` solo hace falta cuando
- * el nombre clínico y el término popular no coinciden — y es justo donde está
- * el tráfico que hoy se pierde.
+ * mayúsculas, comillas y espacios dobles. Cuando el nombre clínico y el término
+ * popular no coinciden, la doctora escribe el término en el `seoTitle` de la
+ * ficha: no hay tabla en el código.
  */
 
 import { concernsFor, bodyLocationsFor } from "@/lib/seo/vocabulary"
@@ -123,61 +131,6 @@ export function normalizeHeadline(raw: string): string {
   return enMinusculas.charAt(0).toLocaleUpperCase("es") + enMinusculas.slice(1)
 }
 
-/**
- * Término por el que la gente busca realmente, cuando difiere del nombre
- * clínico. La clave es el slug, que es estable aunque se reescriba el nombre.
- *
- * `title` va al `<title>` y al H1 de buscadores; `aliases` alimenta las
- * keywords y el `alternateName` del schema `MedicalProcedure`, que es como se
- * le dice a Google «esta página también trata de esto».
- */
-const SEARCH_TERMS: Record<string, { title: string; aliases: string[] }> = {
-  "toxina-botulinica-botox": {
-    title: "Botox",
-    aliases: ["botox", "toxina botulínica", "bótox para arrugas", "botox frente y entrecejo"],
-  },
-  "acido-hialuronico": {
-    title: "Ácido Hialurónico",
-    aliases: ["ácido hialurónico", "relleno facial", "rellenos con hialurónico"],
-  },
-  "aumento-y-perfilado-de-labios-con-hialuronico": {
-    title: "Relleno de Labios",
-    aliases: ["relleno de labios", "aumento de labios", "labios con hialurónico", "perfilado de labios"],
-  },
-  "rinomodelacion-con-hialuronico": {
-    title: "Rinomodelación sin Cirugía",
-    aliases: ["rinomodelación", "nariz sin cirugía", "rinoplastia sin cirugía", "armonización de nariz"],
-  },
-  "hiperhidrosis---tratamiento-para-sudoracion-excesiva-con-toxina-botulinica": {
-    title: "Botox para Sudoración Excesiva",
-    aliases: ["sudoración excesiva axilas", "hiperhidrosis tratamiento", "botox para sudor", "transpiración excesiva"],
-  },
-  "mesoterapia": {
-    title: "Mesoterapia Facial",
-    aliases: ["mesoterapia facial", "mesoterapia", "hidratación facial profunda"],
-  },
-  "radiofrecuencia-fraccionada-fraxface": {
-    title: "Radiofrecuencia Facial",
-    aliases: ["radiofrecuencia facial", "flacidez facial", "reafirmar la piel del rostro"],
-  },
-  "nctf-135-ha---oro-rosa": {
-    title: "Mesoterapia con Vitaminas",
-    aliases: ["mesoterapia con vitaminas", "cóctel de vitaminas facial", "NCTF 135 HA", "oro rosa facial"],
-  },
-  "pdrn-polinucleotidos-de-esperma-de-salmon": {
-    title: "Bioestimulador de Colágeno",
-    aliases: ["bioestimulador de colágeno", "polinucleótidos", "PDRN salmón", "regeneración de la piel"],
-  },
-  "plasma-rico-en-factores-de-crecimiento-prp": {
-    title: "Plasma Rico en Plaquetas (PRP)",
-    aliases: ["plasma rico en plaquetas", "PRP facial", "PRP para el cabello", "vampire facial"],
-  },
-  "peeling-quimico": {
-    title: "Peeling Químico",
-    aliases: ["peeling químico", "peeling facial", "manchas en la cara", "quitar manchas faciales"],
-  },
-}
-
 /** Lo mínimo que se necesita de un tratamiento del panel. */
 export interface TreatmentRef {
   slug: string
@@ -188,21 +141,53 @@ export interface TreatmentRef {
    * depender de una tabla escrita a mano.
    */
   description?: string | null
+  /**
+   * Cómo se busca el tratamiento («Botox»), escrito en Dashboard → SEO /
+   * Google. Vacío o ausente = se deriva del nombre.
+   */
+  seoTitle?: string | null
 }
 
-/** Nombre optimizado para el `<title>` y los metadatos. */
-export function seoTitleFor(slug: string, rawName: string): string {
-  return SEARCH_TERMS[slug]?.title ?? normalizeName(rawName)
+/**
+ * Nombre visible del tratamiento: el del panel, solo con la limpieza de
+ * mayúsculas y comillas. Es el único que se pinta en la interfaz.
+ */
+export function displayNameFor(t: Pick<TreatmentRef, "name">): string {
+  return normalizeName(t.name ?? "")
 }
 
-/** Términos alternativos por los que esta página debe poder encontrarse. */
-export function searchAliasesFor(slug: string, rawName: string): string[] {
-  const entry = SEARCH_TERMS[slug]
-  if (entry) return entry.aliases
-  const name = normalizeName(rawName)
-  // Un tratamiento sin nombre devolvía `[""]`, y esa cadena vacía acababa
-  // dentro de `alternateName` del schema y del listado de `llms.txt`.
-  return name ? [name.toLocaleLowerCase("es")] : []
+/**
+ * Término de búsqueda del tratamiento: el `seoTitle` del panel («Botox») o, si
+ * está vacío, el nombre del panel sin el grito. Va al `<title>` («Botox en
+ * Cochabamba») y a los metadatos; nunca a texto visible: ahí va
+ * `displayNameFor`.
+ */
+export function seoTitleFor(t: Pick<TreatmentRef, "name" | "seoTitle">): string {
+  const seo = (t.seoTitle ?? "").trim()
+  return seo || normalizeName(t.name ?? "")
+}
+
+/**
+ * Términos por los que esta página debe poder encontrarse: el término de
+ * búsqueda del panel y el nombre, en minúsculas y sin repetir. Nada escrito a
+ * mano: un tratamiento nuevo queda cubierto con lo que la doctora escribe.
+ */
+export function searchAliasesFor(t: Pick<TreatmentRef, "name" | "seoTitle">): string[] {
+  const terms = [(t.seoTitle ?? "").trim(), normalizeName(t.name ?? "")]
+    .map((x) => x.toLocaleLowerCase("es"))
+    .filter(Boolean)
+  return [...new Set(terms)]
+}
+
+/**
+ * `alternateName` del schema: el término de búsqueda del panel (`seoTitle`)
+ * cuando difiere del nombre visible. Sin `seoTitle` distinto, nada: repetir el
+ * nombre como alternativo no le dice nada nuevo a Google.
+ */
+export function alternateNamesFor(t: Pick<TreatmentRef, "name" | "seoTitle">): string[] {
+  const seo = (t.seoTitle ?? "").trim()
+  const same = seo.toLocaleLowerCase("es") === displayNameFor(t).toLocaleLowerCase("es")
+  return seo && !same ? [seo] : []
 }
 
 /**
@@ -216,9 +201,9 @@ export function searchAliasesFor(slug: string, rawName: string): string[] {
  * clave («botox») apuntando a la página que trata de eso es de las señales de
  * relevancia más baratas y directas que existen — y el sitio no tenía ninguna.
  *
- * Se comparan los alias de búsqueda ya definidos arriba contra el texto del
- * artículo. Reutiliza el mismo vocabulario que alimenta títulos y schema, así
- * que no hay una segunda lista que mantener sincronizada.
+ * Se comparan los términos de búsqueda de cada tratamiento (nombre +
+ * `seoTitle` del panel) contra el texto del artículo: el mismo vocabulario que
+ * alimenta títulos y schema, sin una segunda lista que mantener.
  *
  * @param text  Título + cuerpo del artículo, ya sin etiquetas HTML.
  * @param limit Máximo de tratamientos a devolver.
@@ -234,11 +219,9 @@ export function matchTreatmentsInText(
   const scored = treatments.filter((t) => t.slug).map((t) => {
     const slug = t.slug
     let score = 0
-    // El vocabulario sale del tratamiento real: su nombre siempre cuenta, y
-    // los sinónimos de SEARCH_TERMS se suman cuando existen. Así un
-    // tratamiento nuevo queda cubierto desde el primer día, aunque nadie haya
-    // escrito todavía sus sinónimos de búsqueda.
-    for (const alias of [normalizeName(t.name), ...searchAliasesFor(slug, t.name)]) {
+    // El vocabulario sale del tratamiento real: su nombre y su término de
+    // búsqueda del panel (`seoTitle`).
+    for (const alias of searchAliasesFor(t)) {
       const needle = normalizeForMatch(alias)
       if (!needle) continue
       // Alias de varias palabras pesan más: «relleno de labios» es una señal
@@ -254,7 +237,7 @@ export function matchTreatmentsInText(
     // Sin esto había DOS vocabularios que no se hablaban. El artículo
     // «Sudoración excesiva en axilas» y la ficha de hiperhidrosis tratan
     // exactamente de lo mismo, y no se enlazaban: el emparejador solo conocía
-    // los sinónimos escritos a mano, no los términos derivados del texto.
+    // los nombres, no los términos derivados del texto.
     //
     // Pesan menos que un alias explícito —«arrugas» lo mencionan media docena
     // de fichas—, así que orientan el desempate en vez de decidirlo.
@@ -299,10 +282,10 @@ export function doctorKnowsAbout(treatments: TreatmentRef[]): string[] {
   const terms = new Set<string>()
   for (const t of treatments) {
     if (!t.slug) continue
-    terms.add(seoTitleFor(t.slug, t.name))
-    // Solo alias de varias palabras: los sueltos («labios») son ambiguos
-    // fuera de contexto y ensucian la señal.
-    for (const alias of searchAliasesFor(t.slug, t.name)) {
+    terms.add(seoTitleFor(t))
+    // Solo términos de varias palabras: los sueltos son ambiguos fuera de
+    // contexto y ensucian la señal.
+    for (const alias of searchAliasesFor(t)) {
       if (alias.includes(" ")) terms.add(alias)
     }
     // Y los motivos de consulta que la propia ficha menciona. En salud Google
@@ -336,7 +319,7 @@ export function treatmentLinks(
   return treatments
     .filter((t) => t.slug)
     .map((t) => ({
-      label: seoTitleFor(t.slug, t.name),
+      label: displayNameFor(t),
       href: `/tratamientos/${t.slug}`,
     }))
 }

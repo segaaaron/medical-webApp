@@ -36,7 +36,7 @@ export function ContactCards({ ct }: ContactCardsProps) {
       sub: "Respuesta rápida · Atención personalizada",
     },
     {
-      href: `tel:${ct.phone}`,
+      href: ct.phone ? `tel:${ct.phone}` : "",
       icon: <Phone size={22} style={{ color: "var(--vintage-gold)" }} />,
       label: "Teléfono",
       value: ct.phone,
@@ -64,12 +64,12 @@ export function ContactCards({ ct }: ContactCardsProps) {
             href: ct.tiktokUrl,
             icon: <Music2 size={22} style={{ color: "var(--meteorite)" }} />,
             label: "TikTok",
-            value: ct.tiktok || "@drayasminmedranoa",
+            value: ct.tiktok,
             sub: undefined,
           },
         ]
       : []),
-  ]
+  ].filter((card) => card.value || card.href) // campo vacío en el panel = tarjeta oculta
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,7 +82,7 @@ export function ContactCards({ ct }: ContactCardsProps) {
             </div>
             <div>
               <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--meteorite)" }}>{card.label}</p>
-              <p className="text-white font-semibold">{card.value}</p>
+              {card.value && <p className="text-white font-semibold">{card.value}</p>}
               {card.sub && <p className="text-xs mt-1" style={{ color: "var(--gray-mid)" }}>{card.sub}</p>}
             </div>
           </>

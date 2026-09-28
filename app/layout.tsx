@@ -10,13 +10,13 @@ import { LazyMotion, domAnimation } from "framer-motion";
 import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 import { WhatsAppProvider } from "@/components/providers/WhatsAppProvider";
-import { getWhatsAppConfig } from "@/lib/data/whatsapp";
-import { doctorKnowsAbout, seoTitleFor, type TreatmentRef } from "@/lib/seo/treatment-names"
-import { backendFetch, extractList } from "@/lib/backend-client"
-import { getFooterData } from "@/lib/data/footer"
-import { getConsultorioLocation, type ConsultorioLocation } from "@/lib/data/location"
+import { doctorKnowsAbout, displayNameFor, alternateNamesFor, type TreatmentRef } from "@/lib/seo/treatment-names"
+import { getWhatsApp, getContact, locationOf, businessContactOf, type ConsultorioLocation } from "@/lib/content/contact"
+import { getFooter } from "@/lib/content/footer"
+import { getActiveTreatments } from "@/lib/content/treatments"
+import { getAbout, statsClaim } from "@/lib/content/about"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
-import { ADDRESS, AREA_SERVED, LANGUAGES, OPENING_HOURS, PHONE, geoFields } from "@/lib/seo/local"
+import { ADDRESS, AREA_SERVED, LANGUAGES, geoFields } from "@/lib/seo/local"
 
 /* Roboto se cargaba aquí con tres pesos —300, 400 y 700— y su variable
    `--font-roboto` no la usaba NINGUNA regla de `globals.css`: el texto del
@@ -61,95 +61,77 @@ export const viewport = {
   initialScale: 1,
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL(BASE_URL),
-  title: {
-    // Título de reserva. La home lo sustituye por los tratamientos que el panel
-    // tiene activos (ver `generateMetadata` en app/page.tsx); aquí no se nombra
-    // ningún procedimiento concreto, para no anunciar desde una constante algo
-    // que el consultorio pueda no estar ofreciendo.
-    default: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
-    template: "%s | Dra. Yasmin Medrano Avila",
-  },
-  description:
-    "Medicina estética en Cochabamba: botox, rellenos y armonización facial con 10+ años de experiencia. Consulta de valoración personalizada.",
-  // Términos generales del consultorio, no de tratamientos concretos: los de
-  // cada procedimiento salen de `lib/seo/treatment-names.ts`, que solo conoce
-  // los que existen. Se quitaron de aquí los que anunciaban servicios que el
-  // consultorio no presta (depilación láser, mesoterapia corporal, armonización
-  // facial y bioestimulación no figuran entre sus tratamientos activos).
-  //
-  // Nota: Google ignora esta etiqueta desde 2009. Se mantiene limpia por
-  // coherencia con lo que se ofrece, no porque influya en el posicionamiento.
-  keywords: [
-    // Geo-transaccionales Bolivia/Cochabamba — alta intención de compra
-    "médico estético Cochabamba Bolivia",
-    "botox Cochabamba precio consulta",
-    "bioestimuladores polinucleótidos Bolivia",
-    "bioestimulación facial Bolivia",
-    "rellenos labios ácido hialurónico Bolivia",
-    "tratamiento manchas faciales médico Bolivia",
-    "consulta medicina estética cerca de mí",
-    "estética médica Bolivia",
-    // Marca + autoridad
-    "Dra. Yasmin Medrano Avila",
-    "medicina estética avanzada Bolivia",
-    "toxina botulínica Cochabamba",
-    "peeling químico Cochabamba",
-    "radiofrecuencia facial Bolivia",
-    "eliminación manchas piel Bolivia",
-    "consultorio medicina estética Cochabamba",
-    "médico estética confiable Bolivia",
-    "tratamiento antiedad Cochabamba",
-  ],
-  authors: [{ name: "Dra. Yasmin Medrano Avila" }],
-  creator: "Dra. Yasmin Medrano Avila",
-  publisher: "Dra. Yasmin Medrano Avila",
-  verification: {
-    google: "mP89lsorVeyGLDWP6kHRjQUcD-TGByGX1O9b5324zf8",
-    other: {
-      "facebook-domain-verification": "t2p54dlzm9nvsr88bfsq4mum6ylk48",
+/**
+ * Metadatos por defecto del sitio. Función y no constante: la frase de
+ * trayectoria sale de las estadísticas del panel (Dashboard → Acerca de) y,
+ * sin ellas, se omite — nunca una cifra escrita en el código.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { data: about } = await getAbout()
+  const claim = statsClaim(about.stats)
+  const trayectoria = claim ? ` ${claim.charAt(0).toLocaleUpperCase("es")}${claim.slice(1)}.` : ""
+  return {
+    metadataBase: new URL(BASE_URL),
+    title: {
+      // Título de reserva. La home lo sustituye por los tratamientos que el panel
+      // tiene activos (ver `generateMetadata` en app/page.tsx); aquí no se nombra
+      // ningún procedimiento concreto, para no anunciar desde una constante algo
+      // que el consultorio pueda no estar ofreciendo.
+      default: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
+      template: "%s | Dra. Yasmin Medrano Avila",
     },
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
+    description:
+      "Medicina estética en Cochabamba con la Dra. Yasmin Medrano Avila. Consulta de valoración personalizada.",
+    // Sin `keywords`: Google ignora esta etiqueta desde 2009, y la lista fija
+    // anunciaba servicios concretos desde una
+    // constante. Los términos de cada tratamiento van en su propia ficha.
+    authors: [{ name: "Dra. Yasmin Medrano Avila" }],
+    creator: "Dra. Yasmin Medrano Avila",
+    publisher: "Dra. Yasmin Medrano Avila",
+    verification: {
+      google: "mP89lsorVeyGLDWP6kHRjQUcD-TGByGX1O9b5324zf8",
+      other: {
+        "facebook-domain-verification": "t2p54dlzm9nvsr88bfsq4mum6ylk48",
+      },
+    },
+    robots: {
       index: true,
       follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
     },
-  },
-  openGraph: {
-    type: "website",
-    locale: "es_BO",
-    url: BASE_URL,
-    siteName: "Dra. Yasmin Medrano Avila — Medicina Estética Cochabamba",
-    title: "Medicina Estética Cochabamba | Dra. Yasmin Medrano Avila",
-    description:
-      "Botox, ácido hialurónico, rellenos de labios y bioestimulación en Cochabamba. Más de 10 años de experiencia. Agenda tu consulta de valoración.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
-    description:
-      "Botox, ácido hialurónico y rellenos de labios en Cochabamba, con la Dra. Yasmin Medrano Avila. Más de 10 años de experiencia.",
-  },
-  // SIN `alternates.canonical` aquí.
-  //
-  // Puesto en el layout raíz, TODA página que no declare el suyo hereda este —o
-  // sea, se declara copia de la portada—. Hoy afecta a las que van `noindex`
-  // (el formulario de reseña, el 404), donde el daño es pequeño; el problema es
-  // que cualquier página nueva que olvide su canonical nace diciendo que es la
-  // portada, y eso no falla en ninguna build. La portada declara el suyo en
-  // `generateMetadata` (app/page.tsx), como el resto.
-  //
-  // `metadataBase` se queda: sirve para resolver rutas relativas, no para
-  // inventar canonicals.
-  category: "health",
-};
+    openGraph: {
+      type: "website",
+      locale: "es_BO",
+      url: BASE_URL,
+      siteName: "Dra. Yasmin Medrano Avila — Medicina Estética Cochabamba",
+      title: "Medicina Estética Cochabamba | Dra. Yasmin Medrano Avila",
+      description: `Medicina estética en Cochabamba con la Dra. Yasmin Medrano Avila.${trayectoria} Agenda tu consulta de valoración.`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Medicina Estética en Cochabamba | Dra. Yasmin Medrano Avila",
+      description: `Medicina estética en Cochabamba con la Dra. Yasmin Medrano Avila.${trayectoria}`,
+    },
+    // SIN `alternates.canonical` aquí.
+    //
+    // Puesto en el layout raíz, TODA página que no declare el suyo hereda este —o
+    // sea, se declara copia de la portada—. Hoy afecta a las que van `noindex`
+    // (el formulario de reseña, el 404), donde el daño es pequeño; el problema es
+    // que cualquier página nueva que olvide su canonical nace diciendo que es la
+    // portada, y eso no falla en ninguna build. La portada declara el suyo en
+    // `generateMetadata` (app/page.tsx), como el resto.
+    //
+    // `metadataBase` se queda: sirve para resolver rutas relativas, no para
+    // inventar canonicals.
+    category: "health",
+  }
+}
 
 // JSON-LD structured data — Physician / MedicalBusiness
 /**
@@ -160,7 +142,14 @@ export const metadata: Metadata = {
 function buildSiteJsonLd(
   treatments: TreatmentRef[],
   perfiles: string[],
-  ubicacion: ConsultorioLocation | null
+  ubicacion: ConsultorioLocation | null,
+  // Teléfono y horario de Dashboard → Contacto (o de su respaldo entero).
+  { telephone, openingHours }: ReturnType<typeof businessContactOf>,
+  // WhatsApp de Dashboard → Contacto (getWhatsApp), no escrito a mano.
+  whatsappUrl: string,
+  // Estadísticas de Dashboard → Acerca de, como frase («12+ años de
+  // experiencia y …»). "" sin estadísticas: la afirmación se omite.
+  claim: string
 ) {
   return {
   "@context": "https://schema.org",
@@ -174,8 +163,7 @@ function buildSiteJsonLd(
       alternateName: "Medicina Estética Avanzada — Dra. Yasmin",
       url: BASE_URL,
       image: `${BASE_URL}/opengraph-image`,
-      description:
-        "Consultorio de medicina estética en Cochabamba, Bolivia. Más de 10 años de experiencia, +5.000 pacientes atendidos. Tratamientos faciales y corporales seguros con tecnología de vanguardia.",
+      description: `Consultorio de medicina estética en Cochabamba, Bolivia.${claim ? ` ${claim.charAt(0).toLocaleUpperCase("es")}${claim.slice(1)}.` : ""} Tratamientos faciales con la Dra. Yasmin Medrano Avila.`,
       priceRange: "$$",
       currenciesAccepted: "BOB, USD",
       // Hasta dónde llega el servicio. Quien busca «cerca de mí» escribe desde
@@ -194,18 +182,18 @@ function buildSiteJsonLd(
       // Sin coordenadas en el panel se omite el `geo` entero: declarar un punto
       // que ya no es cierto es peor que no declarar ninguno.
       ...geoFields(ubicacion),
-      openingHoursSpecification: OPENING_HOURS,
+      ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
       contactPoint: [
-        {
+        ...(telephone ? [{
           "@type": "ContactPoint",
-          telephone: PHONE,
+          telephone,
           contactType: "customer service",
           areaServed: "BO",
           availableLanguage: "Spanish",
-        },
+        }] : []),
         {
           "@type": "ContactPoint",
-          url: "https://wa.me/59178751894",
+          url: whatsappUrl,
           contactType: "customer service",
           areaServed: "BO",
           availableLanguage: "Spanish",
@@ -224,10 +212,12 @@ function buildSiteJsonLd(
       // schema del negocio es publicidad engañosa, no solo un fallo de SEO.
       availableService: treatments.map((t) => ({
         "@type": "MedicalProcedure",
-        name: seoTitleFor(t.slug, t.name),
+        // Nombre real del panel; el término de búsqueda va como alternativo.
+        name: displayNameFor(t),
+        ...(alternateNamesFor(t).length ? { alternateName: alternateNamesFor(t) } : {}),
         url: `${BASE_URL}/tratamientos/${t.slug}`,
       })),
-      telephone: PHONE,
+      ...(telephone ? { telephone } : {}),
       sameAs: perfiles,
     },
     {
@@ -235,8 +225,7 @@ function buildSiteJsonLd(
       "@id": `${BASE_URL}/#doctor`,
       name: "Dra. Yasmin Medrano Avila",
       jobTitle: "Médica Especialista en Medicina Estética",
-      description:
-        "Médica especialista en medicina estética con más de 10 años de experiencia y más de 5,000 pacientes atendidos. Experta en toxina botulínica, ácido hialurónico, rellenos de labios, bioestimulación y técnicas de vanguardia.",
+      description: `Médica especialista en medicina estética en Cochabamba, Bolivia${claim ? `, con ${claim}` : ""}.`,
       // «Casa de la entidad»: la URL que Google trata como fuente de verdad
       // sobre quién es la doctora. Apuntaba a la portada, que habla del
       // consultorio; la página que habla de ELLA es `/nosotros`, y es la que
@@ -245,7 +234,7 @@ function buildSiteJsonLd(
       url: `${BASE_URL}/nosotros`,
       mainEntityOfPage: `${BASE_URL}/nosotros`,
       image: `${BASE_URL}/images/DraMedrano.jpeg`,
-      telephone: PHONE,
+      ...(telephone ? { telephone } : {}),
       worksFor: { "@id": `${BASE_URL}/#business` },
       medicalSpecialty: "Medicina Estética",
       // En salud Google pesa QUIÉN firma, no solo qué dice la página. Esto
@@ -298,16 +287,16 @@ export default async function RootLayout({
   // WhatsApp configurado en el panel (Dashboard → Contacto), no cableado.
   // Los tratamientos activos alimentan el `knowsAbout` de la doctora: el panel
   // manda, y un procedimiento nuevo entra en el schema sin tocar código.
-  const [whatsapp, treatmentsResult, footerData, ubicacion] = await Promise.all([
-    getWhatsAppConfig(),
-    backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
-    getFooterData(),
-    getConsultorioLocation(),
+  const [whatsapp, treatments, footerData, contact, about] = await Promise.all([
+    getWhatsApp(),
+    getActiveTreatments(),
+    getFooter(),
+    getContact(),
+    getAbout(),
   ]);
-  const activeTreatments =
-    treatmentsResult.error === null
-      ? extractList<TreatmentRef>(treatmentsResult.data).filter((t) => t.slug)
-      : [];
+  const activeTreatments = treatments.data;
+  const ubicacion = locationOf(contact.data);
+  const contacto = businessContactOf(contact.data);
   // `sameAs` conecta el sitio con sus perfiles: es como Google entiende que la
   // web, el Facebook, el Instagram y el TikTok son la MISMA entidad, y por eso
   // las señales de cada uno se suman. Antes estaban escritos a mano y faltaba
@@ -321,7 +310,14 @@ export default async function RootLayout({
     .map(normalizeSocialUrl)
     .filter(Boolean);
 
-  const jsonLd = buildSiteJsonLd(activeTreatments, perfilesSociales, ubicacion);
+  const jsonLd = buildSiteJsonLd(
+    activeTreatments,
+    perfilesSociales,
+    ubicacion,
+    contacto,
+    whatsapp.url,
+    statsClaim(about.data.stats)
+  );
 
   return (
     <html lang="es-BO">

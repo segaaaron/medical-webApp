@@ -10,6 +10,9 @@ const TERRACOTTA = "oklch(58% 0.16 35)"
 
 interface FAQSectionProps {
   faqs: FAQ[]
+  /** Etiqueta y título de la sección, tal cual los guarda el panel (vacío = oculto). */
+  eyebrow: string
+  title: string
 }
 
 interface FAQItemProps {
@@ -132,7 +135,7 @@ function FAQItem({ faq, index, isOpen, onToggle, prefersReduced }: FAQItemProps)
   )
 }
 
-export function FAQSection({ faqs }: FAQSectionProps) {
+export function FAQSection({ faqs, eyebrow, title }: FAQSectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const prefersReduced = useReducedMotion()
 
@@ -145,7 +148,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
       }}
     >
       <div style={{ maxWidth: "720px", margin: "0 auto" }}>
-        <SectionHeader eyebrow="¿Tienes Preguntas?" title="Preguntas Frecuentes" />
+        {(eyebrow || title) && <SectionHeader eyebrow={eyebrow} title={title} />}
 
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {faqs.map((faq, i) => (

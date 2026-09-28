@@ -308,39 +308,16 @@ export default function FooterDashboardPage() {
             </div>
           </EditorCard>
 
-          {/* Tratamientos faciales */}
-          <EditorCard title="Tratamientos Faciales" icon={Link} hint="Links de tratamientos faciales en el footer">
-            <LinkArrayEditor
-              fieldName="facialTreatments"
-              label="Cada link tiene un texto visible y una ruta"
-              placeholder="/tratamientos/botox"
-            />
-          </EditorCard>
-
-          {/* Tratamientos corporales */}
-          <EditorCard title="Tratamientos Corporales" icon={Link} hint="Links de tratamientos corporales en el footer">
-            <LinkArrayEditor
-              fieldName="bodyTreatments"
-              label="Cada link tiene un texto visible y una ruta"
-              placeholder="/tratamientos/reduccion-medidas"
-            />
-          </EditorCard>
-
+          {/* Sin editores de «Tratamientos Faciales/Corporales» ni «Legales»: la
+              columna de tratamientos sale sola de los tratamientos activos del
+              panel, y los enlaces legales son fijos en el sitio. Los valores
+              que ya existan se reenvían intactos al guardar. */}
           {/* Links del consultorio */}
           <EditorCard title="Links del Consultorio" icon={Link} hint="Links de navegación del consultorio">
             <LinkArrayEditor
               fieldName="officeLinks"
               label="Cada link tiene un texto visible y una ruta"
               placeholder="/nosotros"
-            />
-          </EditorCard>
-
-          {/* Links legales */}
-          <EditorCard title="Links Legales" icon={Link} hint="Política de privacidad, términos, etc.">
-            <LinkArrayEditor
-              fieldName="legalLinks"
-              label="Cada link tiene un texto visible y una ruta"
-              placeholder="/privacidad"
             />
           </EditorCard>
 

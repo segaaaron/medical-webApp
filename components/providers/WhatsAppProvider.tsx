@@ -1,9 +1,11 @@
 "use client"
 
 import { createContext, useContext } from "react"
-import { WHATSAPP_FALLBACK, type WhatsAppConfig } from "@/lib/whatsapp"
+import type { WhatsAppConfig } from "@/lib/whatsapp"
 
-const WhatsAppContext = createContext<WhatsAppConfig>(WHATSAPP_FALLBACK)
+// Sin valor por defecto real: el layout siempre provee el del panel (o su
+// respaldo entero, ver lib/content/contact.ts).
+const WhatsAppContext = createContext<WhatsAppConfig>({ url: "" })
 
 /**
  * Reparte el WhatsApp configurado en el panel a los componentes cliente.

@@ -167,7 +167,7 @@ export function revalidateContact(): void {
 }
 
 /**
- * `site-content` (clave `main` del content-store y `treatmentsPage`): textos
+ * `site-content` (claves `main`, `treatmentsPage` y `seo`): textos
  * globales consumidos por casi todas las páginas públicas.
  */
 export function revalidateSiteContent(): void {

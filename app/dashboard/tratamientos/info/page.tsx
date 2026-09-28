@@ -41,7 +41,7 @@ const DEFAULT: InfoValues = {
   label: "NUESTROS SERVICIOS",
   title: "Tratamientos de Medicina Estética",
   description:
-    "Ofrecemos una amplia gama de tratamientos faciales y corporales con tecnología de vanguardia y los más altos estándares de seguridad médica.",
+    "Ofrecemos tratamientos de medicina estética con tecnología de vanguardia y los más altos estándares de seguridad médica.",
   descriptionHighlight: "tecnología de vanguardia",
   consultationTitle: "Lo Que Incluye Cada Consulta",
   consultationItems: [

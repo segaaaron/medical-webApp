@@ -5,20 +5,27 @@ import { bodyLocationsFor, concernsFor, derivedKeywords, concernSentence } from 
 import { AuthorBox } from "@/components/blog/AuthorBox"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
-import { seoTitleFor, searchAliasesFor, matchTreatmentsInText, normalizeHeadline } from "@/lib/seo/treatment-names"
+import { seoTitleFor, searchAliasesFor, displayNameFor, alternateNamesFor, matchTreatmentsInText, normalizeHeadline } from "@/lib/seo/treatment-names"
 import { buildMetaDescription } from "@/lib/seo/meta"
 import { permanentRedirect } from "next/navigation"
-import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
+import {
+  getActiveTreatments,
+  getTreatmentById,
+  getTreatmentBySlug,
+  type Treatment,
+} from "@/lib/content/treatments"
+import { getPosts } from "@/lib/content/blog"
+import { getAbout, statsClaim } from "@/lib/content/about"
+import { getWhatsApp } from "@/lib/content/contact"
+import { getNavLinks } from "@/lib/content/site-main"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { getFooterData } from "@/lib/data/footer"
-import { DEFAULTS, readContent } from "@/lib/store/content-store"
+import { getFooter } from "@/lib/content/footer"
 import { ArrowLeft, MessageCircle, Phone } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { getWhatsAppConfig } from "@/lib/data/whatsapp"
 import { TreatmentPageTracker } from "@/components/analytics/TreatmentPageTracker"
 import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
@@ -29,33 +36,8 @@ import { FaqPrompt } from "@/components/ui/FaqPrompt"
 export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el tratamiento
 
 export async function generateStaticParams() {
-  try {
-    const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 })
-    return extractList<BackendTreatment>(data)
-      .filter((t) => t.slug)
-      .map((t) => ({ slug: t.slug }))
-  } catch {
-    return []
-  }
-}
-
-
-interface BackendTreatment {
-  id: string
-  slug: string
-  name: string
-  description: string | null
-  price: number
-  tag: string | null
-  imageUrl: string | null
-  image_url: string | null
-  beforeImageUrl: string | null
-  before_image_url: string | null
-  afterImageUrl: string | null
-  after_image_url: string | null
-  active: boolean
-  updatedAt?: string | null
-  createdAt?: string | null
+  const { data } = await getActiveTreatments()
+  return data.map((t) => ({ slug: t.slug }))
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -63,49 +45,19 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 /**
  * Resuelve un tratamiento por su slug.
  *
- * Las URLs eran `/tratamientos/<uuid>`: sin una sola palabra clave, ilegibles
- * al compartirse por WhatsApp y sin valor para buscar "botox cochabamba". El
- * modelo ya tiene `slug` único, así que la dirección pública ahora lo usa.
- *
- * `/treatments?active=true` sin `page` devuelve la lista completa (contrato del
- * backend), así que el slug se resuelve sin endpoint nuevo. Si llega un UUID
- * —enlaces antiguos ya indexados— se responde con un 301 al slug, que es lo que
- * conserva el posicionamiento ganado.
+ * Las URLs eran `/tratamientos/<uuid>`: sin palabra clave e ilegibles al
+ * compartirse. Si llega un UUID —enlaces antiguos ya indexados— se responde
+ * con un 301 al slug, que conserva el posicionamiento ganado. Se pregunta por
+ * el id directamente (no en la lista de activos) para que el 301 funcione
+ * también con un tratamiento hoy desactivado.
  */
-async function findBySlug(slug: string): Promise<BackendTreatment | null> {
-  // Un UUID solo puede venir de un enlace antiguo (anuncios, mensajes ya
-  // enviados, resultados de Google todavía sin reindexar). Se pregunta por él
-  // directamente en vez de buscarlo en la lista de activos: así el 301 también
-  // funciona para un tratamiento que hoy esté desactivado, que es justo cuando
-  // un 404 dolería más.
+async function getTreatment(slug: string): Promise<Treatment | null> {
   if (UUID_RE.test(slug)) {
-    const { data } = await backendFetch<BackendTreatment>(`/treatments/${slug}`, { revalidate: 300 })
-    if (data?.slug) permanentRedirect(`/tratamientos/${data.slug}`)
+    const byId = await getTreatmentById(slug)
+    if (byId) permanentRedirect(`/tratamientos/${byId.slug}`)
     return null
   }
-
-  const { data } = await backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 })
-  return extractList<BackendTreatment>(data).find((t) => t.slug === slug) ?? null
-}
-
-async function getTreatment(slug: string): Promise<BackendTreatment | null> {
-  const found = await findBySlug(slug)
-  if (!found) return null
-  const { data, error } = await backendFetch<BackendTreatment>(`/treatments/${found.id}`, { revalidate: 300 })
-  // `!data` no basta: si el backend responde 200 con un objeto vacío o de otra
-  // forma, `data` es «truthy» pero sin `name`, y al construir los metadatos se
-  // rompía con «Cannot read properties of undefined» — un 500 en la ficha del
-  // tratamiento, que para Google es una página muerta. Se exige el mínimo
-  // imprescindible antes de darla por válida.
-  if (error || !data || typeof data.name !== "string" || !data.name) return null
-  const before = (data.beforeImageUrl ?? data.before_image_url) as string | null
-  const after = (data.afterImageUrl ?? data.after_image_url) as string | null
-  return {
-    ...data,
-    imageUrl: resolveImageUrl((data.imageUrl ?? data.image_url) as string | null),
-    beforeImageUrl: before ? resolveImageUrl(before) : null,
-    afterImageUrl: after ? resolveImageUrl(after) : null,
-  }
+  return getTreatmentBySlug(slug)
 }
 
 interface Props {
@@ -128,16 +80,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // con las palabras que teclea la paciente («sudoración excesiva en axilas»),
   // y es lo primero que se lee en el resultado de búsqueda.
   const indicaciones = concernSentence(treatment)
-  const description = buildMetaDescription(
-    `${indicaciones} ${treatment.description ?? ""}`.trim(),
-    " Consulta de valoración en Cochabamba con la Dra. Yasmin Medrano."
-  )
+  // Dashboard → SEO / Google manda; vacía = se deriva de la ficha.
+  const description = treatment.seoDescription
+    ? treatment.seoDescription
+    : buildMetaDescription(
+        `${indicaciones} ${treatment.description}`.trim(),
+        " Consulta de valoración en Cochabamba con la Dra. Yasmin Medrano."
+      )
 
-  // El título NO usa el nombre crudo del panel: venía en mayúsculas sostenidas
-  // («ÁCIDO HIALURÓNICO»), con comillas escapadas y, en varios casos, con el
-  // nombre clínico que nadie teclea en Google. Ver lib/seo/treatment-names.ts.
-  const seoName = seoTitleFor(slug, treatment.name)
-  const aliases = searchAliasesFor(slug, treatment.name)
+  // El título NO usa el nombre crudo del panel (MAYÚSCULAS, comillas, nombre
+  // clínico que nadie teclea): usa el `seoTitle` de la ficha («Botox») o, sin
+  // él, el nombre normalizado. Ver lib/seo/treatment-names.ts.
+  const seoName = seoTitleFor(treatment)
+  const aliases = searchAliasesFor(treatment)
+  const imagen = treatment.ogImageUrl ? treatment.ogImageUrl : treatment.imageUrl
 
   return {
     // Sin sufijo de marca: el template del layout ya añade "| Dra. Yasmin
@@ -175,35 +131,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
       // Sin foto se OMITE la clave: `images: []` pisaba el `opengraph-image`
       // del sitio y la ficha se compartía en WhatsApp sin imagen.
-      ...(treatment.imageUrl
-        ? { images: [{ url: treatment.imageUrl, width: 1200, height: 630, alt: `${seoName} — Dra. Yasmin Medrano Avila, Cochabamba` }] }
+      ...(imagen
+        ? { images: [{ url: imagen, width: 1200, height: 630, alt: `${seoName} — Dra. Yasmin Medrano Avila, Cochabamba` }] }
         : {}),
       locale: "es_BO",
     },
   }
 }
 
-/** Lo mínimo que se necesita de un artículo para saber si trata de esta ficha. */
-interface BackendPostRef {
-  slug: string
-  title: string
-  excerpt?: string | null
-  content?: string | null
-  published: boolean
-}
-
 export default async function TratamientoDetallePage({ params }: Props) {
   const { slug } = await params
-  const [treatment, footerData, c, whatsapp] = await Promise.all([
+  const [treatment, footerData, navLinks, whatsapp, activos, posts, about] = await Promise.all([
     getTreatment(slug),
-    getFooterData(),
-    readContent(),
-    getWhatsAppConfig(),
+    getFooter(),
+    getNavLinks(),
+    getWhatsApp(),
+    getActiveTreatments(),
+    getPosts(),
+    getAbout(),
   ])
 
   if (!treatment || !treatment.active) notFound()
-
-  const navLinks = c?.navLinks ?? DEFAULTS.navLinks
 
   // Teléfono derivado del WhatsApp del panel: un solo número editable en un
   // solo sitio, sin una segunda copia que se quede vieja.
@@ -219,8 +167,10 @@ export default async function TratamientoDetallePage({ params }: Props) {
 
   // Mismo nombre optimizado que usan los metadatos, para que el schema y el
   // título digan lo mismo que la página muestra.
-  const seoName = seoTitleFor(slug, treatment.name)
-  const aliases = searchAliasesFor(slug, treatment.name)
+  const seoName = seoTitleFor(treatment)
+  const trayectoria = statsClaim(about.data.stats)
+  // Lo que ve el paciente es el nombre del panel; `seoName` solo va a metadatos.
+  const displayName = displayNameFor(treatment)
 
   // Otros tratamientos, para enlazar entre fichas.
   //
@@ -228,14 +178,8 @@ export default async function TratamientoDetallePage({ params }: Props) {
   // ninguna otra. Eso desperdicia dos cosas — el paciente que descarta un
   // procedimiento se va del sitio en vez de mirar el siguiente, y la autoridad
   // que gana una ficha no se reparte hacia las demás. Reutiliza el mismo fetch
-  // cacheado de `findBySlug`, así que no añade ninguna llamada al backend.
-  const { data: allActive } = await backendFetch<BackendTreatment[]>(
-    "/treatments?active=true",
-    { revalidate: 300 }
-  )
-  const otherTreatments = extractList<BackendTreatment>(allActive)
-    .filter((t) => t.slug && t.slug !== slug)
-    .slice(0, 3)
+  // cacheado de `getActiveTreatments`, así que no añade ninguna llamada al backend.
+  const otherTreatments = activos.data.filter((t) => t.slug !== slug).slice(0, 3)
 
   /**
    * Artículos del blog que hablan de ESTE tratamiento.
@@ -249,15 +193,10 @@ export default async function TratamientoDetallePage({ params }: Props) {
    * se calcula qué tratamientos menciona y se conservan los que nombran este.
    * Mismo vocabulario, ninguna lista nueva que mantener.
    */
-  const { data: rawPosts } = await backendFetch("/blog?published=true", { revalidate: 3600 })
-  const activeRefs = extractList<BackendTreatment>(allActive)
-    .filter((t) => t.slug)
-    .map((t) => ({ slug: t.slug, name: t.name }))
-  const relatedPosts = extractList<BackendPostRef>(rawPosts)
-    .filter((p) => p.published && p.slug)
+  const relatedPosts = posts.data
     .filter((p) => {
-      const texto = `${p.title} ${p.excerpt ?? ""} ${p.content ?? ""}`.replace(/<[^>]+>/g, " ")
-      return matchTreatmentsInText(texto, activeRefs, 5).includes(slug)
+      const texto = `${p.title} ${p.excerpt} ${p.content}`.replace(/<[^>]+>/g, " ")
+      return matchTreatmentsInText(texto, activos.data, 5).includes(slug)
     })
     .slice(0, 3)
 
@@ -267,7 +206,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Inicio", item: BASE_URL },
       { "@type": "ListItem", position: 2, name: "Tratamientos", item: `${BASE_URL}/tratamientos` },
-      { "@type": "ListItem", position: 3, name: seoName },
+      { "@type": "ListItem", position: 3, name: displayName },
     ],
   }
 
@@ -293,7 +232,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
             // respuestas puede citar entero cuando alguien pregunta «cuánto
             // cuesta el bótox en Cochabamba», y lo que evita que la paciente
             // tenga que volver a buscar cómo contactar.
-            : `El precio de ${seoName} depende de la valoración de cada paciente: la zona a tratar y el producto necesario cambian el presupuesto. Escribe al ${formatPhone(telefono)} por WhatsApp y te damos el precio para tu caso.`,
+            : `El precio de ${seoName} depende de la valoración de cada paciente: la zona a tratar y el producto necesario cambian el presupuesto. ${telefono ? `Escribe al ${formatPhone(telefono)} por WhatsApp` : "Escríbenos por WhatsApp"} y te damos el precio para tu caso.`,
         },
       },
       {
@@ -301,7 +240,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
         name: `¿Es seguro el tratamiento de ${seoName}?`,
         acceptedAnswer: {
           "@type": "Answer",
-          text: `${seoName} lo realiza la Dra. Yasmin Medrano Avila, médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia, siguiendo protocolos médicos certificados.`,
+          text: `${seoName} lo realiza la Dra. Yasmin Medrano Avila, médica especialista en medicina estética en Cochabamba, Bolivia${trayectoria ? `, con ${trayectoria}` : ""}, siguiendo protocolos médicos certificados.`,
         },
       },
       {
@@ -321,22 +260,21 @@ export default async function TratamientoDetallePage({ params }: Props) {
   // `reviewedBy` apunta a la ficha Physician del sitio (@id #doctor), y
   // `lastReviewed` sale de la última edición real en el panel — no de la fecha
   // de hoy, que sería afirmar una revisión que nadie hizo.
-  const revisadoEl = treatment.updatedAt ?? treatment.createdAt ?? null
+  const revisado = new Date(treatment.updatedAt || treatment.createdAt)
+  const revisadoEl = Number.isNaN(revisado.getTime()) ? null : revisado
 
   const procedureLd = {
     "@context": "https://schema.org",
     "@type": "MedicalProcedure",
     reviewedBy: { "@id": `${BASE_URL}/#doctor` },
-    ...(revisadoEl ? { lastReviewed: new Date(revisadoEl).toISOString().slice(0, 10) } : {}),
+    ...(revisadoEl ? { lastReviewed: revisadoEl.toISOString().slice(0, 10) } : {}),
     medicalAudience: { "@type": "MedicalAudience", audienceType: "Patient" },
-    name: seoName,
-    // El nombre clínico se conserva, y los términos por los que la gente busca
-    // de verdad entran como alternativos: es la forma que entiende Google de
-    // «esta página también trata de esto».
-    alternateName: [treatment.name, ...aliases].filter(
-      (v, i, arr) => v && arr.indexOf(v) === i
-    ),
-    description: (treatment.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300),
+    name: displayName,
+    // El nombre real del panel es el principal, y los términos por los que la
+    // gente busca de verdad entran como alternativos: es la forma que entiende
+    // Google de «esta página también trata de esto».
+    ...(alternateNamesFor(treatment).length ? { alternateName: alternateNamesFor(treatment) } : {}),
+    description: treatment.description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 300),
     url: `${BASE_URL}/tratamientos/${slug}`,
     ...(procedureImages.length ? { image: procedureImages } : {}),
     // Referencias a las entidades que el layout ya sirve en todas las páginas,
@@ -377,7 +315,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
           items={[
             { label: "Inicio", href: "/" },
             { label: "Tratamientos", href: "/tratamientos" },
-            { label: seoName },
+            { label: displayName },
           ]}
         />
         <TreatmentPageTracker id={treatment.id} name={treatment.name} />
@@ -541,14 +479,16 @@ export default async function TratamientoDetallePage({ params }: Props) {
                     El presupuesto depende de la zona a tratar y del producto que necesite
                     cada paciente. Se define en la consulta de valoración.
                   </p>
-                  <a
-                    href={`tel:${telefono}`}
-                    className="inline-flex items-center gap-2 text-base font-semibold hover:opacity-80 transition-opacity py-2 -my-2"
-                    style={{ color: "#fff" }}
-                  >
-                    <Phone size={16} aria-hidden="true" />
-                    {formatPhone(telefono)}
-                  </a>
+                  {telefono && (
+                    <a
+                      href={`tel:${telefono}`}
+                      className="inline-flex items-center gap-2 text-base font-semibold hover:opacity-80 transition-opacity py-2 -my-2"
+                      style={{ color: "#fff" }}
+                    >
+                      <Phone size={16} aria-hidden="true" />
+                      {formatPhone(telefono)}
+                    </a>
+                  )}
                 </div>
               )}
               <TrackWhatsAppLink
@@ -577,9 +517,10 @@ export default async function TratamientoDetallePage({ params }: Props) {
           <div className="max-w-3xl mx-auto px-6 pb-4">
             <AuthorBox
               name="Dra. Yasmin Medrano Avila"
-              publishedAt={treatment.createdAt ?? new Date().toISOString()}
+              publishedAt={treatment.createdAt}
               updatedAt={treatment.updatedAt}
               perfiles={perfilesSociales}
+              credentials={trayectoria}
               eyebrow="INFORMACIÓN REVISADA POR"
               publishedLabel="Publicado el"
             />
@@ -615,7 +556,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
                       borderRadius: "2px",
                     }}
                   >
-                    {seoTitleFor(t.slug, t.name)}
+                    {displayNameFor(t)}
                     <span aria-hidden="true">→</span>
                   </Link>
                 </li>
@@ -637,7 +578,7 @@ export default async function TratamientoDetallePage({ params }: Props) {
               className="text-xl font-bold mb-6"
               style={{ color: "var(--primary-darkest)" }}
             >
-              Artículos sobre {seoName}
+              Artículos sobre {displayName}
             </h2>
             <ul className="flex flex-col gap-3">
               {relatedPosts.map((p) => (

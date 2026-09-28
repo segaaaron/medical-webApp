@@ -1,11 +1,11 @@
-import { normalizeHeadline } from "@/lib/seo/treatment-names"
-import { readContent } from "@/lib/store/content-store"
 import { BASE_URL } from "@/lib/seo/site-url"
-import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
+import { pageSeoMetadata } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { getFooterData } from "@/lib/data/footer"
-import { staticBlogPosts } from "@/lib/data/blog-posts"
+import { getFooter } from "@/lib/content/footer"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getPosts } from "@/lib/content/blog"
+import { getSiteSeo } from "@/lib/content/seo"
 import { BlogCard } from "@/components/blog/BlogCard"
 import { safeJsonLd } from "@/lib/seo-utils"
 import type { Metadata } from "next"
@@ -22,109 +22,18 @@ const breadcrumbLd = {
   ],
 }
 
-export const metadata: Metadata = {
-  title: "Blog de Medicina Estética",
-  // 158 caracteres. La anterior medía 166 y Google la cortaba en «…explicados
-  // por una…», justo antes de la palabra que daba la autoridad: «médica».
-  description:
-    "Botox, ácido hialurónico y cuidado de la piel explicados por la Dra. Yasmin Medrano, médica estética en Cochabamba. Guías reales, sin promesas de resultado.",
-  keywords: [
-    "blog medicina estética Bolivia",
-    "consejos botox Cochabamba",
-    "guía ácido hialurónico Bolivia",
-    "cuidado piel experta Bolivia",
-    "artículos rejuvenecimiento facial",
-    "novedades medicina estética 2026",
-    "verdades botox Bolivia médica",
-    "cómo funciona armonización facial",
-    "tratamientos antiedad Bolivia consejos",
-    "blog Dra Yasmin Medrano Avila",
-  ],
-  alternates: {
+export async function generateMetadata(): Promise<Metadata> {
+  const { blog } = await getSiteSeo()
+  return pageSeoMetadata(blog, {
     canonical: `${BASE_URL}/blog`,
-  },
-  openGraph: {
-    title: "Blog Experto de Medicina Estética en Bolivia | Dra. Yasmin Medrano",
-    description:
-      "Guías reales de una médica con 10+ años de experiencia. Todo lo que necesitas saber sobre botox, rellenos, cuidado de piel y tratamientos estéticos en Bolivia.",
-    url: `${BASE_URL}/blog`,
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Blog de medicina estética — Dra. Yasmin Medrano Avila, Cochabamba" }],
-    type: "website",
-    locale: "es_BO",
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: ["/opengraph-image"],
-    title: "Blog Medicina Estética Bolivia | Dra. Yasmin Medrano Avila",
-    description:
-      "Guías sobre botox, ácido hialurónico y cuidado de la piel, escritas por una médica especialista en Cochabamba.",
-  },
-}
-
-interface BlogPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string | null
-  imageUrl: string | null
-  published: boolean
-  publishedAt: string | null
-  createdAt: string
-}
-
-/**
- * Fetch blog posts: tries backend with auth, falls back to static defaults.
- * Uses the same resilient pattern as /api/blog route.
- */
-async function fetchPublishedPosts() {
-  const { data: rawData, error } = await backendFetch("/blog", { revalidate: 300 })
-
-  if (error || !rawData) {
-    console.warn("[BlogPage] Backend unavailable, using static posts:", error)
-    return staticBlogPosts.map((p) => ({
-      id: p.id,
-      // El panel a veces trae el titular EN MAYÚSCULAS y entrecomillado. Google
-    // lo respeta tal cual, y un resultado que grita pierde clics.
-    title: normalizeHeadline(p.title),
-      slug: p.slug,
-      excerpt: p.excerpt,
-      content: p.content,
-      imageUrl: p.imageUrl,
-      published: true,
-      publishedAt: p.publishedAt,
-      createdAt: p.publishedAt,
-    })) as BlogPost[]
-  }
-
-  return extractList<BlogPost>(rawData)
+    ogImageAlt: "Blog de medicina estética — Dra. Yasmin Medrano Avila, Cochabamba",
+  })
 }
 
 export default async function BlogPage() {
-  const [allBackendPosts, footerData, c] = await Promise.all([
-    fetchPublishedPosts(),
-    getFooterData(),
-    readContent(),
-  ])
-
-  const publishedPosts = allBackendPosts.filter((p) => p.published)
-
-  // Single source: backend posts when available, static posts only as fallback (set in fetchPublishedPosts)
-  const allPosts = publishedPosts.map((p) => ({
-    id: p.id,
-    // El panel a veces trae el titular EN MAYÚSCULAS y entrecomillado. Google
-    // lo respeta tal cual, y un resultado que grita pierde clics.
-    title: normalizeHeadline(p.title),
-    slug: p.slug,
-    excerpt: p.excerpt ?? "",
-    imageUrl: resolveImageUrl(p.imageUrl),
-    publishedAt: p.publishedAt ?? p.createdAt,
-    author: "Dra. Yasmin Medrano Avila",
-    readTime: p.content
-      ? `${Math.max(1, Math.ceil(p.content.split(/\s+/).length / 200))} min`
-      : "5 min",
-    tags: [] as string[],
-  })).sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+  const [posts, footerData, navLinks] = await Promise.all([getPosts(), getFooter(), getNavLinks()])
+  // Del servicio o, si no responde, el respaldo entero (lib/content/blog.ts).
+  const allPosts = posts.data
 
   const [featured, ...rest] = allPosts
 
@@ -134,7 +43,7 @@ export default async function BlogPage() {
    * Sin esto la página era, para un buscador, una rejilla de enlaces sueltos:
    * nada decía que fuera una publicación firmada por una médica ni qué
    * artículos la componen. `blogPost` con el orden real es además lo que un
-   * motor de respuestas usa para enumerar («escribe sobre bótox, manchas…»),
+   * motor de respuestas usa para enumerar («escribe sobre bótox, rellenos…»),
    * y `author`/`publisher` cuelgan de las entidades que ya sirve el layout.
    */
   const blogLd = {
@@ -169,7 +78,7 @@ export default async function BlogPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(blogLd) }}
       />
-      <Navbar links={c.navLinks} />
+      <Navbar links={navLinks} />
       <main>
         {/* Hero */}
         <section className="py-6 px-6 text-center" style={{ backgroundColor: "#1a0510" }}>

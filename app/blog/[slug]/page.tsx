@@ -1,17 +1,18 @@
 import { sanitizeBody } from "@/lib/html/sanitize"
 import { BASE_URL } from "@/lib/seo/site-url"
-import { DEFAULTS } from "@/lib/store/content-store"
-import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
-import { matchTreatmentsInText, seoTitleFor, normalizeHeadline } from "@/lib/seo/treatment-names"
+import { matchTreatmentsInText, displayNameFor } from "@/lib/seo/treatment-names"
 import { buildMetaDescription } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { getFooterData } from "@/lib/data/footer"
+import { getFooter } from "@/lib/content/footer"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getPosts, getPostBySlug } from "@/lib/content/blog"
+import { getActiveTreatments, type Treatment } from "@/lib/content/treatments"
+import { getAbout, statsClaim } from "@/lib/content/about"
 import { AuthorBox } from "@/components/blog/AuthorBox"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
-import { staticBlogPosts, type StaticBlogPost } from "@/lib/data/blog-posts"
 import { BlogCard } from "@/components/blog/BlogCard"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { ReadingProgressBar } from "@/components/ui/ReadingProgressBar"
@@ -40,68 +41,8 @@ import { BlogPageTracker } from "@/components/analytics/BlogPageTracker"
 export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el post
 
 export async function generateStaticParams() {
-  try {
-    const { data: rawData } = await backendFetch("/blog", { revalidate: 3600 })
-    const posts = extractList<BackendBlogPost>(rawData)
-    return posts.filter((p) => p.published).map((p) => ({ slug: p.slug }))
-  } catch {
-    return []
-  }
-}
-
-
-interface BackendBlogPost {
-  id: string
-  title: string
-  slug: string
-  excerpt: string | null
-  content: string | null
-  imageUrl: string | null
-  published: boolean
-  publishedAt: string | null
-  createdAt: string
-  updatedAt?: string | null
-}
-
-/** Map a backend post to the StaticBlogPost shape used by the UI */
-function toStaticPost(p: BackendBlogPost): StaticBlogPost {
-  const body = p.content ?? ""
-  return {
-    id: p.id,
-    // El panel a veces trae el titular EN MAYÚSCULAS y entrecomillado. Google
-    // lo respeta tal cual, y un resultado que grita pierde clics.
-    title: normalizeHeadline(p.title),
-    slug: p.slug,
-    excerpt: p.excerpt ?? "",
-    content: body,
-    imageUrl: resolveImageUrl(p.imageUrl),
-    publishedAt: p.publishedAt ?? p.createdAt,
-    updatedAt: p.updatedAt ?? p.publishedAt ?? p.createdAt,
-    author: "Dra. Yasmin Medrano Avila",
-    readTime: body
-      ? `${Math.max(1, Math.ceil(body.split(/\s+/).length / 200))} min`
-      : "5 min",
-    tags: [],
-  }
-}
-
-/** Get all published posts — backend first, static fallback */
-async function getAllPosts(): Promise<StaticBlogPost[]> {
-  const { data: rawData } = await backendFetch("/blog", { revalidate: 300 })
-  const data = extractList<BackendBlogPost>(rawData)
-  if (data.length === 0) {
-    console.warn("[getAllPosts] Backend unavailable, using static posts")
-    return staticBlogPosts
-  }
-  return data.filter((p) => p.published).map(toStaticPost)
-}
-
-/** Resolve a single post by slug from the full list */
-async function resolvePost(
-  slug: string,
-  allPosts: StaticBlogPost[],
-): Promise<StaticBlogPost | null> {
-  return allPosts.find((p) => p.slug === slug) ?? null
+  const { data } = await getPosts()
+  return data.map((p) => ({ slug: p.slug }))
 }
 
 interface Props {
@@ -119,8 +60,7 @@ function fechaLegible(iso: string | null | undefined): string | null {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const allPosts = await getAllPosts()
-  const post = await resolvePost(slug, allPosts)
+  const post = await getPostBySlug(slug)
   if (!post) return {}
 
   // El layout ya añade «| Dra. Yasmin Medrano Avila» con su `template`, así que
@@ -131,62 +71,64 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Y la description salía del `excerpt`, que el panel deja vacío a menudo: sin
   // texto, Google se inventa el fragmento. Ahora, si no hay resumen, se deriva
   // del propio artículo cortando en frase completa.
-  const description = buildMetaDescription(
-    post.excerpt || post.content || "",
-    " | Dra. Yasmin Medrano, medicina estética en Cochabamba."
-  )
+  // Dashboard → SEO / Google manda; vacío = se deriva del propio artículo.
+  const description = post.seoDescription
+    ? post.seoDescription
+    : buildMetaDescription(
+        post.excerpt || post.content,
+        " | Dra. Yasmin Medrano, medicina estética en Cochabamba."
+      )
+  const titulo = post.seoTitle ? post.seoTitle : post.title
+  const imagen = post.ogImageUrl ? post.ogImageUrl : post.imageUrl
 
   return {
     // Google corta en unos 60 caracteres. Con la plantilla del layout, un
     // titular largo se veía truncado Y con media marca detrás: se perdía el
     // final del titular, que es lo que responde a la búsqueda. Pasado ese
     // umbral, el titular va solo y se lee completo.
-    title: post.title.length > 55 ? { absolute: post.title } : post.title,
+    title: titulo.length > 55 ? { absolute: titulo } : titulo,
     description,
-    keywords: post.tags,
     alternates: { canonical: `${BASE_URL}/blog/${post.slug}` },
     openGraph: {
-      title: post.title,
+      title: titulo,
       description,
       url: `${BASE_URL}/blog/${post.slug}`,
       type: "article",
       publishedTime: post.publishedAt,
-      authors: [post.author],
+      authors: [AUTOR],
       // Sin foto NO se manda `images: []`: un array vacío pisaba el
       // `opengraph-image.tsx` del sitio y el artículo se compartía en WhatsApp
       // sin imagen. Omitir la clave deja que herede la del sitio.
-      ...(post.imageUrl
-        ? { images: [{ url: post.imageUrl, width: 1200, height: 630, alt: post.title }] }
+      ...(imagen
+        ? { images: [{ url: imagen, width: 1200, height: 630, alt: titulo }] }
         : {}),
       locale: "es_BO",
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
+      title: titulo,
       description,
-      ...(post.imageUrl ? { images: [post.imageUrl] } : {}),
+      ...(imagen ? { images: [imagen] } : {}),
     },
   }
 }
 
 
-/** Lo mínimo que necesita el bloque de tratamientos mencionados. */
-interface BackendTreatmentRef {
-  id: string
-  slug: string
-  name: string
-}
+/** Firma de todos los artículos: el blog lo escribe y revisa la doctora. */
+const AUTOR = "Dra. Yasmin Medrano Avila"
 
 export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params
-  const [allPosts, footerData, treatmentsResult] = await Promise.all([
-    getAllPosts(),
-    getFooterData(),
-    backendFetch<BackendTreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
+  const [posts, post, footerData, treatments, navLinks, about] = await Promise.all([
+    getPosts(),
+    getPostBySlug(slug),
+    getFooter(),
+    getActiveTreatments(),
+    getNavLinks(),
+    getAbout(),
   ])
-  const post = await resolvePost(slug, allPosts)
-  const c = DEFAULTS
   if (!post) notFound()
+  const allPosts = posts.data
 
   const perfilesSociales = [
     footerData.facebookUrl,
@@ -206,12 +148,12 @@ export default async function BlogPostPage({ params }: Props) {
   // a la página que trata de ella, es de las señales de relevancia más directas
   // que existen — y no había ninguna. Se derivan del propio texto, así que un
   // artículo nuevo queda enlazado sin que nadie configure nada.
-  const activeTreatments = extractList<BackendTreatmentRef>(treatmentsResult.data)
-  const plainPost = `${post.title} ${(post.content ?? "").replace(/<[^>]*>/g, " ")}`
+  const activeTreatments = treatments.data
+  const plainPost = `${post.title} ${post.content.replace(/<[^>]*>/g, " ")}`
   const mentionedSlugs = matchTreatmentsInText(plainPost, activeTreatments)
   const relatedTreatments = mentionedSlugs
     .map((ts) => activeTreatments.find((t) => t.slug === ts))
-    .filter((t): t is BackendTreatmentRef => Boolean(t))
+    .filter((t): t is Treatment => Boolean(t))
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -219,12 +161,12 @@ export default async function BlogPostPage({ params }: Props) {
     headline: post.title,
     // El panel deja el resumen vacío a menudo; entonces se deriva del propio
     // artículo, igual que la meta description.
-    description: buildMetaDescription(post.excerpt || post.content || "", ""),
-    image: post.imageUrl,
+    description: post.seoDescription ? post.seoDescription : buildMetaDescription(post.excerpt || post.content, ""),
+    ...(post.imageUrl ? { image: post.imageUrl } : {}),
     datePublished: post.publishedAt,
     // `dateModified` faltaba: sin él, Google no distingue un artículo revisado
     // este mes de uno abandonado hace dos años, y en salud la vigencia pesa.
-    dateModified: post.updatedAt ?? post.publishedAt,
+    dateModified: post.updatedAt || post.publishedAt,
     // Quién responde del contenido médico.
     reviewedBy: { "@id": `${BASE_URL}/#doctor` },
     medicalAudience: { "@type": "MedicalAudience", audienceType: "Patient" },
@@ -238,7 +180,6 @@ export default async function BlogPostPage({ params }: Props) {
     // con la ficha real del consultorio.
     publisher: { "@id": `${BASE_URL}/#business` },
     mainEntityOfPage: `${BASE_URL}/blog/${post.slug}`,
-    keywords: post.tags.join(", "),
     speakable: {
       "@type": "SpeakableSpecification",
       cssSelector: ["h1", "h2", ".blog-content p"],
@@ -258,7 +199,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
-      <Navbar links={c.navLinks} />
+      <Navbar links={navLinks} />
       <ReadingProgressBar />
       <BlogPageTracker slug={post.slug} title={post.title} />
       <main>
@@ -313,7 +254,7 @@ export default async function BlogPostPage({ params }: Props) {
               style={{ borderColor: "rgba(184,151,59,0.2)" }}
             >
               <span className="text-sm font-medium" style={{ color: "var(--primary-darkest)" }}>
-                {post.author}
+                {AUTOR}
               </span>
               {/* Sin fecha válida no se pinta nada: «Invalid Date» bajo el
                   titular de un artículo de salud es peor que no poner fecha. */}
@@ -323,15 +264,17 @@ export default async function BlogPostPage({ params }: Props) {
                   {fechaLegible(post.publishedAt)}
                 </span>
               )}
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--vintage-gold)" }}>
-                <Clock size={14} />
-                {post.readTime} de lectura
-              </span>
+              {post.readTime && (
+                <span className="flex items-center gap-1.5 text-sm" style={{ color: "var(--vintage-gold)" }}>
+                  <Clock size={14} />
+                  {post.readTime} de lectura
+                </span>
+              )}
               {/* La vigencia pesa en salud: un artículo revisado este mes vale
                   más que uno abandonado hace dos años. Solo se muestra cuando
                   la revisión existe de verdad. */}
               {fechaLegible(post.updatedAt) &&
-                new Date(post.updatedAt as string).getTime() > new Date(post.publishedAt).getTime() && (
+                new Date(post.updatedAt).getTime() > new Date(post.publishedAt).getTime() && (
                   <span className="text-sm" style={{ color: "var(--primary-darkest)", opacity: 0.7 }}>
                     Revisado el {fechaLegible(post.updatedAt)}
                   </span>
@@ -341,7 +284,7 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Cover image */}
             <div className="w-full rounded-2xl overflow-hidden mb-8 relative" style={{ aspectRatio: "16/9", backgroundColor: "#F8F0E3" }}>
               <ImageWithFallback
-                src={post.imageUrl ?? ""}
+                src={post.imageUrl}
                 alt={post.title}
                 variant="light"
                 fill
@@ -359,7 +302,8 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Firma médica: lo que el JSON-LD ya afirma, dicho también en la
                 página. En contenido de salud Google exige ver quién responde. */}
             <AuthorBox
-              name={post.author}
+              name={AUTOR}
+              credentials={statsClaim(about.data.stats)}
               publishedAt={post.publishedAt}
               updatedAt={post.updatedAt}
               perfiles={perfilesSociales}
@@ -399,7 +343,7 @@ export default async function BlogPostPage({ params }: Props) {
                         borderRadius: "2px",
                       }}
                     >
-                      {seoTitleFor(t.slug, t.name)}
+                      {displayNameFor(t)}
                       <span aria-hidden="true">→</span>
                     </Link>
                   </li>

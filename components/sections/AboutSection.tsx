@@ -124,8 +124,8 @@ export function AboutSection({ bio }: AboutSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
-            {/* Eyebrow */}
-            <p
+            {/* Eyebrow — campo vacío en el panel = elemento oculto */}
+            {bio?.doctorTitle && <p
               style={{
                 fontFamily: "ui-monospace, 'IBM Plex Mono', Menlo, monospace",
                 fontSize: "12px",
@@ -135,11 +135,11 @@ export function AboutSection({ bio }: AboutSectionProps) {
                 marginBottom: "16px",
               }}
             >
-              {bio?.doctorTitle ?? "Sobre la Especialista"}
-            </p>
+              {bio.doctorTitle}
+            </p>}
 
             {/* Heading */}
-            <h2
+            {bio?.doctorName && <h2
               style={{
                 fontFamily: "'Playfair Display', 'Iowan Old Style', Georgia, serif",
                 fontSize: "clamp(34px, 4.5vw, 58px)",
@@ -150,8 +150,8 @@ export function AboutSection({ bio }: AboutSectionProps) {
                 marginBottom: "24px",
               }}
             >
-              {bio?.doctorName ?? ""}
-            </h2>
+              {bio.doctorName}
+            </h2>}
 
             {/* Accent line */}
             <div
@@ -164,7 +164,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
             />
 
             {/* Bio */}
-            <p
+            {bio?.doctorDescription && <p
               style={{
                 fontFamily: "'Playfair Display', 'Iowan Old Style', Georgia, serif",
                 fontSize: "clamp(16px, 1.8vw, 19px)",
@@ -174,8 +174,8 @@ export function AboutSection({ bio }: AboutSectionProps) {
                 marginBottom: "36px",
               }}
             >
-              {bio?.doctorDescription ?? ""}
-            </p>
+              {bio.doctorDescription}
+            </p>}
 
             {/* Credentials grid */}
             <div
@@ -199,8 +199,8 @@ export function AboutSection({ bio }: AboutSectionProps) {
             </div>
           </m.div>
 
-          {/* Right — portrait */}
-          <m.div
+          {/* Right — portrait. Sin foto en el panel no se pinta (no se repone una estática). */}
+          {bio?.doctorImage && <m.div
             initial={prefersReduced ? false : { opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -232,7 +232,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
 
               {/* Image */}
               <ImageWithFallback
-                src={bio?.doctorImage || "/images/DraMedrano.jpeg"}
+                src={bio.doctorImage}
                 alt="Dra. Yasmin Medrano Avila — Médica especialista en medicina estética"
                 variant="light"
                 objectPosition="top"
@@ -284,7 +284,7 @@ export function AboutSection({ bio }: AboutSectionProps) {
             >
               Dra. Yasmin Medrano — Médica Especialista
             </p>
-          </m.div>
+          </m.div>}
         </div>
       </div>
 

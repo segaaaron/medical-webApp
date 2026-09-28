@@ -70,7 +70,8 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
   return (
     <div className="text-center mb-16">
       {EyebrowLine}
-      <p
+      {/* Texto vacío desde el panel = elemento oculto. */}
+      {eyebrow && <p
         className={clsx(
           "mb-4",
           light ? "" : ""
@@ -84,13 +85,15 @@ export function SectionHeader({ eyebrow, title, subtitle, light = false }: Secti
         }}
       >
         {eyebrow}
-      </p>
-      <AnimatedTitle
-        text={title}
-        as="h2"
-        light={light}
-        className="text-3xl md:text-5xl font-bold leading-tight"
-      />
+      </p>}
+      {title && (
+        <AnimatedTitle
+          text={title}
+          as="h2"
+          light={light}
+          className="text-3xl md:text-5xl font-bold leading-tight"
+        />
+      )}
       {GoldDivider}
       {subtitle && (
         <p

@@ -12,6 +12,7 @@ import {
   TreatmentFormValues,
   buildTreatmentFormData,
 } from "@/components/dashboard/TreatmentForm"
+import { seoValuesFrom } from "@/components/dashboard/SeoFields"
 
 export default function EditarTratamientoPage() {
   const showToast = useToast()
@@ -35,6 +36,7 @@ export default function EditarTratamientoPage() {
           description: treatment.description ?? "",
           price: treatment.price ?? "",
           active: treatment.active ?? false,
+          ...seoValuesFrom(treatment),
           imagePreview: treatment.imageUrl ? resolveImageUrl(treatment.imageUrl) : "",
           beforeImagePreview: (treatment.beforeImageUrl ?? treatment.before_image_url)
             ? resolveImageUrl(treatment.beforeImageUrl ?? treatment.before_image_url)

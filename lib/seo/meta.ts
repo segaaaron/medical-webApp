@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 /**
  * Utilidades de metadatos para buscadores.
  */
@@ -93,4 +94,45 @@ function esPerfil(url: URL): boolean {
     return ruta.split("/").filter(Boolean).length === 1
   }
   return true
+}
+
+/**
+ * Metadatos de una página fija a partir de su entrada de Dashboard → SEO /
+ * Google (o del respaldo entero, si ese servicio no responde).
+ *
+ * El título se usa COMPLETO, tal cual (`absolute`: la marca no se añade dos
+ * veces). Un título o una descripción vacíos no se declaran y la página hereda
+ * los del layout: vacío = oculto, nunca un texto de reserva mezclado.
+ */
+export function pageSeoMetadata(
+  seo: { title: string; description: string },
+  opts: {
+    canonical: string
+    ogImageAlt: string
+    /** Añadido al título (p. ej. « — Página 2»). */
+    pageSuffix?: string
+    keywords?: string[]
+    ogType?: "website" | "profile"
+  }
+): Metadata {
+  const title = seo.title ? `${seo.title}${opts.pageSuffix ?? ""}` : ""
+  const text = { ...(title ? { title } : {}), ...(seo.description ? { description: seo.description } : {}) }
+  return {
+    ...(title ? { title: { absolute: title } } : {}),
+    ...(seo.description ? { description: seo.description } : {}),
+    ...(opts.keywords?.length ? { keywords: opts.keywords } : {}),
+    alternates: { canonical: opts.canonical },
+    openGraph: {
+      ...text,
+      url: opts.canonical,
+      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: opts.ogImageAlt }],
+      type: opts.ogType ?? "website",
+      locale: "es_BO",
+    },
+    twitter: {
+      card: "summary_large_image",
+      images: ["/opengraph-image"],
+      ...text,
+    },
+  }
 }

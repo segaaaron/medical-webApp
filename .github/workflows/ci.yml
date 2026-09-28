@@ -32,6 +32,15 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
+      # Estricto: incluye las guardas de «servicio o respaldo entero, nunca
+      # mezclados» (eslint.config.mjs). Un error aquí para el despliegue.
+      - name: Lint
+        run: npm run lint
+
+      # Contrato servicio/respaldo de lib/content (MSW, sin red real).
+      - name: Tests
+        run: npm test
+
       - name: Build
         run: npm run build
         env:

@@ -38,7 +38,7 @@ export function PresetsSection({ presets }: PresetsSectionProps) {
           <SectionHeader
             eyebrow="Áreas de Especialidad"
             title="Nuestras Categorías de Tratamiento"
-            subtitle={trustedHtml(`Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:var(--vintage-gold);font-weight:600;">resultados visibles y duraderos</span>.`)}
+            subtitle={trustedHtml(`Rejuvenecimiento facial y medicina regenerativa con <span style="color:var(--vintage-gold);font-weight:600;">resultados visibles y duraderos</span>.`)}
             light
           />
         </m.div>

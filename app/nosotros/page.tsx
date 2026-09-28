@@ -1,11 +1,13 @@
-import { getAboutData } from "@/lib/data/about"
+import { getAbout, statsClaim } from "@/lib/content/about"
 import { BASE_URL } from "@/lib/seo/site-url"
-import { getFooterData } from "@/lib/data/footer"
-import { readContent } from "@/lib/store/content-store"
-import { backendFetch, extractList, extractReviewAggregate } from "@/lib/backend-client"
+import { getFooter } from "@/lib/content/footer"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getReviews, type PublicReview, type ReviewAggregate } from "@/lib/content/reviews"
+import { getActiveTreatments } from "@/lib/content/treatments"
+import { getContact, businessContactOf } from "@/lib/content/contact"
+import { getSiteSeo } from "@/lib/content/seo"
 import { doctorKnowsAbout, type TreatmentRef } from "@/lib/seo/treatment-names"
-import { normalizeSocialUrl } from "@/lib/seo/meta"
-import { PHONE } from "@/lib/seo/local"
+import { normalizeSocialUrl, pageSeoMetadata } from "@/lib/seo/meta"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -13,48 +15,19 @@ import { AboutSection } from "@/components/sections/AboutSection"
 import { GallerySection } from "@/components/sections/GallerySection"
 import { PageHero } from "@/components/ui/PageHero"
 import { ValuePropositionSection } from "@/components/sections/ValuePropositionSection"
-import { TestimonialsSection, type PublicReview, type ReviewAggregate } from "@/components/sections/TestimonialsSection"
+import { TestimonialsSection } from "@/components/sections/TestimonialsSection"
 import type { Metadata } from "next"
 
 export type { BioDoc, BioSection } from "@/types/about"
 
 
-export const metadata: Metadata = {
-  // Absoluto: el template añadiría el nombre de la doctora por segunda vez.
-  title: { absolute: "Dra. Yasmin Medrano Avila — Medicina Estética Cochabamba" },
-  description:
-    "Dra. Yasmin Medrano Avila, médica especialista en medicina estética en Cochabamba. Botox, rellenos y armonización facial en Cochabamba.",
-  keywords: [
-    "Dra. Yasmin Medrano Avila Cochabamba",
-    "médica estética Bolivia especialista",
-    "doctora botox Cochabamba certificada",
-    "médico estético experiencia Bolivia",
-    "especialista rellenos ácido hialurónico Cochabamba",
-    "armonización facial médico Bolivia",
-    "bioestimulación facial Cochabamba",
-    "médico estética confiable Bolivia",
-    "doctora rejuvenecimiento facial Cochabamba",
-    "mejor médica estética Bolivia",
-  ],
-  alternates: {
+export async function generateMetadata(): Promise<Metadata> {
+  const { nosotros } = await getSiteSeo()
+  return pageSeoMetadata(nosotros, {
     canonical: `${BASE_URL}/nosotros`,
-  },
-  openGraph: {
-    title: "Dra. Yasmin Medrano Avila — 10 Años Transformando Vidas en Bolivia",
-    description:
-      "+5.000 pacientes felices en Cochabamba. Médica especialista certificada en botox natural, rellenos y rejuvenecimiento facial. Resultados que hablan por sí solos.",
-    url: `${BASE_URL}/nosotros`,
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Dra. Yasmin Medrano Avila — Medicina estética en Cochabamba, Bolivia" }],
-    type: "profile",
-    locale: "es_BO",
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: ["/opengraph-image"],
-    title: "Dra. Yasmin Medrano Avila | +5.000 Pacientes en Bolivia",
-    description:
-      "10+ años de experiencia en Cochabamba. Botox natural, rellenos y rejuvenecimiento facial con resultados reales. Agenda tu consulta hoy.",
-  },
+    ogImageAlt: "Dra. Yasmin Medrano Avila — Medicina estética en Cochabamba, Bolivia",
+    ogType: "profile",
+  })
 }
 
 const breadcrumbLd = {
@@ -68,17 +41,14 @@ const breadcrumbLd = {
 
 function buildAboutJsonLd(
   reviews: PublicReview[],
-  aggregate: ReviewAggregate | undefined,
+  aggregate: ReviewAggregate | null,
   treatments: TreatmentRef[],
-  perfiles: string[]
+  perfiles: string[],
+  // Teléfono de Dashboard → Contacto (o de su respaldo entero).
+  telephone: string,
+  // Estadísticas de Dashboard → Acerca de como frase; "" = se omite.
+  claim: string
 ) {
-  const hasReviews = reviews.length > 0
-  const avgRating = aggregate?.avg_rating != null
-    ? aggregate.avg_rating.toFixed(1)
-    : hasReviews
-      ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
-      : null
-  const reviewCount = aggregate?.total_count ?? reviews.length
 
   return {
     "@context": "https://schema.org",
@@ -92,11 +62,10 @@ function buildAboutJsonLd(
       "@id": `${BASE_URL}/#doctor`,
       name: "Dra. Yasmin Medrano Avila",
       jobTitle: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia",
-      description:
-        "Médica especialista en medicina estética con más de 10 años de experiencia en Cochabamba, Bolivia. Experta en toxina botulínica, ácido hialurónico, rellenos de labios, bioestimulación con polinucleótidos y técnicas de rejuvenecimiento facial avanzadas.",
+      description: `Médica especialista en medicina estética en Cochabamba, Bolivia${claim ? `, con ${claim}` : ""}.`,
       url: `${BASE_URL}/nosotros`,
       image: `${BASE_URL}/images/DraMedrano.jpeg`,
-      telephone: PHONE,
+      ...(telephone ? { telephone } : {}),
       medicalSpecialty: "Medicina Estética",
       // Derivado del panel: la lista fija incluía armonización facial y
       // depilación láser, que el consultorio no ofrece.
@@ -110,11 +79,11 @@ function buildAboutJsonLd(
           containedInPlace: { "@type": "Country", name: "Bolivia" },
         },
       },
-      ...(hasReviews && avgRating ? {
+      ...(reviews.length > 0 && aggregate ? {
         aggregateRating: {
           "@type": "AggregateRating",
-          ratingValue: avgRating,
-          reviewCount: String(reviewCount),
+          ratingValue: aggregate.avg_rating.toFixed(1),
+          reviewCount: String(aggregate.total_count),
           bestRating: "5",
           worstRating: "1",
         },
@@ -127,39 +96,16 @@ function buildAboutJsonLd(
 }
 
 export default async function NosotrosPage() {
-  const [c, footerData, aboutData, reviewsResult, treatmentsResult] = await Promise.all([
-    readContent(),
-    getFooterData(),
-    getAboutData(),
-    backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
-    backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
+  const [navLinks, footerData, about, reviews, treatments, contact] = await Promise.all([
+    getNavLinks(),
+    getFooter(),
+    getAbout(),
+    getReviews(),
+    getActiveTreatments(),
+    getContact(),
   ])
-
-  const activeTreatments =
-    treatmentsResult.error === null
-      ? extractList<TreatmentRef>(treatmentsResult.data).filter((t) => t.slug)
-      : []
-
-  const approvedReviews = reviewsResult.error === null
-    ? extractList<PublicReview>(reviewsResult.data)
-    : []
-  const backendAggregate = reviewsResult.error === null
-    ? extractReviewAggregate(reviewsResult.data)
-    : null
-  const reviewAggregate: ReviewAggregate | undefined =
-    backendAggregate && backendAggregate.total_count > 0
-      ? {
-          avg_rating:
-            backendAggregate.avg_rating ??
-            approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
-          total_count: backendAggregate.total_count,
-        }
-      : approvedReviews.length > 0
-        ? {
-            avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
-            total_count: approvedReviews.length,
-          }
-        : undefined
+  const aboutData = about.data
+  const { reviews: approvedReviews, aggregate: reviewAggregate } = reviews.data
 
   const perfilesSociales = [
     footerData.facebookUrl,
@@ -172,8 +118,10 @@ export default async function NosotrosPage() {
   const aboutJsonLd = buildAboutJsonLd(
     approvedReviews,
     reviewAggregate,
-    activeTreatments,
-    perfilesSociales
+    treatments.data,
+    perfilesSociales,
+    businessContactOf(contact.data).telephone,
+    statsClaim(aboutData.stats)
   )
 
   return (
@@ -186,7 +134,7 @@ export default async function NosotrosPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(aboutJsonLd) }}
       />
-      <Navbar links={c.navLinks} />
+      <Navbar links={navLinks} />
       <main>
         <PageHero
           eyebrow="Nuestra Historia"
@@ -198,7 +146,7 @@ export default async function NosotrosPage() {
         <ValuePropositionSection features={aboutData.features} />
         <TestimonialsSection
           reviews={approvedReviews.length > 0 ? approvedReviews : undefined}
-          aggregate={reviewAggregate}
+          aggregate={reviewAggregate ?? undefined}
         />
       </main>
       <Footer data={footerData} />

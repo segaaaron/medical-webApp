@@ -10,6 +10,7 @@ import { FormField } from "@/components/ui/FormField"
 import { ImageDropzone } from "@/components/ui/ImageDropzone"
 import { compressImage } from "@/lib/image-compress"
 import RichTextEditor from "@/components/dashboard/RichTextEditor"
+import { SeoFields, appendSeo, seoFieldsShape } from "@/components/dashboard/SeoFields"
 
 const TAGS = ["POPULAR", "INNOVADOR", "RECOMENDADO", "DEFINITIVO", "ESENCIAL", "ESPECIALIZADO"]
 
@@ -28,6 +29,7 @@ const treatmentSchema = Yup.object({
   tag: Yup.string().default(""),
   price: Yup.string().default(""),
   active: Yup.boolean().default(false),
+  ...seoFieldsShape,
 })
 
 type TreatmentSchemaValues = Yup.InferType<typeof treatmentSchema>
@@ -115,6 +117,9 @@ export function TreatmentForm({
       description: initialValues?.description ?? "",
       price: initialValues?.price ?? "",
       active: initialValues?.active ?? false,
+      seoTitle: initialValues?.seoTitle ?? "",
+      seoDescription: initialValues?.seoDescription ?? "",
+      ogImageUrl: initialValues?.ogImageUrl ?? "",
     },
     validationSchema: treatmentSchema,
     enableReinitialize: true,
@@ -251,6 +256,8 @@ export function TreatmentForm({
           </label>
         </div>
 
+        <SeoFields formik={formik} idPrefix="t" kind="treatment" />
+
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
@@ -280,6 +287,7 @@ export async function buildTreatmentFormData(values: TreatmentFormValues): Promi
   fd.append("description", values.description)
   fd.append("price", values.price ?? "")
   fd.append("active", String(values.active))
+  appendSeo(fd, values)
   if (values.imageFile) fd.append("image", await compressImage(values.imageFile))
   else if (values.imageRemoved) fd.append("image", "")
   if (values.beforeImageFile) fd.append("beforeImage", await compressImage(values.beforeImageFile))

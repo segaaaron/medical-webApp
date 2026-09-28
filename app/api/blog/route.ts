@@ -3,7 +3,6 @@ import { cookies } from "next/headers"
 import { verifyToken, COOKIE_NAME } from "@/lib/auth/session"
 import { backendFetch, resolveImageUrl } from "@/lib/backend-client"
 import { revalidateBlog } from "@/lib/cache"
-import { staticBlogPosts } from "@/lib/data/blog-posts"
 import { checkCsrfOrigin, checkWriteRateLimit, proxyError } from "@/lib/api-helpers"
 import { logger } from "@/lib/logger"
 
@@ -28,18 +27,13 @@ export async function GET(req: NextRequest) {
   }
   const query = filtered.toString()
   const path = query ? `/blog?${query}` : "/blog"
-  const { data, error } = await backendFetch<unknown>(path)
+  const { data, error, status } = await backendFetch<unknown>(path)
 
   if (error) {
+    // Sin artículos de respaldo: este proxy lo usa el panel, y ofrecerle posts
+    // del código como si fueran del backend sería mezclar respaldo con datos.
     logger.warn("backend.unavailable", { endpoint: "/api/blog", detail: error })
-    return NextResponse.json(
-      staticBlogPosts.map((p) => ({
-        ...p,
-        published: true,
-        content: p.content,
-        createdAt: p.publishedAt,
-      }))
-    )
+    return proxyError(error, status)
   }
 
   const isPaginated =

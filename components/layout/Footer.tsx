@@ -25,7 +25,8 @@ export interface FooterData {
 }
 
 interface FooterLinkGroupProps {
-  title: string
+  /** Sin título = columna de continuación (la 2.ª de tratamientos). */
+  title?: string
   links: { label: string; href: string }[]
 }
 
@@ -33,24 +34,30 @@ function LinkGroup({ title, links }: FooterLinkGroupProps) {
   if (!links.length) return null
   return (
     <div>
-      <h4
-        className="text-sm uppercase mb-5"
-        style={{
-          fontFamily: "var(--font-mono)",
-          letterSpacing: "0.24em",
-          color: "var(--vintage-gold)",
-          fontWeight: 600,
-        }}
-      >
-        {title}
-      </h4>
+      {title ? (
+        <h4
+          className="text-sm uppercase mb-5"
+          style={{
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.24em",
+            color: "var(--vintage-gold)",
+            fontWeight: 600,
+          }}
+        >
+          {title}
+        </h4>
+      ) : (
+        // Sin `<h4>` vacío (encabezado sin texto para lectores de pantalla):
+        // un espaciador decorativo mantiene alineadas las columnas.
+        <div aria-hidden="true" className="hidden lg:block text-sm mb-5">&nbsp;</div>
+      )}
       <ul className="flex flex-col gap-3">
-        {links.map((link) => {
+        {links.map((link, i) => {
           // Internal app routes use next/link (SPA nav + prefetch); external
           // URLs and hash anchors fall back to a plain anchor.
           const isInternal = link.href.startsWith("/") && !link.href.startsWith("//")
           return (
-            <li key={link.label}>
+            <li key={`${link.href}-${i}`}>
               {isInternal ? (
                 <Link
                   href={link.href}
@@ -104,14 +111,19 @@ export function Footer({ data }: { data: FooterData }) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <h3 className="font-bold text-xl mb-1" style={{ color: "var(--vintage-gold)" }}>{nameParts}</h3>
+            {nameParts && <h3 className="font-bold text-xl mb-1" style={{ color: "var(--vintage-gold)" }}>{nameParts}</h3>}
             {nameRest && <h3 className="font-bold text-xl mb-2" style={{ color: "var(--vintage-gold)" }}>{nameRest}</h3>}
-            <p className="text-sm italic mb-4" style={{ color: "var(--prem-dark-muted)" }}>
-              {data.specialty}
-            </p>
-            <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
-              {data.description}
-            </p>
+            {/* Campo borrado en el panel = elemento oculto, no un hueco vacío. */}
+            {data.specialty && (
+              <p className="text-sm italic mb-4" style={{ color: "var(--prem-dark-muted)" }}>
+                {data.specialty}
+              </p>
+            )}
+            {data.description && (
+              <p className="text-sm leading-relaxed mb-5" style={{ color: "rgba(255,255,255,0.55)" }}>
+                {data.description}
+              </p>
+            )}
 
             {/* Social icons */}
             <div className="flex gap-3 pb-4 flex-wrap">
@@ -173,7 +185,7 @@ export function Footer({ data }: { data: FooterData }) {
               que «Mesoterapia Facial» apareciera bajo «Corporales». El
               consultorio no ofrece tratamientos corporales. */}
           <LinkGroup title="Tratamientos" links={data.facialTreatments} />
-          <LinkGroup title="" links={data.bodyTreatments} />
+          <LinkGroup links={data.bodyTreatments} />
           <LinkGroup title="Consultorio" links={data.officeLinks} />
           <LinkGroup title="Legal" links={data.legalLinks} />
         </div>
@@ -182,9 +194,11 @@ export function Footer({ data }: { data: FooterData }) {
       {/* Bottom bar */}
       <div className="border-t px-6 py-8" style={{ borderColor: "oklch(16% 0.01 52)" }}>
         <div className="container-xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
-            {data.copyrightText}
-          </p>
+          {data.copyrightText && (
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+              {data.copyrightText}
+            </p>
+          )}
           <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
             Desarrollado por{" "}
             <a
@@ -199,9 +213,11 @@ export function Footer({ data }: { data: FooterData }) {
               MS-Tech-Stack
             </a>
           </p>
-          <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
-            {data.designedByText}
-          </p>
+          {data.designedByText && (
+            <p style={{ fontFamily: "var(--font-mono)", fontSize: "10px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>
+              {data.designedByText}
+            </p>
+          )}
         </div>
       </div>
     </footer>

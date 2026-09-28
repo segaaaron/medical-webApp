@@ -1,55 +1,27 @@
-import { readContent, DEFAULTS } from "@/lib/store/content-store"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { safeJsonLd } from "@/lib/seo-utils"
-import { backendFetch, extractList } from "@/lib/backend-client"
-import { seoTitleFor, type TreatmentRef } from "@/lib/seo/treatment-names"
-import { normalizeSocialUrl } from "@/lib/seo/meta"
+import { displayNameFor } from "@/lib/seo/treatment-names"
+import { pageSeoMetadata } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { getFooterData } from "@/lib/data/footer"
+import { getFooter } from "@/lib/content/footer"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getContact } from "@/lib/content/contact"
+import { getActiveTreatments } from "@/lib/content/treatments"
+import { getSiteSeo } from "@/lib/content/seo"
 import { MapPin, Clock } from "lucide-react"
 import type { Metadata } from "next"
-import type { ContactData } from "@/types/content"
 import { PageHero } from "@/components/ui/PageHero"
 import { ContactForm } from "@/components/sections/ContactForm"
 import { ContactCards } from "@/components/sections/ContactCards"
 
 
-export const metadata: Metadata = {
-  // La marca la pone el template del layout: llevarla aquí la repetía dos veces.
-  title: "Agenda tu Consulta en Cochabamba",
-  description:
-    "Agenda tu consulta con la Dra. Yasmin Medrano en Cochabamba: horarios, ubicación y atención por WhatsApp e Instagram.",
-  keywords: [
-    "agendar cita medicina estética Cochabamba",
-    "consulta medicina estética Bolivia",
-    "whatsapp Dra Yasmin Medrano Cochabamba",
-    "consultorio estético Cochabamba Bolivia",
-    "contacto médico estético Bolivia",
-    "cita botox Cochabamba",
-    "reservar consulta estética Bolivia",
-    "médico estética cerca de mí Cochabamba",
-    "horarios consultorio estética Bolivia",
-  ],
-  alternates: {
+export async function generateMetadata(): Promise<Metadata> {
+  const { contacto } = await getSiteSeo()
+  return pageSeoMetadata(contacto, {
     canonical: `${BASE_URL}/contacto`,
-  },
-  openGraph: {
-    title: "Agenda tu Consulta en Cochabamba | Dra. Yasmin Medrano Avila",
-    description:
-      "Consulta de valoración con la Dra. Yasmin Medrano en Cochabamba. Escríbenos por WhatsApp o Instagram.",
-    url: `${BASE_URL}/contacto`,
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Agenda tu consulta de medicina estética en Cochabamba — Dra. Yasmin Medrano Avila" }],
-    type: "website",
-    locale: "es_BO",
-  },
-  twitter: {
-    card: "summary_large_image",
-    images: ["/opengraph-image"],
-    title: "Agenda tu Consulta en Cochabamba | Dra. Yasmin Medrano Avila",
-    description:
-      "Agenda tu consulta de valoración en Cochabamba. Especialista en botox, rellenos y rejuvenecimiento facial.",
-  },
+    ogImageAlt: "Agenda tu consulta de medicina estética en Cochabamba — Dra. Yasmin Medrano Avila",
+  })
 }
 
 const breadcrumbLd = {
@@ -77,72 +49,19 @@ const contactJsonLd = {
   mainEntity: { "@id": `${BASE_URL}/#business` },
 }
 
-/** Coordenada del panel, o la de reserva si viene vacía o no es un número. */
-function coordenada(raw: unknown, porDefecto: string): string {
-  // `Number("")` y `Number("   ")` valen 0, que es finito: sin descartar la
-  // cadena vacía, un campo en blanco en el panel daba la coordenada 0,0 —el
-  // Golfo de Guinea— en vez del consultorio.
-  const texto = typeof raw === "string" ? raw.trim() : raw
-  if (texto === "" || texto == null) return porDefecto
-  const n = Number(texto)
-  return Number.isFinite(n) ? String(n) : porDefecto
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapContact(raw: any): ContactData {
-  const lat = coordenada(raw.latitude, DEFAULTS.contact.latitude)
-  const lng = coordenada(raw.longitude, DEFAULTS.contact.longitude)
-
-  return {
-    whatsappNumber: raw.whatsappNumber ?? DEFAULTS.contact.whatsappNumber,
-    whatsappUrl: raw.whatsappUrl ?? DEFAULTS.contact.whatsappUrl,
-    phone: raw.phone ?? DEFAULTS.contact.phone,
-    instagram: raw.instagramUsername ?? DEFAULTS.contact.instagram,
-    instagramUrl: raw.instagramUrl ?? DEFAULTS.contact.instagramUrl,
-    facebook: raw.facebookName ?? DEFAULTS.contact.facebook,
-    facebookUrl: raw.facebookUrl ?? DEFAULTS.contact.facebookUrl,
-    tiktok: raw.tiktokUsername ?? DEFAULTS.contact.tiktok,
-    // Se limpia al leer, no al guardar: la doctora pega el enlace tal como se
-    // lo da la app —con `?_r=1&_t=…`— y no tiene por qué recortarlo a mano.
-    tiktokUrl: normalizeSocialUrl(raw.tiktokUrl ?? DEFAULTS.contact.tiktokUrl),
-    scheduleWeekdays: raw.mondayFridayHours ?? DEFAULTS.contact.scheduleWeekdays,
-    scheduleSaturday: raw.saturdayHours ?? DEFAULTS.contact.scheduleSaturday,
-    scheduleSunday: raw.sundayStatus ?? DEFAULTS.contact.scheduleSunday,
-    location: raw.locationDescription ?? DEFAULTS.contact.location,
-    // Se exige un número válido, no solo «distinto de null». Con el mapa
-    // cableado daba igual, pero ahora el iframe se arma con estas coordenadas:
-    // un campo vacío en el panel producía `?q=,` y el mapa salía en blanco.
-    latitude: lat,
-    longitude: lng,
-    // Derivado de las coordenadas, NO leído del panel. El campo `mapsUrl` del
-    // panel se quedó apuntando al punto viejo cuando la doctora corrigió las
-    // coordenadas, así que viajaba al navegador un enlace que llevaba 90 metros
-    // más allá. Dos fuentes para el mismo dato acaban contradiciéndose: manda
-    // la coordenada, que es la que pinta el mapa. Mismo criterio que
-    // `lib/data/location.ts`.
-    mapsUrl: `https://www.google.com/maps?q=${lat},${lng}`,
-  }
-}
-
 export default async function ContactoPage() {
-  const [c, footerData, { data: backendContact }, treatmentsResult] = await Promise.all([
-    readContent(),
-    getFooterData(),
-    backendFetch<unknown>("/contact"),
-      backendFetch<TreatmentRef[]>("/treatments?active=true", { revalidate: 300 }),
+  const [navLinks, footerData, contact, treatments] = await Promise.all([
+    getNavLinks(),
+    getFooter(),
+    getContact(),
+    getActiveTreatments(),
   ])
+  const ct = contact.data
 
   // El desplegable de tratamientos sale del panel: antes ofrecía armonización
   // facial y depilación láser, que el consultorio no presta, y un paciente
   // podía pedir cita para algo inexistente.
-  const treatmentOptions =
-    treatmentsResult.error === null
-      ? extractList<TreatmentRef>(treatmentsResult.data)
-          .filter((t) => t.slug)
-          .map((t) => seoTitleFor(t.slug, t.name))
-      : []
-
-  const ct: ContactData = backendContact ? mapContact(backendContact) : c.contact
+  const treatmentOptions = treatments.data.map((t) => displayNameFor(t))
 
   return (
     <>
@@ -154,7 +73,7 @@ export default async function ContactoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(contactJsonLd) }}
       />
-      <Navbar links={c.navLinks} />
+      <Navbar links={navLinks} />
       <main>
         <PageHero
           eyebrow="Estamos para ti"
@@ -184,7 +103,7 @@ export default async function ContactoPage() {
                       { day: "Lunes – Viernes", hours: ct.scheduleWeekdays },
                       { day: "Sábado", hours: ct.scheduleSaturday },
                       { day: "Domingo", hours: ct.scheduleSunday },
-                    ].map(({ day, hours }) => (
+                    ].filter(({ hours }) => hours).map(({ day, hours }) => (
                       <div key={day} className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0" style={{ borderColor: "var(--primary-darkest)" }}>
                         <span className="text-sm" style={{ color: "#fce4ec" }}>{day}</span>
                         <span className="text-sm font-semibold" style={{ color: "var(--vintage-gold)" }}>{hours}</span>
@@ -205,6 +124,7 @@ export default async function ContactoPage() {
                       apuntaba a un punto fijo aunque la doctora corrigiera la
                       ubicación en Dashboard → Contacto — el mismo desfase que
                       ya se arregló en los datos estructurados. */}
+                  {ct.latitude && ct.longitude && (<>
                   <div className="rounded-xl overflow-hidden">
                     <iframe
                       src={`https://www.google.com/maps?q=${ct.latitude},${ct.longitude}&z=16&output=embed`}
@@ -227,6 +147,7 @@ export default async function ContactoPage() {
                     <MapPin size={14} />
                     Abrir en Google Maps
                   </a>
+                  </>)}
                 </div>
 
               </div>

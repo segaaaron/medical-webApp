@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { m } from "framer-motion"
 import { Send } from "lucide-react"
-import { WHATSAPP_NUMBER } from "@/lib/constants"
+import { useWhatsApp } from "@/components/providers/WhatsAppProvider"
 import { trackLead, trackWhatsAppClick } from "@/lib/analytics"
 
 /**
@@ -36,6 +36,8 @@ export function ContactForm({ treatments }: { treatments?: string[] }) {
       ? [...treatments, OPCION_GENERAL]
       : TREATMENTS_FALLBACK
 
+  // WhatsApp del panel (Dashboard → Contacto), no la constante de respaldo.
+  const { url: whatsappUrl } = useWhatsApp()
   const [form, setForm] = useState({ name: "", phone: "", treatment: "", message: "", preferredDate: "", website: "" })
   const [sent, setSent] = useState(false)
 
@@ -68,7 +70,7 @@ export function ContactForm({ treatments }: { treatments?: string[] }) {
     trackLead({ treatment: form.treatment, source: "contact-form" })
     trackWhatsAppClick("contact-form")
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, "_blank")
+    window.open(`${whatsappUrl}?text=${encodeURIComponent(text)}`, "_blank")
     setForm({ name: "", phone: "", treatment: "", message: "", preferredDate: "", website: "" })
     setSent(true)
   }

@@ -17,6 +17,9 @@ export interface BlogDraftValues {
   excerpt: string
   content: string
   published: boolean
+  seoTitle: string
+  seoDescription: string
+  ogImageUrl: string
 }
 
 interface StoredDraft {
@@ -31,7 +34,10 @@ const DEBOUNCE_MS = 1000
 export const blogDraftKey = (postId: string | null) => `blog-draft:v1:${postId ?? "new"}`
 
 function sameValues(a: BlogDraftValues, b: BlogDraftValues): boolean {
-  return a.title === b.title && a.excerpt === b.excerpt && a.content === b.content && a.published === b.published
+  return (
+    a.title === b.title && a.excerpt === b.excerpt && a.content === b.content && a.published === b.published &&
+    a.seoTitle === b.seoTitle && a.seoDescription === b.seoDescription && a.ogImageUrl === b.ogImageUrl
+  )
 }
 
 function readDraft(key: string): StoredDraft | null {
@@ -44,7 +50,16 @@ function readDraft(key: string): StoredDraft | null {
       return null
     }
     return {
-      values: { title: v.title, excerpt: typeof v.excerpt === "string" ? v.excerpt : "", content: v.content, published: v.published === true },
+      values: {
+        title: v.title,
+        excerpt: typeof v.excerpt === "string" ? v.excerpt : "",
+        content: v.content,
+        published: v.published === true,
+        // Borradores guardados antes de existir los campos SEO: vacíos.
+        seoTitle: typeof v.seoTitle === "string" ? v.seoTitle : "",
+        seoDescription: typeof v.seoDescription === "string" ? v.seoDescription : "",
+        ogImageUrl: typeof v.ogImageUrl === "string" ? v.ogImageUrl : "",
+      },
       savedAt: parsed.savedAt,
       hasImage: parsed.hasImage === true,
     }

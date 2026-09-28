@@ -14,6 +14,7 @@ import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 import { resolveImageUrl } from "@/lib/image-utils"
 import RichTextEditor from "@/components/dashboard/RichTextEditor"
+import { SeoFields, appendSeo, seoFieldsShape, seoValuesFrom } from "@/components/dashboard/SeoFields"
 import { BlogDraftBanner, blogDraftKey, useBlogDraft } from "@/components/dashboard/BlogDraft"
 
 const INPUT_CLS =
@@ -24,6 +25,7 @@ const blogSchema = Yup.object({
   excerpt: Yup.string().default(""),
   content: Yup.string().required("El contenido es obligatorio"),
   published: Yup.boolean().default(false),
+  ...seoFieldsShape,
 })
 
 type BlogValues = Yup.InferType<typeof blogSchema>
@@ -41,7 +43,7 @@ export default function EditarBlogPage() {
     return () => { if (imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview) }
   }, [imagePreview])
   const [formInitialValues, setFormInitialValues] = useState<BlogValues>({
-    title: "", excerpt: "", content: "", published: false,
+    title: "", excerpt: "", content: "", published: false, seoTitle: "", seoDescription: "", ogImageUrl: "",
   })
 
   const formik = useFormik<BlogValues>({
@@ -58,6 +60,7 @@ export default function EditarBlogPage() {
         fd.append("excerpt", values.excerpt)
         fd.append("content", values.content)
         fd.append("published", String(values.published))
+        appendSeo(fd, values)
         if (imageFile) fd.append("image", await compressImage(imageFile))
         else if (imageRemoved) fd.append("image", "")
 
@@ -103,6 +106,7 @@ export default function EditarBlogPage() {
           excerpt: post.excerpt ?? "",
           content: post.content ?? "",
           published: post.published ?? false,
+          ...seoValuesFrom(post),
         })
         if (post.imageUrl) setImagePreview(resolveImageUrl(post.imageUrl))
       } catch {
@@ -269,6 +273,8 @@ export default function EditarBlogPage() {
               Publicar inmediatamente
             </label>
           </div>
+
+          <SeoFields formik={formik} idPrefix="blog" kind="blog" />
 
           <div className="flex gap-3 pt-2">
             <button

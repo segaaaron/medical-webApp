@@ -11,12 +11,10 @@
  * se contradicen, y el factor NAP (nombre, dirección, teléfono) del ranking
  * local exige justo lo contrario: el mismo dato, idéntico, en todas partes.
  *
- * Aquí vive una sola vez. Lo que cambia con frecuencia —coordenadas y redes—
- * sigue viniendo del panel; lo que es estable vive en estas constantes.
+ * Aquí vive una sola vez. Teléfono, horario, coordenadas y redes vienen del
+ * panel (lib/content/contact.ts); lo que ningún panel edita —dirección, zona
+ * de servicio, idiomas— vive en estas constantes.
  */
-
-/** Teléfono en formato E.164, el único que Google interpreta sin ambigüedad. */
-export const PHONE = "+59178751894"
 
 /** Dirección postal completa. `streetAddress` es obligatorio para el 3-pack. */
 export const ADDRESS = {
@@ -27,21 +25,58 @@ export const ADDRESS = {
   addressCountry: "BO",
 } as const
 
-/** Horario de atención del consultorio. */
-export const OPENING_HOURS = [
-  {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-    opens: "09:00",
-    closes: "19:00",
-  },
-  {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: ["Saturday"],
-    opens: "09:00",
-    closes: "14:00",
-  },
-] as const
+export type OpeningHoursSpec = {
+  "@type": "OpeningHoursSpecification"
+  dayOfWeek: readonly string[]
+  opens: string
+  closes: string
+}
+
+/** «9:00 AM», «19:00», «8:30 pm» → «HH:MM». */
+function to24h(h: string, m: string | undefined, ampm: string | undefined): string {
+  let hour = Number(h)
+  const suf = ampm?.toLowerCase().replace(/[^ap]/g, "")
+  if (suf === "p" && hour < 12) hour += 12
+  if (suf === "a" && hour === 12) hour = 0
+  return `${String(hour).padStart(2, "0")}:${m ?? "00"}`
+}
+
+/**
+ * Franja «apertura – cierre» a partir del texto libre del panel
+ * («9:00 AM – 7:00 PM - A Coordinar»). Sin dos horas reconocibles («Cerrado»)
+ * devuelve null y ese día no se declara: mejor callar que publicar un horario
+ * inventado.
+ */
+export function parseHoursRange(text: string): { opens: string; closes: string } | null {
+  const times = [...text.matchAll(/(\d{1,2})(?::(\d{2}))?\s*(a\.?\s?m\.?|p\.?\s?m\.?)?/gi)]
+    .filter((t) => Number(t[1]) <= 24)
+  if (times.length < 2) return null
+  const [o, c] = times
+  return { opens: to24h(o[1], o[2], o[3]), closes: to24h(c[1], c[2], c[3]) }
+}
+
+/** Horario del schema a partir de los tres campos de Dashboard → Contacto. */
+export function openingHoursFrom(schedule: {
+  weekdays: string
+  saturday: string
+  sunday: string
+}): OpeningHoursSpec[] {
+  const days: [string, readonly string[]][] = [
+    [schedule.weekdays, ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]],
+    [schedule.saturday, ["Saturday"]],
+    [schedule.sunday, ["Sunday"]],
+  ]
+  return days.flatMap(([text, dayOfWeek]) => {
+    const range = parseHoursRange(text)
+    return range ? [{ "@type": "OpeningHoursSpecification" as const, dayOfWeek, ...range }] : []
+  })
+}
+
+/** Teléfono del panel («+591 78751894») en E.164. Vacío si no hay dígitos. */
+export function toE164(phone: string): string {
+  const digits = phone.replace(/\D/g, "")
+  return digits.length >= 8 ? `+${digits}` : ""
+}
 
 /**
  * Zona de servicio declarada.
@@ -74,16 +109,16 @@ export const LANGUAGES = ["es-BO", "es"] as const
  * Teléfono a partir del enlace de WhatsApp del panel.
  *
  * El número del consultorio existe en un solo sitio editable —el enlace de
- * WhatsApp de Dashboard → Contacto— y `PHONE` es solo el respaldo. Derivarlo
+ * WhatsApp de Dashboard → Contacto—. Derivarlo
  * evita el problema clásico: cambiar el WhatsApp en el panel y que la página
  * siga mostrando el número viejo en el enlace de llamada.
  *
  * @param whatsappUrl Enlace tipo `https://wa.me/59178751894`.
- * @returns Teléfono en E.164, listo para un `href="tel:"`.
+ * @returns Teléfono en E.164, listo para un `href="tel:"`; "" sin número.
  */
 export function phoneFromWhatsApp(whatsappUrl: string | null | undefined): string {
   const digits = (whatsappUrl ?? "").match(/(?:wa\.me|phone=)\/?(\d{8,15})/)?.[1]
-  return digits ? `+${digits}` : PHONE
+  return digits ? `+${digits}` : ""
 }
 
 /** El mismo teléfono con separación legible, para mostrarlo en pantalla. */

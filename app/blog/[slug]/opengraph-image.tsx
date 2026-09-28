@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og"
-import { backendFetch } from "@/lib/backend-client"
+import { getPostBySlug } from "@/lib/content/blog"
 
 export const runtime = "edge"
 export const alt = "Blog — Dra. Yasmin Loreley Medrano Avila"
@@ -13,13 +13,10 @@ interface Props {
 export default async function Image({ params }: Props) {
   const { slug } = await params
 
-  let title = "Blog"
-  try {
-    const { data } = await backendFetch<{ title?: string }>(`/blog/${slug}`)
-    if (data?.title) title = data.title
-  } catch {
-    // fallback to generic title
-  }
+  // Por slug desde la lista: `/blog/:id` solo busca por id, así que la
+  // versión anterior pedía `/blog/<slug>` y siempre caía en «Blog».
+  const post = await getPostBySlug(slug).catch(() => null)
+  const title = post ? post.title : "Blog"
 
   return new ImageResponse(
     (

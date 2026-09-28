@@ -16,6 +16,7 @@ import {
   Info,
   Users,
   PanelBottom,
+  Search,
   Megaphone,
   Star,
   Inbox,
@@ -73,6 +74,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { label: "Acerca de", href: "/dashboard/acerca-de", icon: Users },
       { label: "Contacto", href: "/dashboard/contacto", icon: Phone },
       { label: "Footer", href: "/dashboard/footer", icon: PanelBottom },
+      { label: "SEO / Google", href: "/dashboard/seo", icon: Search },
     ],
   },
 ]

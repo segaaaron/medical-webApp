@@ -13,6 +13,7 @@ import { EditorCard } from "@/components/dashboard/EditorCard"
 import { FormField } from "@/components/ui/FormField"
 import { useToast } from "@/components/dashboard/Toast"
 import RichTextEditor from "@/components/dashboard/RichTextEditor"
+import { SeoFields, appendSeo, seoFieldsShape } from "@/components/dashboard/SeoFields"
 import { BlogDraftBanner, blogDraftKey, useBlogDraft } from "@/components/dashboard/BlogDraft"
 
 const INPUT_CLS =
@@ -23,11 +24,12 @@ const blogSchema = Yup.object({
   excerpt: Yup.string().default(""),
   content: Yup.string().required("El contenido es obligatorio"),
   published: Yup.boolean().default(false),
+  ...seoFieldsShape,
 })
 
 type BlogValues = Yup.InferType<typeof blogSchema>
 
-const EMPTY: BlogValues = { title: "", excerpt: "", content: "", published: false }
+const EMPTY: BlogValues = { title: "", excerpt: "", content: "", published: false, seoTitle: "", seoDescription: "", ogImageUrl: "" }
 
 export default function NuevoBlogPage() {
   const showToast = useToast()
@@ -52,6 +54,7 @@ export default function NuevoBlogPage() {
         fd.append("excerpt", values.excerpt)
         fd.append("content", values.content)
         fd.append("published", String(values.published))
+        appendSeo(fd, values)
         if (imageFile) fd.append("image", await compressImage(imageFile))
 
         const res = await guardedFetch("/api/blog", {
@@ -220,6 +223,8 @@ export default function NuevoBlogPage() {
               Publicar inmediatamente
             </label>
           </div>
+
+          <SeoFields formik={formik} idPrefix="blog" kind="blog" />
 
           <div className="flex gap-3 pt-2">
             <button

@@ -170,8 +170,8 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           Padding simétrico: el indicador de scroll ya no ocupa espacio en móvil
           —está oculto— y el `pb` grande desplazaba el centrado hacia arriba. */}
       <div className="hero__content relative z-[10] text-center text-white px-5 sm:px-6 max-w-5xl mx-auto py-10 sm:py-20">
-        {/* Eyebrow tagline */}
-        <m.p
+        {/* Eyebrow tagline — texto vacío en el panel = elemento oculto */}
+        {tagline && <m.p
           initial={prefersReduced ? false : { opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE_OUT_EXPO }}
@@ -179,10 +179,10 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           style={{ color: "var(--meteorite)" }}
         >
           {tagline}
-        </m.p>
+        </m.p>}
 
         {/* Doctor name — letter assembly from sides */}
-        <h1
+        {doctorName && <h1
           className="font-bold text-[2.4rem] sm:text-5xl md:text-6xl lg:text-7xl mb-4 sm:mb-4 leading-[1.12]"
           aria-label={doctorName}
           style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "baseline", fontFamily: "var(--font-display)", fontWeight: 300, letterSpacing: "-0.02em", gap: "0 0.3em" }}
@@ -221,10 +221,10 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
               </span>
             )
           })}
-        </h1>
+        </h1>}
 
         {/* Specialty subtitle — word-by-word slide up, after title */}
-        <p
+        {specialty && <p
           className="italic font-light text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-6 sm:mb-6 leading-snug"
           style={{ color: "#fce4ec", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0 0.25em" }}
           aria-label={specialty}
@@ -242,7 +242,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
               </m.span>
             </span>
           ))}
-        </p>
+        </p>}
 
         {/* Gold divider */}
         <m.div
@@ -254,7 +254,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         />
 
         {/* Description */}
-        <m.p
+        {description && <m.p
           initial={prefersReduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: subtitleDuration + 0.2 }}
@@ -262,7 +262,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           style={{ color: "#fce4ec" }}
         >
           {description}
-        </m.p>
+        </m.p>}
 
         {/* CTAs — a ancho completo en móvil (objetivo táctil holgado),
             en fila desde sm. */}
@@ -296,7 +296,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         >
           {stats.map((stat, i) => (
             <m.div
-              key={stat.label}
+              key={`${stat.label}-${i}`}
               initial={prefersReduced ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: subtitleDuration + 0.75 + i * 0.1, ease: EASE_OUT_EXPO }}

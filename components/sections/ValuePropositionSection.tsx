@@ -12,6 +12,12 @@ interface ValuePropositionSectionProps {
 
 export function ValuePropositionSection({ features }: ValuePropositionSectionProps) {
   const prefersReduced = useReducedMotion()
+  const cards = [
+    { Icon: Eye, title: features?.card1Title ?? "", description: features?.card1Description ?? "" },
+    { Icon: Zap, title: features?.card2Title ?? "", description: features?.card2Description ?? "" },
+    { Icon: Award, title: features?.card3Title ?? "", description: features?.card3Description ?? "" },
+    { Icon: TrendingUp, title: features?.card4Title ?? "", description: features?.card4Description ?? "" },
+  ].filter((c) => c.title || c.description)
   return (
     <section className="py-20 px-6" style={{ backgroundColor: "#F8F0E3" }}>
       <div className="container-xl">
@@ -22,14 +28,15 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
           />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              <div>
+          {/* Tarjeta sin título ni descripción en el panel = tarjeta oculta. */}
+          {cards.map(({ Icon, ...card }, i) => (
+              <div key={i}>
                 <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
                   <m.div
-                    key="card-eye-1"
                     initial={prefersReduced ? false : { opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 1 * 0.1 }}
+                    transition={{ duration: 0.5, delay: (i + 1) * 0.1 }}
                     className="rounded-xl p-8 shadow-sm text-center"
                     style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
               onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
@@ -39,104 +46,18 @@ export function ValuePropositionSection({ features }: ValuePropositionSectionPro
                       className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
                       style={{ backgroundColor: "#F8F0E3" }}
                     >
-                      <Eye size={26} style={{ color: "var(--prem-accent)" }} />
+                      <Icon size={26} style={{ color: "var(--prem-accent)" }} />
                     </div>
                     <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
-                      {features?.card1Title ?? ""}
+                      {card.title}
                     </h3>
                     <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
-                      {features?.card1Description ?? ""}
+                      {card.description}
                     </p>
                   </m.div>
                 </TiltCard>
               </div>
-
-              <div>
-                <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
-                  <m.div
-                    key="card-Zap-2"
-                    initial={prefersReduced ? false : { opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 2 * 0.1 }}
-                    className="rounded-xl p-8 shadow-sm text-center"
-                    style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
-              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
-              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.18)"; el.style.boxShadow = "none" }}
-                  >
-                    <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "#F8F0E3" }}
-                    >
-                      <Zap size={26} style={{ color: "var(--prem-accent)" }} />
-                    </div>
-                    <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
-                      {features?.card2Title ?? ""}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
-                      {features?.card2Description ?? ""}
-                    </p>
-                  </m.div>
-                </TiltCard>
-              </div>
-
-              <div>
-                <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
-                  <m.div
-                    key="card-Award-3"
-                    initial={prefersReduced ? false : { opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 3 * 0.1 }}
-                    className="rounded-xl p-8 shadow-sm text-center"
-                    style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
-              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
-              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.18)"; el.style.boxShadow = "none" }}
-                  >
-                    <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "#F8F0E3" }}
-                    >
-                      <Award size={26} style={{ color: "var(--prem-accent)" }} />
-                    </div>
-                    <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
-                      {features?.card3Title ?? ""}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
-                      {features?.card3Description ?? ""}
-                    </p>
-                  </m.div>
-                </TiltCard>
-              </div>
-
-              <div>
-                <TiltCard className="rounded-xl" glowColor="var(--vintage-gold)">
-                  <m.div
-                    key="card-TrendingUp-4"
-                    initial={prefersReduced ? false : { opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 4 * 0.1 }}
-                    className="rounded-xl p-8 shadow-sm text-center"
-                    style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.18)", transition: "border-color 0.25s, box-shadow 0.25s" }}
-              onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.45)"; el.style.boxShadow = "0 8px 28px rgba(184,151,59,0.1)" }}
-              onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.borderColor = "rgba(184,151,59,0.18)"; el.style.boxShadow = "none" }}
-                  >
-                    <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                      style={{ backgroundColor: "#F8F0E3" }}
-                    >
-                      <TrendingUp size={26} style={{ color: "var(--prem-accent)" }} />
-                    </div>
-                    <h3 className="font-bold text-lg mb-3" style={{ color: "var(--prem-fg)" }}>
-                      {features?.card4Title ?? ""}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--prem-muted)" }}>
-                      {features?.card4Description ?? ""}
-                    </p>
-                  </m.div>
-                </TiltCard>
-              </div>
+          ))}
         </div>
       </div>
     </section>

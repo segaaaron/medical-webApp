@@ -1,6 +1,7 @@
 /**
- * Envoltorio del hero servido desde el panel. Mismo caso que `HeroSection`: la
- * interactividad vive en `HeroLayout`, no aquí.
+ * Envoltorio del hero de la portada (panel o su respaldo entero, ver
+ * lib/content/home.ts). Sin `"use client"`: la interactividad vive en
+ * `HeroLayout`, no aquí.
  */
 import { HeroLayout } from "./HeroLayout"
 import type { HeroCTA, HeroStat } from "@/types"
@@ -14,7 +15,6 @@ export interface homeHeaderSection {
 
 interface Prompt {
   headerInfo: homeHeaderSection
-  backgroundImage: string  // kept in props for API compatibility, HeroLayout uses video
   ctas: HeroCTA[]
   stats: HeroStat[]
 }

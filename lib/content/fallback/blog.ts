@@ -1,4 +1,10 @@
-export interface StaticBlogPost {
+/**
+ * Respaldo ENTERO del blog: solo si el servicio `/blog` no está disponible.
+ * Si el servicio responde (aunque sea con cero artículos), estos no aparecen.
+ */
+import type { BlogPost } from "@/lib/content/parse/blog"
+
+interface StaticBlogPost {
   id: string
   title: string
   slug: string
@@ -6,17 +12,13 @@ export interface StaticBlogPost {
   content: string
   imageUrl: string
   publishedAt: string
-  /** Última edición en el panel. Alimenta `dateModified` del schema. */
-  updatedAt?: string | null
-  author: string
   readTime: string
-  tags: string[]
 }
 
-export const staticBlogPosts: StaticBlogPost[] = [
+const staticBlogPosts: StaticBlogPost[] = [] = [
   {
     id: "static-1",
-    title: "Skinbooster: La Tendencia #1 en Hidratacion Profunda para 2025",
+    title: "Skinbooster: Hidratacion de la Piel desde el Interior",
     slug: "skinbooster-hidratacion-profunda-2025",
     excerpt:
       "Descubre por que los skinboosters se han convertido en el tratamiento mas solicitado para lograr una piel luminosa, hidratada y rejuvenecida desde el interior.",
@@ -46,9 +48,7 @@ A diferencia de otros procedimientos, los skinboosters ofrecen resultados natura
 En la consulta de la Dra. Yasmin Medrano Avila, utilizamos productos de la mas alta calidad y tecnicas avanzadas de aplicacion para garantizar resultados optimos y la maxima comodidad durante el procedimiento.`,
     imageUrl: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d790?w=800&q=80",
     publishedAt: "2025-12-15",
-    author: "Dra. Yasmin Medrano Avila",
     readTime: "5 min",
-    tags: ["skinbooster", "hidratacion", "acido hialuronico", "rejuvenecimiento"],
   },
   {
     id: "static-2",
@@ -56,7 +56,7 @@ En la consulta de la Dra. Yasmin Medrano Avila, utilizamos productos de la mas a
     slug: "toxina-botulinica-preventiva-edad-recomendable",
     excerpt:
       "Cada vez mas jovenes optan por el botox preventivo. Te explicamos la ciencia detras de esta tendencia y cuando es el momento ideal para comenzar.",
-    content: `El concepto de "botox preventivo" ha ganado una enorme popularidad en los ultimos anos, especialmente entre personas de 25 a 35 anos que desean retrasar la aparicion de lineas de expresion antes de que se conviertan en arrugas establecidas. Pero, ¿realmente funciona? ¿A que edad es conveniente iniciar?
+    content: `El concepto de "botox preventivo" ha ganado una enorme popularidad en los ultimos anos, especialmente entre personas jovenes que desean retrasar la aparicion de lineas de expresion antes de que se conviertan en arrugas establecidas. Pero, ¿realmente funciona? ¿A que edad es conveniente iniciar?
 
 ## La ciencia detras del botox preventivo
 
@@ -73,11 +73,11 @@ No existe una edad unica para todos. La recomendacion depende de factores indivi
 - **Expresividad facial**: personas muy expresivas tienden a marcar arrugas antes
 - **Estilo de vida**: estres, tabaquismo y falta de sueno aceleran el envejecimiento
 
-En general, la mayoria de los especialistas coinciden en que entre los **25 y 30 anos** es un buen momento para una primera evaluacion, especialmente si ya se observan lineas de expresion incipientes.
+En general, la mayoria de los especialistas coinciden en que la **edad adulta joven** es un buen momento para una primera evaluacion, especialmente si ya se observan lineas de expresion incipientes.
 
 ## ¿Es seguro a largo plazo?
 
-La toxina botulinica tiene mas de 20 anos de uso en medicina estetica con un perfil de seguridad excelente. Cuando es aplicada por un medico especializado, los resultados son naturales y reversibles. El efecto dura aproximadamente 4 a 6 meses, y no genera dependencia: si decides dejar de aplicartelo, simplemente vuelves a tu estado natural.
+La toxina botulinica tiene decadas de uso en medicina estetica con un perfil de seguridad excelente. Cuando es aplicada por un medico especializado, los resultados son naturales y reversibles. El efecto dura aproximadamente 4 a 6 meses, y no genera dependencia: si decides dejar de aplicartelo, simplemente vuelves a tu estado natural.
 
 ## Dosis preventivas vs. correctivas
 
@@ -88,9 +88,7 @@ Una diferencia importante es que las dosis preventivas suelen ser menores que la
 Si estas considerando iniciar con toxina botulinica preventiva, lo mas importante es acudir con un medico especializado en medicina estetica. Una evaluacion profesional determinara si es el momento adecuado y cual es el mejor plan de tratamiento para tus necesidades especificas.`,
     imageUrl: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=800&q=80",
     publishedAt: "2026-01-20",
-    author: "Dra. Yasmin Medrano Avila",
     readTime: "6 min",
-    tags: ["botox", "toxina botulinica", "prevencion", "arrugas"],
   },
   {
     id: "static-3",
@@ -113,7 +111,6 @@ Los bioestimuladores pueden utilizarse en multiples areas:
 - **Rostro**: mejora del ovalo facial, surcos nasogenianos, mejillas
 - **Cuello y escote**: zonas que frecuentemente muestran signos de envejecimiento
 - **Manos**: devuelven volumen y mejoran la calidad de la piel
-- **Brazos y muslos**: mejoran la flacidez y textura de la piel corporal
 
 ## ¿Cuantas sesiones se necesitan?
 
@@ -124,19 +121,17 @@ El protocolo tipico incluye de 2 a 3 sesiones espaciadas por 4 a 6 semanas. Los 
 - **Resultados naturales y progresivos**: nadie notara que "te hiciste algo"
 - **Efecto duradero**: los resultados se mantienen significativamente mas tiempo que los rellenos tradicionales
 - **Estimulacion biologica**: tu propio cuerpo produce el colageno, no es un material de relleno externo
-- **Versatilidad**: se puede aplicar en rostro y cuerpo
+- **Versatilidad**: se puede aplicar en rostro, cuello y manos
 - **Combinable**: se complementa perfectamente con otros tratamientos esteticos
 
 ## ¿Para quien esta indicado?
 
-Los bioestimuladores son ideales para personas a partir de los 30 anos que buscan prevenir o tratar la perdida de firmeza y elasticidad cutanea. Tambien son excelentes para pacientes que prefieren resultados sutiles y naturales, evitando el aspecto "sobretratado".
+Los bioestimuladores son ideales para personas adultas que buscan prevenir o tratar la perdida de firmeza y elasticidad cutanea. Tambien son excelentes para pacientes que prefieren resultados sutiles y naturales, evitando el aspecto "sobretratado".
 
 En nuestra clinica, la Dra. Yasmin Medrano Avila selecciona el bioestimulador mas adecuado para cada paciente segun sus objetivos, tipo de piel y zona a tratar, garantizando resultados armonicos y personalizados.`,
     imageUrl: "https://images.unsplash.com/photo-1598524374912-6b0b0bfa8e18?w=800&q=80",
     publishedAt: "2026-02-10",
-    author: "Dra. Yasmin Medrano Avila",
     readTime: "6 min",
-    tags: ["bioestimuladores", "colageno", "rejuvenecimiento", "Radiesse", "Sculptra"],
   },
   {
     id: "static-4",
@@ -170,7 +165,6 @@ Este es el paso mas personalizable y donde encontraras los mayores beneficios:
 
 - **Anti-edad**: retinol (por la noche), vitamina C (por la manana)
 - **Hidratacion**: acido hialuronico en varias concentraciones
-- **Manchas**: acido tranexamico, arbutina, vitamina C
 - **Acne**: niacinamida, acido salicilico, acido azelaico
 
 ## Paso 4: Hidratante
@@ -195,9 +189,7 @@ El protector solar es el producto anti-edad mas importante que existe. La radiac
 Si tienes dudas sobre que productos son los mejores para tu tipo de piel, o si deseas potenciar tu rutina con tratamientos profesionales, una consulta de valoracion te ayudara a disenar un plan integral. En nuestra clinica, complementamos el skincare diario con procedimientos como peelings quimicos, microagujas y mesoterapia facial para resultados superiores.`,
     imageUrl: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800&q=80",
     publishedAt: "2026-03-05",
-    author: "Dra. Yasmin Medrano Avila",
     readTime: "7 min",
-    tags: ["skincare", "rutina facial", "protector solar", "cuidado de la piel"],
   },
   {
     id: "static-5",
@@ -254,11 +246,20 @@ La clave de unos labios bonitos esta en respetar las proporciones faciales y los
 - Pacientes con antecedentes de reacciones alergicas al acido hialuronico
 - Personas con expectativas poco realistas
 
-La Dra. Yasmin Medrano Avila cuenta con amplia experiencia en armonizacion labial, utilizando tecnicas avanzadas que garantizan resultados equilibrados, naturales y personalizados para cada paciente.`,
+La Dra. Yasmin Medrano Avila cuenta con experiencia en tratamientos de labios, utilizando tecnicas avanzadas que garantizan resultados equilibrados, naturales y personalizados para cada paciente.`,
     imageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80",
     publishedAt: "2026-03-25",
-    author: "Dra. Yasmin Medrano Avila",
     readTime: "7 min",
-    tags: ["acido hialuronico", "labios", "rellenos", "armonizacion facial"],
   },
 ]
+
+export const BLOG_FALLBACK: BlogPost[] = staticBlogPosts
+  .map((p) => ({
+    ...p,
+    updatedAt: "",
+    tags: [],
+    seoTitle: "",
+    seoDescription: "",
+    ogImageUrl: "",
+  }))
+  .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())

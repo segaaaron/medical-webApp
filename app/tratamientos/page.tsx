@@ -1,29 +1,25 @@
-import { readContent } from "@/lib/store/content-store"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { safeJsonLd } from "@/lib/seo-utils"
-import { backendFetch, resolveImageUrl, extractList } from "@/lib/backend-client"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
-import { ServiceSection, type TreatmentsPageInfo } from "@/components/sections/CourseSection"
+import { ServiceSection } from "@/components/sections/CourseSection"
 import { PresetsSection } from "@/components/sections/PresetsSection"
 import { TreatmentsPaginated } from "@/components/sections/TreatmentsPaginated"
-import { getFooterData } from "@/lib/data/footer"
+import { getFooter } from "@/lib/content/footer"
 import { notFound } from "next/navigation"
-import { mapTreatmentsPageInfo } from "@/lib/data/treatments-page"
+import { getTreatmentsPageInfo } from "@/lib/content/treatments-page"
+import {
+  getActiveTreatments,
+  getTreatmentsGridPage,
+  FALLBACK_TREATMENT_CATEGORIES,
+  type Treatment,
+} from "@/lib/content/treatments"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getSiteSeo } from "@/lib/content/seo"
+import { pageSeoMetadata } from "@/lib/seo/meta"
 import { PageHero } from "@/components/ui/PageHero"
 import type { Metadata } from "next"
-import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
-
-
-// Sin marca: el template del layout añade "| Dra. Yasmin Medrano Avila".
-// Con el sufijo el title queda en 64 caracteres; Google corta cerca de 60.
-const BASE_TITLE = "Tratamientos Estéticos en Cochabamba"
-// Solo se nombran tratamientos que el consultorio presta. La versión anterior
-// anunciaba armonización facial y depilación láser, que no están entre los
-// activos. Sin superlativos («los mejores»): no son demostrables y en
-// publicidad sanitaria son terreno resbaladizo.
-const BASE_DESCRIPTION =
-  "Botox, ácido hialurónico, rellenos de labios, mesoterapia y peeling en Cochabamba. Medicina estética con la Dra. Yasmin Medrano Avila."
+import { searchAliasesFor, displayNameFor, alternateNamesFor } from "@/lib/seo/treatment-names"
 
 /** Normaliza el query param de página a un entero ≥ 1. */
 function parsePage(raw: string | undefined): number {
@@ -31,81 +27,22 @@ function parsePage(raw: string | undefined): number {
 }
 
 export async function generateMetadata({ searchParams }: { searchParams: Promise<{ page?: string }> }): Promise<Metadata> {
-  const { page } = await searchParams
+  const [{ page }, seo, { data: activos }] = await Promise.all([searchParams, getSiteSeo(), getActiveTreatments()])
   const pageNum = parsePage(page)
   // Canonical autorreferenciado por página → evita contenido duplicado entre ?page=N
   const canonical = pageNum > 1 ? `${BASE_URL}/tratamientos?page=${pageNum}` : `${BASE_URL}/tratamientos`
-  const title = pageNum > 1 ? `${BASE_TITLE} — Página ${pageNum}` : BASE_TITLE
 
-  return {
-    title,
-    description: BASE_DESCRIPTION,
+  // Título y descripción: Dashboard → SEO / Google (o su respaldo entero).
+  // Las keywords salen de los tratamientos activos, no de una lista fija.
+  return pageSeoMetadata(seo.tratamientos, {
+    pageSuffix: pageNum > 1 ? ` — Página ${pageNum}` : "",
     keywords: [
       "tratamientos medicina estética Cochabamba",
-      "botox Cochabamba precio",
-      "botox natural Bolivia",
-      "ácido hialurónico Cochabamba",
-      "mesoterapia facial Bolivia",
-      "rejuvenecimiento facial Cochabamba",
-      "radiofrecuencia facial Bolivia",
-      "bioestimulación polinucleótidos Cochabamba",
-      "tratamientos antiedad Bolivia",
-      "eliminar manchas piel Cochabamba",
-      "peeling químico Cochabamba",
+      ...activos.flatMap((t) => searchAliasesFor(t).map((a) => `${a} Cochabamba`)),
     ],
-    alternates: { canonical },
-    openGraph: {
-      // Sin marca: el template del layout añade "| Dra. Yasmin Medrano Avila".
-      // Google corta el title a ~60 caracteres; con el sufijo esto queda en 64.
-      title: "Tratamientos Estéticos en Cochabamba",
-      description:
-        "Botox, ácido hialurónico, rellenos de labios, rinomodelación, mesoterapia y peeling químico en Cochabamba, con la Dra. Yasmin Medrano Avila.",
-      url: canonical,
-      images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Tratamientos de medicina estética en Cochabamba — Dra. Yasmin Medrano Avila" }],
-      type: "website",
-      locale: "es_BO",
-    },
-    twitter: {
-      card: "summary_large_image",
-      images: ["/opengraph-image"],
-      title: "Tratamientos Estéticos en Cochabamba | Dra. Yasmin Medrano",
-      description:
-        "Botox, ácido hialurónico, rellenos de labios, rinomodelación y más. Agenda tu consulta de valoración con la Dra. Yasmin Medrano Avila.",
-    },
-  }
-}
-
-interface SiteContentTreatmentsPage {
-  key: string
-  value: TreatmentsPageInfo
-}
-
-interface BackendTreatment {
-  id: string
-  slug: string
-  name: string
-  description: string | null
-  price: number
-  tag: string
-  imageUrl: string | null
-  active: boolean
-}
-
-/** Metadata de paginación que envía el backend (incluido el tamaño de página). */
-interface PaginatedMeta {
-  total?: number
-  totalPages?: number
-  page?: number
-  limit?: number
-}
-
-/** Lee la metadata de paginación si la respuesta es un objeto {data, total, ...}. */
-function readPaginationMeta(raw: unknown): PaginatedMeta | null {
-  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-    const o = raw as PaginatedMeta
-    if (typeof o.total === "number" || typeof o.totalPages === "number") return o
-  }
-  return null
+    canonical,
+    ogImageAlt: "Tratamientos de medicina estética en Cochabamba — Dra. Yasmin Medrano Avila",
+  })
 }
 
 const breadcrumbLd = {
@@ -129,7 +66,7 @@ const breadcrumbLd = {
  * Ahora sale de `/treatments?active=true`: lo que la doctora activa se anuncia,
  * lo que desactiva desaparece. Sin listas paralelas que mantener.
  */
-function buildTreatmentsJsonLd(treatments: BackendTreatment[]) {
+function buildTreatmentsJsonLd(treatments: Treatment[]) {
   return {
     "@context": "https://schema.org",
     "@type": "MedicalWebPage",
@@ -143,8 +80,9 @@ function buildTreatmentsJsonLd(treatments: BackendTreatment[]) {
       itemListElement: treatments.map((t, i) => ({
         "@type": "MedicalProcedure",
         position: i + 1,
-        name: seoTitleFor(t.slug, t.name),
-        alternateName: searchAliasesFor(t.slug, t.name),
+        // Nombre real del panel; el término de búsqueda va como alternativo.
+        name: displayNameFor(t),
+        ...(alternateNamesFor(t).length ? { alternateName: alternateNamesFor(t) } : {}),
         url: `${BASE_URL}/tratamientos/${t.slug}`,
         ...(t.description
           ? {
@@ -168,43 +106,27 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
   const { page: pageParam } = await searchParams
   const requestedPage = parsePage(pageParam)
 
-  const [c, footerData, gridResult, allResult, infoResult] = await Promise.all([
-    readContent(),
-    getFooterData(),
+  const [navLinks, footerData, grid, all, info] = await Promise.all([
+    getNavLinks(),
+    getFooter(),
     // Página actual del grid (el backend define el tamaño de página)
-    backendFetch<BackendTreatment[]>(`/treatments?active=true&page=${requestedPage}`, { revalidate: 300 }),
+    getTreatmentsGridPage(requestedPage),
     // Lista completa de activos — alimenta "Tratamientos Disponibles" del ServiceSection
-    backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 }),
-    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 300 }),
+    getActiveTreatments(),
+    getTreatmentsPageInfo(),
   ])
-  const backendResult = gridResult
 
-  // Use site-content info only when the service responds correctly; otherwise undefined = fallback to hardcoded
-  const pageInfo =
-    infoResult.error === null ? mapTreatmentsPageInfo(infoResult.data?.value) : undefined
-
-  const backendError = backendResult.error !== null
-
-  // Lista completa de activos (para el sidebar "Tratamientos Disponibles" y como fallback de paginación)
-  const allActive = backendError
-    ? []
-    : extractList<BackendTreatment>(allResult.data).filter((t) => t.active)
+  const backendError = grid.source === "fallback"
+  const allActive = all.data.filter((t) => t.active)
 
   // Paginación gobernada por el backend (él define el tamaño de página).
   // Si el backend aún no pagina (responde array suelto), se muestra todo en una sola página.
-  const meta = readPaginationMeta(gridResult.data)
+  const meta = grid.data.meta
   const totalPages = meta
-    ? Math.max(
-        1,
-        meta.totalPages ??
-          (meta.total && meta.limit ? Math.ceil(meta.total / meta.limit) : 1)
-      )
+    ? Math.max(1, meta.totalPages > 0 ? meta.totalPages : meta.total > 0 && meta.limit > 0 ? Math.ceil(meta.total / meta.limit) : 1)
     : 1
-  // Página fuera de rango → 404. Es exactamente el agujero que ya se tapó en
-  // `/resenas` y que aquí seguía abierto: `/tratamientos?page=99` respondía 200
-  // con las once fichas y un canonical apuntándose a sí mismo. O sea, tantas
-  // copias indexables del catálogo como números se quieran probar, cada una
-  // reclamando ser la original.
+  // Página fuera de rango → 404: `/tratamientos?page=99` respondía 200 con las
+  // once fichas y un canonical apuntándose a sí mismo (copias indexables).
   if (meta && requestedPage > totalPages) notFound()
 
   // Y cuando el backend NO pagina —responde la lista suelta, sin metadatos—
@@ -212,25 +134,14 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
   if (!meta && requestedPage > 1) notFound()
 
   const currentPage = Math.min(requestedPage, totalPages)
+  const backendTreatments = meta ? grid.data.items.filter((t) => t.active) : allActive
 
-  const pageItemsRaw = meta
-    ? extractList<BackendTreatment>(gridResult.data).filter((t) => t.active)
-    : allActive
-
-  const backendTreatments = pageItemsRaw.map((t) => ({
-    ...t,
-    imageUrl: resolveImageUrl(t.imageUrl),
+  // Nombre del panel, solo sin el grito (ver lib/seo/treatment-names.ts).
+  const liveModules = allActive.map((t) => ({
+    title: displayNameFor(t),
+    treatmentId: t.id,
+    treatmentSlug: t.slug,
   }))
-
-  const liveModules =
-    allActive.length > 0
-      // Nombre legible, no el gritado del panel (ver lib/seo/treatment-names.ts).
-      ? allActive.map((t) => ({
-          title: seoTitleFor(t.slug, t.name),
-          treatmentId: t.id,
-          treatmentSlug: t.slug,
-        }))
-      : c.courseModules
 
   return (
     <>
@@ -242,22 +153,18 @@ export default async function TratamientosPage({ searchParams }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(buildTreatmentsJsonLd(allActive)) }}
       />
-      <Navbar links={c.navLinks} />
+      <Navbar links={navLinks} />
       <main>
         <PageHero
           eyebrow="Medicina Estética"
           title="Nuestros Tratamientos"
-          subtitle="Tratamientos faciales y corporales con tecnología de vanguardia y los más altos estándares de seguridad médica."
+          subtitle="Tratamientos de medicina estética con tecnología de vanguardia y los más altos estándares de seguridad médica."
         />
 
-        <ServiceSection
-          included={c.courseIncluded}
-          modules={liveModules}
-          info={pageInfo}
-        />
+        <ServiceSection modules={liveModules} info={info.data} />
 
         {backendError
-          ? <PresetsSection presets={c.presets} />
+          ? <PresetsSection presets={FALLBACK_TREATMENT_CATEGORIES} />
           : (
             <TreatmentsPaginated
               initialTreatments={backendTreatments}

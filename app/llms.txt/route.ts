@@ -1,8 +1,11 @@
 import { BASE_URL } from "@/lib/seo/site-url"
-import { backendFetch, extractList } from "@/lib/backend-client"
-import { seoTitleFor, searchAliasesFor, type TreatmentRef } from "@/lib/seo/treatment-names"
+import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
 import { concernSentence } from "@/lib/seo/vocabulary"
-import { getFooterData } from "@/lib/data/footer"
+import { getFooter } from "@/lib/content/footer"
+import { getContact } from "@/lib/content/contact"
+import { getActiveTreatments } from "@/lib/content/treatments"
+import { getPosts } from "@/lib/content/blog"
+import { getAbout, statsClaim } from "@/lib/content/about"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
 
 /**
@@ -19,19 +22,23 @@ import { normalizeSocialUrl } from "@/lib/seo/meta"
  */
 export const revalidate = 3600
 
-interface BackendPost {
-  slug: string
-  title: string
-  excerpt: string | null
-  published: boolean
-}
-
 export async function GET() {
-  const [tratamientosRes, blogRes, footer] = await Promise.all([
-    backendFetch("/treatments?active=true", { revalidate: 300 }),
-    backendFetch("/blog?published=true", { revalidate: 3600 }),
-    getFooterData(),
+  const [tratamientosRes, blogRes, footer, contact, about] = await Promise.all([
+    getActiveTreatments(),
+    getPosts(),
+    getFooter(),
+    // Teléfono y horario de Dashboard → Contacto (respaldo entero si falla).
+    getContact(),
+    getAbout(),
   ])
+  const ct = contact.data
+  // Trayectoria de Dashboard → Acerca de; sin estadísticas no se afirma cifra.
+  const claim = statsClaim(about.data.stats)
+  const horario = [
+    ct.scheduleWeekdays && `lunes a viernes ${ct.scheduleWeekdays}`,
+    ct.scheduleSaturday && `sábados ${ct.scheduleSaturday}`,
+    ct.scheduleSunday && `domingos ${ct.scheduleSunday}`,
+  ].filter(Boolean).join("; ")
 
   // Los perfiles salen del panel, igual que el `sameAs` del schema: una sola
   // fuente para la identidad de la doctora, no dos listas que se separan.
@@ -39,19 +46,20 @@ export async function GET() {
     .map(normalizeSocialUrl)
     .filter(Boolean)
 
-  const tratamientos = extractList<TreatmentRef>(tratamientosRes.data).filter((t) => t.slug)
-  const posts = extractList<BackendPost>(blogRes.data).filter((p) => p.published && p.slug)
+  const tratamientos = tratamientosRes.data
+  const posts = blogRes.data
 
   const lineas = [
     "# Dra. Yasmin Medrano Avila — Medicina Estética",
     "",
-    "> Consultorio de medicina estética en Cochabamba, Bolivia. Más de 10 años de",
-    "> ejercicio y más de 5.000 pacientes atendidos. Atiende Cochabamba capital y el",
-    "> área metropolitana (Quillacollo, Sacaba, Tiquipaya, Colcapirhua, Vinto).",
+    `> Consultorio de medicina estética en Cochabamba, Bolivia.${claim ? ` ${claim.charAt(0).toLocaleUpperCase("es")}${claim.slice(1)}.` : ""}`,
+    "> Atiende Cochabamba capital y el área metropolitana (Quillacollo, Sacaba,",
+    "> Tiquipaya, Colcapirhua, Vinto).",
     "",
     "Dirección: Calle Paccieri #772, entre 16 de Julio y Antezana, Cochabamba, Bolivia.",
-    "Teléfono y WhatsApp: +591 78751894.",
-    "Horario: lunes a viernes de 09:00 a 19:00; sábados de 09:00 a 14:00.",
+    ...(ct.phone ? [`Teléfono: ${ct.phone}.`] : []),
+    ...(ct.whatsappNumber ? [`WhatsApp: ${ct.whatsappNumber}.`] : []),
+    ...(horario ? [`Horario: ${horario}.`] : []),
     "Consulta de valoración con cita previa. Precios en bolivianos (BOB).",
     "",
     "## Perfiles oficiales",
@@ -71,14 +79,17 @@ export async function GET() {
   if (tratamientos.length) {
     lineas.push("## Tratamientos")
     for (const t of tratamientos) {
-      const nombre = seoTitleFor(t.slug, t.name)
-      const alias = searchAliasesFor(t.slug, t.name).join(", ")
+      const nombre = seoTitleFor(t)
+      // Sin repetir el propio nombre («Mesoterapia: también conocido como mesoterapia»).
+      const alias = searchAliasesFor(t)
+        .filter((a) => a !== nombre.toLocaleLowerCase("es"))
+        .join(", ")
       // Para qué sirve, con las palabras de la paciente. Es la línea que un
       // motor de respuestas puede citar cuando alguien pregunta «¿dónde tratan
       // la sudoración excesiva en Cochabamba?».
       const indicado = concernSentence(t)
       lineas.push(
-        `- [${nombre}](${BASE_URL}/tratamientos/${t.slug}): también conocido como ${alias}.${indicado ? ` ${indicado}` : ""}`
+        `- [${nombre}](${BASE_URL}/tratamientos/${t.slug}):${alias ? ` también conocido como ${alias}.` : ""}${indicado ? ` ${indicado}` : ""}`
       )
     }
     lineas.push("")
@@ -87,7 +98,7 @@ export async function GET() {
   if (posts.length) {
     lineas.push("## Artículos")
     for (const p of posts.slice(0, 40)) {
-      const resumen = (p.excerpt ?? "").replace(/\s+/g, " ").trim()
+      const resumen = p.excerpt.replace(/\s+/g, " ").trim()
       lineas.push(`- [${p.title}](${BASE_URL}/blog/${p.slug})${resumen ? `: ${resumen}` : ""}`)
     }
     lineas.push("")

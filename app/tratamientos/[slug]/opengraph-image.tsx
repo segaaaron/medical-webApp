@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og"
-import { backendFetch } from "@/lib/backend-client"
+import { getTreatmentBySlug } from "@/lib/content/treatments"
+import { displayNameFor } from "@/lib/seo/treatment-names"
 
 export const runtime = "edge"
 export const alt = "Tratamientos — Dra. Yasmin Loreley Medrano Avila"
@@ -13,16 +14,9 @@ interface Props {
 export default async function Image({ params }: Props) {
   const { slug } = await params
 
-  let name = "Tratamiento"
-  let tag: string | null = null
-  try {
-    const { data } = await backendFetch<{ name?: string; tag?: string | null; slug?: string }[]>("/treatments?active=true")
-    const found = Array.isArray(data) ? data.find((t) => t.slug === slug) : null
-    if (found?.name) name = found.name
-    if (found?.tag) tag = found.tag
-  } catch {
-    // fallback to generic name
-  }
+  const found = await getTreatmentBySlug(slug).catch(() => null)
+  const name = found ? displayNameFor(found) : "Tratamiento"
+  const tag = found && found.tag ? found.tag : null
 
   return new ImageResponse(
     (

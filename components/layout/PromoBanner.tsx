@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
 import { X, MessageCircle, Sparkles } from "lucide-react"
-import type { PromoDisplayData } from "@/lib/data/promo"
+import type { PromoDisplayData } from "@/lib/content/promo"
 import { isWhatsAppHref, trackWhatsAppClick } from "@/lib/analytics"
 
 interface PromoBannerProps {
@@ -97,7 +97,7 @@ export function PromoBanner({ data }: PromoBannerProps) {
 
         {/* Chips de oferta — arriba izquierda (máx 2): oferta sólida dorada + urgencia glassy */}
         <div className="absolute top-4 left-4 z-10 flex flex-col items-start gap-1.5">
-          {(data.badges.length > 0 ? data.badges : [data.label]).slice(0, 2).map((badge, i) =>
+          {(data.badges.length > 0 ? data.badges : [data.label]).filter(Boolean).slice(0, 2).map((badge, i) =>
             i === 0 ? (
               <span
                 key={badge}
@@ -160,15 +160,21 @@ export function PromoBanner({ data }: PromoBannerProps) {
 
           <div className="mt-3 w-12 h-px" style={{ backgroundColor: "var(--vintage-gold)" }} />
 
-          <p className="mt-3 text-sm leading-relaxed line-clamp-3" style={{ color: "rgba(255,255,255,0.88)" }}>
-            {data.description}
-          </p>
+          {/* Campo vacío en el panel = elemento oculto. */}
+          {data.description && (
+            <p className="mt-3 text-sm leading-relaxed line-clamp-3" style={{ color: "rgba(255,255,255,0.88)" }}>
+              {data.description}
+            </p>
+          )}
 
-          <p className="mt-2.5 text-[11px]" style={{ color: "rgba(212,180,131,0.85)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.04em" }}>
-            {data.doctorName} · {data.location}
-          </p>
+          {(data.doctorName || data.location) && (
+            <p className="mt-2.5 text-[11px]" style={{ color: "rgba(212,180,131,0.85)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.04em" }}>
+              {[data.doctorName, data.location].filter(Boolean).join(" · ")}
+            </p>
+          )}
 
           <div className="mt-5 flex flex-col gap-2.5">
+            {data.ctaHref && data.ctaLabel && (
             <a
               href={data.ctaHref}
               target={external ? "_blank" : undefined}
@@ -179,16 +185,19 @@ export function PromoBanner({ data }: PromoBannerProps) {
             >
               <MessageCircle size={17} aria-hidden="true" /> {data.ctaLabel}
             </a>
+            )}
             <p className="text-center text-[11px]" style={{ color: "rgba(255,255,255,0.55)" }}>
               Sin compromiso · Cupos limitados
             </p>
-            <button
-              onClick={dismiss}
-              className="w-full py-2 rounded-full font-semibold text-xs uppercase tracking-wide"
-              style={{ color: "rgba(255,255,255,0.6)", letterSpacing: "0.12em" }}
-            >
-              {data.dismissLabel}
-            </button>
+            {data.dismissLabel && (
+              <button
+                onClick={dismiss}
+                className="w-full py-2 rounded-full font-semibold text-xs uppercase tracking-wide"
+                style={{ color: "rgba(255,255,255,0.6)", letterSpacing: "0.12em" }}
+              >
+                {data.dismissLabel}
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -41,6 +41,12 @@ interface AuthorBoxProps {
   eyebrow?: string
   /** Etiqueta de la fecha de publicación. */
   publishedLabel?: string
+  /**
+   * Trayectoria como frase, de las estadísticas del panel («12+ años de
+   * experiencia y 1000 pacientes atendidos», ver `statsClaim`). Vacía = no se
+   * afirma ninguna cifra.
+   */
+  credentials?: string
 }
 
 const RETRATO = "/images/DraMedrano.jpeg"
@@ -76,6 +82,7 @@ export function AuthorBox({
   perfiles = [],
   eyebrow = "ESCRITO Y REVISADO POR",
   publishedLabel = "Publicado el",
+  credentials = "",
 }: AuthorBoxProps) {
   // Solo se anuncia revisión cuando la hubo de verdad. Una fecha de revisión
   // igual a la de publicación no informa de nada y, repetida en cada artículo,
@@ -120,9 +127,8 @@ export function AuthorBox({
           </p>
 
           <p className="text-sm" style={{ color: "var(--primary-darkest)", opacity: 0.85 }}>
-            Médica cirujana con especialidad en medicina estética. Más de 10 años de
-            ejercicio en Cochabamba y más de 5.000 pacientes atendidos en toxina
-            botulínica, ácido hialurónico, rellenos y bioestimulación.
+            Médica cirujana con especialidad en medicina estética en Cochabamba
+            {credentials ? `, con ${credentials}` : ""}.
           </p>
 
           {publicado && (

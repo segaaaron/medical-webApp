@@ -1,19 +1,15 @@
 import type { Metadata } from "next"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { notFound } from "next/navigation"
-import { backendFetch, extractList, extractReviewAggregate } from "@/lib/backend-client"
 import { safeJsonLd } from "@/lib/seo-utils"
-import { getFooterData } from "@/lib/data/footer"
-import { readContent, DEFAULTS } from "@/lib/store/content-store"
+import { getFooter } from "@/lib/content/footer"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getReviewsPage } from "@/lib/content/reviews"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { PageHero } from "@/components/ui/PageHero"
 import { Pager } from "@/components/ui/Pager"
-import {
-  TestimonialsSection,
-  type PublicReview,
-  type ReviewAggregate,
-} from "@/components/sections/TestimonialsSection"
+import { TestimonialsSection } from "@/components/sections/TestimonialsSection"
 
 /**
  * Listado completo de reseñas, paginado.
@@ -72,14 +68,6 @@ export async function generateMetadata({
   }
 }
 
-/** Metadata de paginación, cuando el backend la envía. */
-function readPaginationMeta(data: unknown): { page: number; totalPages: number } | null {
-  if (!data || typeof data !== "object") return null
-  const d = data as Record<string, unknown>
-  if (typeof d.page !== "number" || typeof d.totalPages !== "number") return null
-  return { page: d.page, totalPages: d.totalPages }
-}
-
 export default async function ResenasPage({
   searchParams,
 }: {
@@ -88,31 +76,13 @@ export default async function ResenasPage({
   const { page } = await searchParams
   const requestedPage = parsePage(page)
 
-  const [c, footerData, reviewsResult] = await Promise.all([
-    readContent(),
-    getFooterData(),
-    backendFetch<PublicReview[]>(`/reviews/public?page=${requestedPage}`, {
-      revalidate: 300,
-    }),
+  const [navLinks, footerData, result] = await Promise.all([
+    getNavLinks(),
+    getFooter(),
+    getReviewsPage(requestedPage),
   ])
-
-  const reviews =
-    reviewsResult.error === null ? extractList<PublicReview>(reviewsResult.data) : []
-  const backendAggregate =
-    reviewsResult.error === null ? extractReviewAggregate(reviewsResult.data) : null
-
-  const aggregate: ReviewAggregate | undefined =
-    backendAggregate && backendAggregate.total_count > 0
-      ? {
-          avg_rating:
-            backendAggregate.avg_rating ??
-            reviews.reduce((sum, r) => sum + r.rating, 0) / (reviews.length || 1),
-          total_count: backendAggregate.total_count,
-        }
-      : undefined
-
-  const meta = readPaginationMeta(reviewsResult.data)
-  const totalPages = meta?.totalPages ?? 1
+  const { reviews, aggregate, meta } = result.data
+  const totalPages = meta ? meta.totalPages : 1
 
   // Página fuera de rango → 404.
   //
@@ -132,8 +102,6 @@ export default async function ResenasPage({
   if (requestedPage > 1 && reviews.length === 0) notFound()
 
   const currentPage = Math.min(requestedPage, totalPages)
-
-  const navLinks = c?.navLinks ?? DEFAULTS.navLinks
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
@@ -162,7 +130,7 @@ export default async function ResenasPage({
         {reviews.length > 0 ? (
           <TestimonialsSection
             reviews={reviews}
-            aggregate={aggregate}
+            aggregate={aggregate ?? undefined}
             limit={reviews.length}
             showAllLink={false}
           />

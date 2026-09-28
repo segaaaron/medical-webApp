@@ -1,15 +1,18 @@
-import { getHomeData, getHomeDataService } from "@/lib/data/home"
+import { getHome } from "@/lib/content/home"
 import { BASE_URL } from "@/lib/seo/site-url"
-import { getFooterData } from "@/lib/data/footer"
+import { getFooter } from "@/lib/content/footer"
 import { sanitizeHtml } from "@/lib/html/sanitize"
-import { mapTreatmentsPageInfo } from "@/lib/data/treatments-page"
-import { ADDRESS, AREA_SERVED, LANGUAGES, OPENING_HOURS, PHONE, geoFields } from "@/lib/seo/local"
+import { getTreatmentsPageInfo } from "@/lib/content/treatments-page"
+import { ADDRESS, AREA_SERVED, LANGUAGES, geoFields } from "@/lib/seo/local"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
-import { getPromoData } from "@/lib/data/promo"
-import { getAboutData } from "@/lib/data/about"
-import { backendFetch, resolveImageUrl, extractList, extractReviewAggregate } from "@/lib/backend-client"
+import { getPromo, type PromoDisplayData } from "@/lib/content/promo"
+import { getAbout } from "@/lib/content/about"
+import { getActiveTreatments, type Treatment } from "@/lib/content/treatments"
+import { getReviews, type PublicReview, type ReviewAggregate } from "@/lib/content/reviews"
+import { getContact, locationOf, businessContactOf, type ConsultorioLocation } from "@/lib/content/contact"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getSiteSeo } from "@/lib/content/seo"
 import { safeJsonLd } from "@/lib/seo-utils"
-import type { PromoDisplayData } from "@/lib/data/promo"
 import dynamic from "next/dynamic"
 import type { Metadata } from "next"
 
@@ -19,15 +22,11 @@ import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 
 // ─── Above-fold sections (eager) ──────────────────────────────────────────────
-import { HeroSectionFallback } from "@/components/sections/HeroSection"
 import { FadeIn } from "@/components/ui/FadeIn"
 import { AboutSection } from "@/components/sections/AboutSection"
 import { HomeSection } from "@/components/sections/HomeSection"
-import { TreatmentsPageInfo } from "@/components/sections/CourseSection"
-import type { PublicReview, ReviewAggregate } from "@/components/sections/TestimonialsSection"
-import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
-import { getConsultorioLocation, type ConsultorioLocation } from "@/lib/data/location"
-import { CourseModule, HeroCTA } from "@/types"
+import { seoTitleFor, searchAliasesFor, displayNameFor, alternateNamesFor } from "@/lib/seo/treatment-names"
+import type { CourseModule, HeroCTA } from "@/types"
 
 // ─── Below-fold sections (lazy — split JS chunk, still SSR'd) ─────────────────
 const ServiceSection = dynamic(() => import("@/components/sections/CourseSection").then(m => ({ default: m.ServiceSection })))
@@ -51,20 +50,13 @@ const TestimonialsSection = dynamic(() => import("@/components/sections/Testimon
  * reseñas aprobadas y solo se emite si existen. Las reseñas siguen visibles en
  * la página como contenido, que es donde le sirven al paciente.
  */
-function buildRatingFields(reviews: PublicReview[], aggregate?: ReviewAggregate) {
-  const hasReviews = reviews.length > 0
-  const avg = aggregate?.avg_rating != null
-    ? aggregate.avg_rating.toFixed(1)
-    : hasReviews
-      ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
-      : null
-  const reviewCount = aggregate?.total_count ?? reviews.length
-  if (!hasReviews || !avg) return {}
+function buildRatingFields(reviews: PublicReview[], aggregate: ReviewAggregate | null) {
+  if (reviews.length === 0 || !aggregate) return {}
   return {
     aggregateRating: {
       "@type": "AggregateRating",
-      ratingValue: avg,
-      reviewCount: String(reviewCount),
+      ratingValue: aggregate.avg_rating.toFixed(1),
+      reviewCount: String(aggregate.total_count),
       bestRating: "5",
       worstRating: "1",
     },
@@ -126,10 +118,12 @@ function buildPromoJsonLd(promo: PromoDisplayData) {
 
 function buildLocalBusinessJsonLd(
   reviews: PublicReview[],
-  aggregate: ReviewAggregate | undefined,
-  treatments: BackendTreatment[],
+  aggregate: ReviewAggregate | null,
+  treatments: Treatment[],
   ubicacion: ConsultorioLocation | null,
-  perfiles: string[]
+  perfiles: string[],
+  // Teléfono y horario del panel (o de su respaldo entero).
+  { telephone, openingHours }: ReturnType<typeof businessContactOf>
 ) {
   return {
     "@context": "https://schema.org",
@@ -148,7 +142,7 @@ function buildLocalBusinessJsonLd(
     // saber: el catálogo de servicios y la valoración media.
     url: BASE_URL,
     logo: `${BASE_URL}/icon.svg`,
-    telephone: PHONE,
+    ...(telephone ? { telephone } : {}),
     image: `${BASE_URL}/images/DraMedrano.jpeg`,
     priceRange: "$$",
     address: ADDRESS,
@@ -179,15 +173,16 @@ function buildLocalBusinessJsonLd(
               "@type": "Offer",
               itemOffered: {
                 "@type": "MedicalProcedure",
-                name: seoTitleFor(t.slug, t.name),
-                alternateName: searchAliasesFor(t.slug, t.name),
+                // Nombre real del panel; el término de búsqueda va como alternativo.
+                name: displayNameFor(t),
+                ...(alternateNamesFor(t).length ? { alternateName: alternateNamesFor(t) } : {}),
                 url: `${BASE_URL}/tratamientos/${t.slug}`,
               },
             })),
           },
         }
       : {}),
-    openingHoursSpecification: OPENING_HOURS,
+    ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
     sameAs: perfiles,
     medicalSpecialty: "Medicina Estética",
     ...buildRatingFields(reviews, aggregate),
@@ -215,22 +210,6 @@ const breadcrumbJsonLd = {
   ],
 }
 
-interface SiteContentTreatmentsPage {
-  key: string
-  value: TreatmentsPageInfo
-}
-
-interface BackendTreatment {
-  slug: string
-  id: string
-  name: string
-  description: string | null
-  price: number
-  tag: string
-  imageUrl: string | null
-  active: boolean
-}
-
 /**
  * Metadatos de la home, derivados de los tratamientos REALES del panel.
  *
@@ -244,17 +223,28 @@ interface BackendTreatment {
  * aquí; si lo desactiva, desaparece. No se puede prometer lo que no se hace.
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const { data, error } = await backendFetch<BackendTreatment[]>(
-    "/treatments?active=true",
-    { revalidate: 300 }
-  )
+  const [{ data: activos }, { home: seo }] = await Promise.all([getActiveTreatments(), getSiteSeo()])
+  const keywords = [
+    ...activos.flatMap((t) => searchAliasesFor(t)),
+    "medicina estética Cochabamba",
+    "Dra. Yasmin Medrano Avila",
+  ]
 
-  const activos = error === null ? extractList<BackendTreatment>(data) : []
-  const nombres = activos.filter((t) => t.slug).map((t) => seoTitleFor(t.slug, t.name))
+  // Título y descripción escritos en Dashboard → SEO / Google: mandan tal cual.
+  if (seo.title) {
+    return {
+      title: { absolute: seo.title },
+      ...(seo.description ? { description: seo.description } : {}),
+      alternates: { canonical: BASE_URL },
+      keywords,
+    }
+  }
+
+  const nombres = activos.map((t) => seoTitleFor(t))
 
   // Sin datos del backend se cae al título genérico del layout en vez de
   // inventar una lista: mejor decir menos que decir algo falso.
-  if (nombres.length === 0) return {}
+  if (nombres.length === 0) return seo.description ? { description: seo.description } : {}
 
   // Se añaden tratamientos mientras quepan.
   //
@@ -282,76 +272,47 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${lista} en Cochabamba`,
     alternates: { canonical: BASE_URL },
-    description:
-      `${lista} y más tratamientos de medicina estética en Cochabamba, ` +
-      "con la Dra. Yasmin Medrano Avila. Consulta de valoración personalizada.",
+    description: seo.description
+      ? seo.description
+      : `${lista} y más tratamientos de medicina estética en Cochabamba, ` +
+        "con la Dra. Yasmin Medrano Avila. Consulta de valoración personalizada.",
     // `keywords` se deriva de lo que el consultorio ofrece de verdad. Google
     // ignora esta etiqueta desde 2009, así que no posiciona: se mantiene
     // sincronizada por coherencia, no porque trabaje.
-    keywords: [
-      ...activos.flatMap((t) => (t.slug ? searchAliasesFor(t.slug, t.name) : [])),
-      "medicina estética Cochabamba",
-      "Dra. Yasmin Medrano Avila",
-    ],
+    keywords,
   }
 }
 
 export const revalidate = 300 // 5 min ISR
 
 export default async function HomePage() {
-  const [homeData, homeServiceData, footerData, promoData, aboutData, treatment, infoResult, reviewsResult, ubicacion] = await Promise.all([
-    getHomeData(),
-    getHomeDataService(),
-    getFooterData(),
-    getPromoData(),
-    getAboutData(),
-    backendFetch<BackendTreatment[]>("/treatments?active=true", { revalidate: 300 }),
-    backendFetch<SiteContentTreatmentsPage>("/site-content/treatmentsPage", { revalidate: 60 }),
-    backendFetch<PublicReview[]>("/reviews/public", { revalidate: 300 }),
-    getConsultorioLocation(),
+  const [home, footerData, promo, about, treatments, info, reviews, contact, navLinks] = await Promise.all([
+    getHome(),
+    getFooter(),
+    getPromo(),
+    getAbout(),
+    getActiveTreatments(),
+    getTreatmentsPageInfo(),
+    getReviews(),
+    getContact(),
+    getNavLinks(),
   ])
+  const homeData = home.data
+  const promoData = promo.data
+  const aboutData = about.data
+  const { reviews: approvedReviews, aggregate: reviewAggregate } = reviews.data
 
   // Las respuestas del panel se sanean aquí, en el servidor, antes de cruzar al
-  // componente de cliente que las inyecta como HTML. Antes se limpiaban en el
-  // navegador: el texto sin sanear viajaba igual y DOMPurify se descargaba en
-  // todas las páginas para limpiarlo allí.
+  // componente de cliente que las inyecta como HTML.
   const faqsLimpias = homeData.faqs.map((faq) => ({
     question: faq.question,
     answer: sanitizeHtml(faq.answer),
   }))
 
   const faqJsonLd = buildFaqJsonLd(homeData.faqs)
-
-  const approvedReviews = reviewsResult.error === null
-    ? extractList<PublicReview>(reviewsResult.data)
-    : []
-  const backendAggregate = reviewsResult.error === null
-    ? extractReviewAggregate(reviewsResult.data)
-    : null
-  const reviewAggregate: ReviewAggregate | undefined =
-    backendAggregate && backendAggregate.total_count > 0
-      ? {
-          avg_rating:
-            backendAggregate.avg_rating ??
-            approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
-          total_count: backendAggregate.total_count,
-        }
-      : approvedReviews.length > 0
-        ? {
-            avg_rating: approvedReviews.reduce((sum, r) => sum + r.rating, 0) / approvedReviews.length,
-            total_count: approvedReviews.length,
-          }
-        : undefined
-  const siteNavJsonLd = buildSiteNavJsonLd(homeData.navLinks)
+  const siteNavJsonLd = buildSiteNavJsonLd(navLinks)
   const promoJsonLd = buildPromoJsonLd(promoData)
-
-  const backendError = treatment.error !== null
-  const backendTreatments = backendError
-    ? []
-    : extractList<BackendTreatment>(treatment.data).map((t) => ({
-        ...t,
-        imageUrl: resolveImageUrl(t.imageUrl),
-      }))
+  const backendTreatments = treatments.data
 
   // Redes del panel: la lista fija de esta página no tenía TikTok y
   // contradecía la del layout sobre la MISMA entidad (@id #business).
@@ -367,29 +328,24 @@ export default async function HomePage() {
     approvedReviews,
     reviewAggregate,
     backendTreatments,
-    ubicacion,
-    perfilesSociales
+    locationOf(contact.data),
+    perfilesSociales,
+    businessContactOf(contact.data)
   )
 
-  const pageInfo =
+  // `displayNameFor`: el nombre del panel sin el grito de las MAYÚSCULAS.
+  // Nunca `seoTitleFor`, que renombraba «Toxina Botulínica» a «Botox».
+  const liveModules: CourseModule[] = backendTreatments.map((t) => ({
+    title: displayNameFor(t),
+    treatmentId: t.id,
+    treatmentSlug: t.slug,
+  }))
 
-    infoResult.error === null ? mapTreatmentsPageInfo(infoResult.data?.value) : undefined
-
-  const liveModules: CourseModule[] =
-    backendTreatments.length > 0
-      // `seoTitleFor` y no `t.name`: el panel guarda los nombres en MAYÚSCULAS
-      // SOSTENIDAS y la home los pintaba gritando («ÁCIDO HIALURÓNICO»).
-      ? backendTreatments.map((t) => ({
-          title: seoTitleFor(t.slug, t.name),
-          treatmentId: t.id,
-          treatmentSlug: t.slug,
-        }))
-      : homeData.courseModules
-
-  const heroCTAsSection: HeroCTA[] = [
-    {label: homeServiceData.btn1Text, href: '/tratamientos', variant: 'primary'},
-    {label: homeServiceData.btn2Text, href: footerData.whatsappUrl, variant: 'primary'}
-  ]
+  // Botón con texto vacío (o sin destino) = botón oculto.
+  const heroCTAsSection: HeroCTA[] = ([
+    { label: homeData.ctaLabels.treatments, href: "/tratamientos", variant: "primary" },
+    { label: homeData.ctaLabels.booking, href: footerData.whatsappUrl, variant: "primary" },
+  ] as HeroCTA[]).filter((cta) => cta.label && cta.href)
 
   return (
     <>
@@ -413,7 +369,9 @@ export default async function HomePage() {
         media="(max-aspect-ratio: 1/1)"
         fetchPriority="high"
       />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
+      {homeData.faqs.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }} />
+      )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(siteNavJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(localBusinessJsonLd) }} />
@@ -421,32 +379,28 @@ export default async function HomePage() {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(promoJsonLd) }} />
       )}
       <PromoBanner data={promoData} />
-      <Navbar links={homeData.navLinks} />
+      <Navbar links={navLinks} />
       <FadeIn>
       <main>
-        { homeServiceData.id === null ?
-        <HeroSectionFallback
-          stats={homeData.heroStats}
-          ctas={homeData.heroCTAs}
-          tagline={homeData.branding.heroTagline}
-          doctorName={homeData.branding.doctorName}
-          specialty={homeData.branding.specialty}
-          subtitle={homeData.branding.heroSubtitle}
-          backgroundImage={homeData.branding.heroBackgroundImage}
-        /> : <HomeSection 
-          headerInfo={homeServiceData.headerSection} 
-          backgroundImage={homeServiceData.backgroundImage} 
-          ctas={heroCTAsSection} 
-          stats={homeServiceData.heroStats} />
-
-        }
+        <HomeSection
+          headerInfo={homeData.header}
+          ctas={heroCTAsSection}
+          stats={homeData.stats}
+        />
         <AboutSection bio={aboutData.bio} />
-        <ServiceSection included={homeData.courseIncluded} modules={liveModules} info={pageInfo} />
+        <ServiceSection modules={liveModules} info={info.data} />
         <ValuePropositionSection features={aboutData.features} />
         <TreatmentsGrid treatments={backendTreatments.slice(0, 4)} isHome={true} totalCount={backendTreatments.length} />
         {/* <FreeResourcesSection pdfs={homeData.freePDFs} /> */}
-        <FAQSection faqs={faqsLimpias} />
-        <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate} />
+        {/* Sin preguntas en el panel = sin sección (ni su JSON-LD). */}
+        {faqsLimpias.length > 0 && (
+          <FAQSection
+            faqs={faqsLimpias}
+            eyebrow={homeData.faqHeader.eyebrow}
+            title={homeData.faqHeader.title}
+          />
+        )}
+        <TestimonialsSection reviews={approvedReviews.length > 0 ? approvedReviews : undefined} aggregate={reviewAggregate ?? undefined} />
       </main>
       </FadeIn>
       <Footer data={footerData} />

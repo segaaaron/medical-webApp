@@ -314,7 +314,7 @@ export function TreatmentsGrid({ treatments, isHome, pager, totalCount }: Treatm
           title={isHome ? "Algunas Categorías de Tratamiento" : "Todos Nuestros Tratamientos"}
           subtitle={trustedHtml(
             isHome
-              ? `Desde rejuvenecimiento facial hasta modelado corporal, ofrecemos soluciones estéticas integrales con <span style="color:${GOLD};font-weight:700;">resultados visibles y duraderos.</span>`
+              ? `Rejuvenecimiento facial y medicina regenerativa con <span style="color:${GOLD};font-weight:700;">resultados visibles y duraderos.</span>`
               : `Encuentra el tratamiento ideal para ti. <span style="color:${GOLD};font-weight:700;">Agenda una consulta</span> y recibe un plan personalizado.`
           )}
           light

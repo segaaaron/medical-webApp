@@ -64,6 +64,56 @@ const ACTIVE: React.CSSProperties = {
   boxShadow: "0 0 0 1px rgba(184,151,59,0.35), 0 6px 18px rgba(184,151,59,0.3)",
 }
 
+/** Un control: enlace si hay `basePath`, botón si hay `onNavigate`. */
+function Control({
+  target,
+  disabled,
+  ariaLabel,
+  current,
+  children,
+  basePath,
+  onNavigate,
+  pending,
+}: Pick<PagerProps, "basePath" | "onNavigate"> & {
+  pending: boolean
+  target: number
+  disabled: boolean
+  ariaLabel: string
+  current?: boolean
+  children: React.ReactNode
+}) {
+  const style = current ? ACTIVE : IDLE
+  const cls = BASE + (current ? "" : HOVER)
+
+  if (basePath && !disabled) {
+    return (
+      <a
+        href={target === 1 ? basePath : `${basePath}?page=${target}`}
+        aria-label={ariaLabel}
+        aria-current={current ? "page" : undefined}
+        className={cls}
+        style={style}
+      >
+        {children}
+      </a>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate?.(target)}
+      disabled={disabled || pending}
+      aria-label={ariaLabel}
+      aria-current={current ? "page" : undefined}
+      className={cls}
+      style={style}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function Pager({
   page,
   totalPages,
@@ -75,55 +125,11 @@ export function Pager({
 }: PagerProps) {
   if (totalPages <= 1) return null
 
-  /** Un control: enlace si hay `basePath`, botón si hay `onNavigate`. */
-  function Control({
-    target,
-    disabled,
-    ariaLabel,
-    current,
-    children,
-  }: {
-    target: number
-    disabled: boolean
-    ariaLabel: string
-    current?: boolean
-    children: React.ReactNode
-  }) {
-    const style = current ? ACTIVE : IDLE
-    const cls = BASE + (current ? "" : HOVER)
-
-    if (basePath && !disabled) {
-      return (
-        <a
-          href={target === 1 ? basePath : `${basePath}?page=${target}`}
-          aria-label={ariaLabel}
-          aria-current={current ? "page" : undefined}
-          className={cls}
-          style={style}
-        >
-          {children}
-        </a>
-      )
-    }
-
-    return (
-      <button
-        type="button"
-        onClick={() => onNavigate?.(target)}
-        disabled={disabled || pending}
-        aria-label={ariaLabel}
-        aria-current={current ? "page" : undefined}
-        className={cls}
-        style={style}
-      >
-        {children}
-      </button>
-    )
-  }
+  const nav = { basePath, onNavigate, pending }
 
   return (
     <nav className={className} aria-label={`Paginación de ${label}`}>
-      <Control target={page - 1} disabled={page <= 1} ariaLabel="Página anterior">
+      <Control {...nav} target={page - 1} disabled={page <= 1} ariaLabel="Página anterior">
         <ChevronLeft size={16} aria-hidden="true" />
       </Control>
 
@@ -139,6 +145,7 @@ export function Pager({
           </span>
         ) : (
           <Control
+            {...nav}
             key={p}
             target={p}
             disabled={false}
@@ -151,6 +158,7 @@ export function Pager({
       )}
 
       <Control
+        {...nav}
         target={page + 1}
         disabled={page >= totalPages}
         ariaLabel="Página siguiente"

@@ -1,7 +1,8 @@
 import Link from "next/link"
 import { BASE_URL } from "@/lib/seo/site-url"
-import { readContent } from "@/lib/store/content-store"
-import { getFooterData } from "@/lib/data/footer"
+import { getNavLinks } from "@/lib/content/site-main"
+import { getFooter } from "@/lib/content/footer"
+import { getContact, getWhatsApp } from "@/lib/content/contact"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -49,7 +50,14 @@ const breadcrumbLd = {
 }
 
 export default async function TerminosPage() {
-  const [c, footerData] = await Promise.all([readContent(), getFooterData()])
+  // WhatsApp e Instagram del panel (Dashboard → Contacto), no escritos a mano.
+  const [navLinks, footerData, contact, whatsapp] = await Promise.all([
+    getNavLinks(),
+    getFooter(),
+    getContact(),
+    getWhatsApp(),
+  ])
+  const ct = contact.data
 
   return (
     <>
@@ -57,7 +65,7 @@ export default async function TerminosPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
       />
-      <Navbar links={c.navLinks} />
+      <Navbar links={navLinks} />
       <main>
         <PageHero
           eyebrow="Información legal"
@@ -265,15 +273,15 @@ export default async function TerminosPage() {
                 <List
                   items={[
                     "Dra. Yasmin Medrano Avila — Medicina Estética, Ciudad Cochabamba, Bolivia.",
-                    "WhatsApp: +591 78751894",
-                    "Instagram: @dra_yasmin.medrano",
-                  ]}
+                    ct.whatsappNumber && `WhatsApp: ${ct.whatsappNumber}`,
+                    ct.instagram && `Instagram: ${ct.instagram}`,
+                  ].filter(Boolean) as string[]}
                 />
               </Block>
             </div>
 
             <TrackWhatsAppLink
-              href="https://wa.me/59178751894"
+              href={whatsapp.url}
               source="terminos"
               className="flex items-center justify-center gap-3 w-full mt-12 py-4 rounded-full text-base font-bold uppercase tracking-wide hover:brightness-110 transition-all"
               style={{ backgroundColor: "var(--vintage-gold)", color: "white" }}
