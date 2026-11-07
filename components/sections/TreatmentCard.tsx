@@ -1,10 +1,7 @@
-"use client"
-
-import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { displayNameFor } from "@/lib/seo/treatment-names"
-import { trackTreatmentClick } from "@/lib/analytics"
+import { TrackedLink } from "@/components/analytics/TrackedLink"
 import { TAG_LABELS, TAG_COLORS, DEFAULT_TAG_COLOR } from "@/lib/treatment-tags"
 
 /**
@@ -25,6 +22,18 @@ import { TAG_LABELS, TAG_COLORS, DEFAULT_TAG_COLOR } from "@/lib/treatment-tags"
  * tres tiras de relacionados —artículos del tratamiento, otros tratamientos y
  * tratamientos que menciona el artículo— se leen como una sola familia, que es
  * lo que hace que la navegación entre secciones se sienta continua.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * ES UN COMPONENTE DE SERVIDOR
+ *
+ * No lleva `"use client"`. Lo único que necesita JavaScript es el `onClick`
+ * que avisa a Umami, y eso vive aislado en `TrackedLink`. El nombre, el
+ * recorte de la descripción y la tabla de etiquetas se resuelven en el
+ * servidor, así que no viajan al navegador — importa sobre todo en las páginas
+ * del blog, donde ningún otro componente los usa.
+ *
+ * `ImageWithFallback` sí es de cliente (gestiona el fallo de carga), pero eso
+ * ya lo era antes y no cambia con esto.
  *
  * ────────────────────────────────────────────────────────────────────────────
  * ACCESIBILIDAD
@@ -70,10 +79,10 @@ export function TreatmentCard({ treatment, source }: TreatmentCardProps) {
   const colorEtiqueta = TAG_COLORS[treatment.tag] ?? DEFAULT_TAG_COLOR
 
   return (
-    <Link
+    <TrackedLink
       href={`/tratamientos/${treatment.slug}`}
-      onClick={() => trackTreatmentClick({ id: treatment.id, name: treatment.name })}
-      data-source={source}
+      seguimiento={{ tipo: "tratamiento", id: treatment.id, nombre: treatment.name }}
+      source={source}
       className="group flex flex-col overflow-hidden rounded-2xl shadow-sm transition-shadow hover:shadow-md"
       style={{
         backgroundColor: "#FFFDF8",
@@ -128,6 +137,6 @@ export function TreatmentCard({ treatment, source }: TreatmentCardProps) {
           <ArrowRight size={16} aria-hidden="true" />
         </span>
       </div>
-    </Link>
+    </TrackedLink>
   )
 }

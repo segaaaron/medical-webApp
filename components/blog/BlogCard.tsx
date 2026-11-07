@@ -1,9 +1,18 @@
-"use client"
-
-import Link from "next/link"
 import { Calendar, Clock, ArrowRight } from "lucide-react"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
-import { trackBlogClick } from "@/lib/analytics"
+import { TrackedLink } from "@/components/analytics/TrackedLink"
+
+/**
+ * Componente de SERVIDOR.
+ *
+ * Era `"use client"` por una sola razón: el `onClick` que registra el clic en
+ * Umami. Eso ahora vive aislado en `TrackedLink`, así que el formateo de la
+ * fecha, los iconos y toda la maquetación se resuelven en el servidor en vez
+ * de viajar al navegador.
+ *
+ * `ImageWithFallback` sigue siendo de cliente —gestiona el fallo de carga de
+ * la imagen— y eso no cambia: la frontera queda donde de verdad hace falta.
+ */
 
 interface BlogCardProps {
   id: string
@@ -40,9 +49,9 @@ export function BlogCard({
 }: BlogCardProps) {
   if (variant === "featured") {
     return (
-      <Link
+      <TrackedLink
         href={`/blog/${slug}`}
-        onClick={() => trackBlogClick({ slug, title })}
+        seguimiento={{ tipo: "articulo", slug, titulo: title }}
         className="group block rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow"
         style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.12)" }}
       >
@@ -99,14 +108,15 @@ export function BlogCard({
             </span>
           </div>
         </div>
-      </Link>
+      </TrackedLink>
     )
   }
 
   // grid variant
   return (
-    <Link
+    <TrackedLink
       href={`/blog/${slug}`}
+      seguimiento={{ tipo: "articulo", slug, titulo: title }}
       className="group rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col"
       style={{ backgroundColor: "#FFFDF8", border: "1px solid rgba(184,151,59,0.12)" }}
     >
@@ -166,6 +176,6 @@ export function BlogCard({
           />
         </div>
       </div>
-    </Link>
+    </TrackedLink>
   )
 }
