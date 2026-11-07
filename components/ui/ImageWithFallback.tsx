@@ -74,7 +74,12 @@ function LightFallback() {
         </m.g>
       </m.svg>
 
+      {/* `aria-hidden`: es un marcador visual, no contenido. Sin esto entraba
+          en el nombre accesible de cualquier enlace que envuelva la imagen —
+          en las tarjetas de tratamiento y de artículo, un lector de pantalla
+          anunciaba «Imagen no disponible» antes del título del destino. */}
       <span
+        aria-hidden="true"
         style={{
           fontFamily: "var(--font-mono, ui-monospace, monospace)",
           fontSize: "11px",

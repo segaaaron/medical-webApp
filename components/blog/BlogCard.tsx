@@ -59,7 +59,13 @@ export function BlogCard({
           <div className="relative h-64 md:h-full overflow-hidden" style={{ minHeight: "256px" }}>
             <ImageWithFallback
               src={imageUrl ?? ""}
-              alt={`${title} - Blog de medicina estetica`}
+              // `alt` vacío a propósito: la imagen va DENTRO del enlace, y el
+          // título del destino está dos líneas más abajo en ese mismo enlace.
+          // Con texto alternativo, un lector de pantalla anuncia el nombre dos
+          // veces seguidas. Aquí la imagen es decorativa respecto al enlace; su
+          // versión con `alt` descriptivo vive en la página del propio
+          // destino, que es la que indexa la búsqueda de imágenes.
+          alt=""
               variant="light"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
               loading="eager"
@@ -123,7 +129,13 @@ export function BlogCard({
       <div className="relative w-full h-48 overflow-hidden flex-shrink-0">
         <ImageWithFallback
           src={imageUrl ?? ""}
-          alt={`${title} - Blog de medicina estetica`}
+          // `alt` vacío a propósito: la imagen va DENTRO del enlace, y el
+          // título del destino está dos líneas más abajo en ese mismo enlace.
+          // Con texto alternativo, un lector de pantalla anuncia el nombre dos
+          // veces seguidas. Aquí la imagen es decorativa respecto al enlace; su
+          // versión con `alt` descriptivo vive en la página del propio
+          // destino, que es la que indexa la búsqueda de imágenes.
+          alt=""
           variant="light"
           className="object-cover group-hover:scale-105 transition-transform duration-500"
           loading="lazy"
