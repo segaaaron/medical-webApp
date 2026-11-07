@@ -3,13 +3,10 @@ import { BASE_URL } from "@/lib/seo/site-url"
 import { getFooter } from "@/lib/content/footer"
 import { sanitizeHtml } from "@/lib/html/sanitize"
 import { getTreatmentsPageInfo } from "@/lib/content/treatments-page"
-import { ADDRESS, AREA_SERVED, LANGUAGES, geoFields } from "@/lib/seo/local"
-import { normalizeSocialUrl } from "@/lib/seo/meta"
 import { getPromo, type PromoDisplayData } from "@/lib/content/promo"
 import { getAbout } from "@/lib/content/about"
 import { getActiveTreatments, type Treatment } from "@/lib/content/treatments"
 import { getReviews } from "@/lib/content/reviews"
-import { getContact, locationOf, businessContactOf, type ConsultorioLocation } from "@/lib/content/contact"
 import { getNavLinks } from "@/lib/content/site-main"
 import { getSiteSeo } from "@/lib/content/seo"
 import { safeJsonLd } from "@/lib/seo-utils"
@@ -89,52 +86,43 @@ function buildPromoJsonLd(promo: PromoDisplayData) {
   }
 }
 
-function buildLocalBusinessJsonLd(
-  treatments: Treatment[],
-  ubicacion: ConsultorioLocation | null,
-  perfiles: string[],
-  // Teléfono y horario del panel (o de su respaldo entero).
-  { telephone, openingHours }: ReturnType<typeof businessContactOf>
-) {
+function buildLocalBusinessJsonLd(treatments: Treatment[]) {
   return {
     "@context": "https://schema.org",
-    // `MedicalClinic` es subtipo de `MedicalBusiness` Y de `LocalBusiness` a la
-    // vez: hereda las funciones locales (Maps, 3-pack) y añade las médicas.
-    // Es el tipo que corresponde a una consulta privada; `MedicalBusiness` a
-    // secas dejaba fuera media descripción de lo que es el negocio.
     "@type": "MedicalClinic",
     "@id": `${BASE_URL}/#business`,
-    // Sin `name` ni `description`: los pone el `@graph` del layout, que va en
-    // TODAS las páginas. Aquí había un nombre distinto sobre el MISMO `@id`
-    // («Dra. Yasmin Medrano Avila — Medicina Estética» frente a «Consultorio
-    // Dra. Yasmin Medrano Avila»), o sea dos versiones de la misma entidad
-    // contradiciéndose en la misma página — el error que ya se corrigió una vez
-    // con el nodo `WebSite`. Este bloque solo AÑADE lo que el layout no puede
-    // saber: el catálogo de servicios y la valoración media.
-    url: BASE_URL,
-    logo: `${BASE_URL}/icon.svg`,
-    ...(telephone ? { telephone } : {}),
-    image: `${BASE_URL}/images/DraMedrano.jpeg`,
-    priceRange: "$$",
-    address: ADDRESS,
-    // Área metropolitana de Cochabamba: quien busca «cerca de mí» escribe
-    // desde Quillacollo o Sacaba tanto como desde Cercado.
-    areaServed: AREA_SERVED,
-    availableLanguage: LANGUAGES,
-    currenciesAccepted: "BOB",
-    paymentAccepted: "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR",
-    // Coordenadas del panel (Dashboard → Contacto). Estaban escritas a mano y
-    // se quedaron desfasadas cuando la doctora corrigió el punto. Sin dato se
-    // omite el `geo`: mejor ninguno que uno equivocado.
-    ...geoFields(ubicacion),
-    // Catálogo de servicios.
+    // ────────────────────────────────────────────────────────────────────────
+    // ESTE BLOQUE SOLO AÑADE EL CATÁLOGO CON PRECIOS. NADA MÁS.
     //
-    // El negocio declaraba su especialidad pero no QUÉ hace: nada conectaba la
-    // entidad «consultorio» con los once procedimientos ni con sus páginas. Es
-    // la lista que un buscador —y un motor de respuestas tipo ChatGPT o
-    // Perplexity, que citan enumerando servicios— necesita para saber que aquí
-    // se pone botox. Se deriva de los tratamientos activos, así que activar uno
-    // nuevo en el panel lo añade solo.
+    // Antes repetía catorce propiedades que el `@graph` del layout ya declara
+    // en todas las páginas —url, logo, image, telephone, priceRange, address,
+    // areaServed, availableLanguage, currenciesAccepted, paymentAccepted, geo,
+    // openingHours, sameAs, medicalSpecialty—, y dos de ellas se
+    // CONTRADECÍAN con la versión del layout sobre el mismo `@id`:
+    //
+    //   currenciesAccepted:  "BOB"                    vs  "BOB, USD"
+    //   image:               /images/DraMedrano.jpeg  vs  /opengraph-image
+    //
+    // Dos nodos con el mismo `@id` y valores distintos en la misma página no
+    // son «la ficha repetida»: son la misma entidad afirmando dos cosas
+    // incompatibles, y quien lo lee decide cuál creer. Eran además 5,8 kB de
+    // HTML duplicado en la página más pesada del sitio.
+    //
+    // Lo que el layout NO puede saber es el precio de cada tratamiento, así
+    // que eso es lo que queda aquí.
+    // ────────────────────────────────────────────────────────────────────────
+    //
+    // Catálogo de servicios con precio.
+    //
+    // El layout declara `availableService` con la lista de procedimientos; esto
+    // añade la capa comercial: qué cuesta cada uno, en bolivianos, cuando la
+    // doctora lo ha escrito en el panel. Es lo que un motor de respuestas
+    // necesita para contestar «¿cuánto cuesta el bótox en Cochabamba?» sin
+    // inventarse una cifra, y lo que el sitio no declaraba en ninguna parte:
+    // emitía `Offer` sin un solo `price`.
+    //
+    // Sin precio en el panel, el `Offer` va sin `price` en vez de con un cero
+    // —un precio de 0 es una afirmación falsa, no un dato ausente.
     ...(treatments.length
       ? {
           hasOfferCatalog: {
@@ -142,6 +130,11 @@ function buildLocalBusinessJsonLd(
             name: "Tratamientos de medicina estética en Cochabamba",
             itemListElement: treatments.map((t) => ({
               "@type": "Offer",
+              ...(t.price > 0
+                ? { price: t.price, priceCurrency: "BOB" }
+                : {}),
+              availability: "https://schema.org/InStock",
+              url: `${BASE_URL}/tratamientos/${t.slug}`,
               itemOffered: {
                 "@type": "MedicalProcedure",
                 // Nombre real del panel; el término de búsqueda va como alternativo.
@@ -153,13 +146,6 @@ function buildLocalBusinessJsonLd(
           },
         }
       : {}),
-    ...(openingHours.length ? { openingHoursSpecification: openingHours } : {}),
-    sameAs: perfiles,
-    medicalSpecialty: "Medicina Estética",
-    // Sin `aggregateRating` ni `review`: Google declara inelegibles para las
-    // estrellas las reseñas que un LocalBusiness/MedicalClinic publica sobre sí
-    // mismo («self-serving») y marcar reseñas no visibles arriesga una acción
-    // manual. Las estrellas de un negocio local salen de su ficha de Google.
   }
 }
 
@@ -218,7 +204,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
   // Sin datos del backend se cae al título genérico del layout en vez de
   // inventar una lista: mejor decir menos que decir algo falso.
-  if (nombres.length === 0) return seo.description ? { description: seo.description } : {}
+  // Sin tratamientos activos no se nombra ninguno —mejor decir menos que decir
+  // algo falso—, pero el canonical SÍ se declara: no es una afirmación sobre
+  // los servicios, es la dirección de la página. La versión anterior lo
+  // perdía en esta rama, así que si el panel se quedaba sin tratamientos
+  // activos la portada se servía sin canonical.
+  if (nombres.length === 0) {
+    return {
+      alternates: { canonical: BASE_URL },
+      ...(seo.description ? { description: seo.description } : {}),
+    }
+  }
 
   // Se añaden tratamientos mientras quepan.
   //
@@ -261,7 +257,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 300 // 5 min ISR
 
 export default async function HomePage() {
-  const [home, footerData, promo, about, treatments, info, reviews, contact, navLinks] = await Promise.all([
+  const [home, footerData, promo, about, treatments, info, reviews, navLinks] = await Promise.all([
     getHome(),
     getFooter(),
     getPromo(),
@@ -269,7 +265,6 @@ export default async function HomePage() {
     getActiveTreatments(),
     getTreatmentsPageInfo(),
     getReviews(),
-    getContact(),
     getNavLinks(),
   ])
   const homeData = home.data
@@ -291,20 +286,7 @@ export default async function HomePage() {
 
   // Redes del panel: la lista fija de esta página no tenía TikTok y
   // contradecía la del layout sobre la MISMA entidad (@id #business).
-  const perfilesSociales = [
-    footerData.facebookUrl,
-    footerData.instagramUrl,
-    footerData.tiktokUrl,
-  ]
-    .map(normalizeSocialUrl)
-    .filter(Boolean)
-
-  const localBusinessJsonLd = buildLocalBusinessJsonLd(
-    backendTreatments,
-    locationOf(contact.data),
-    perfilesSociales,
-    businessContactOf(contact.data)
-  )
+  const localBusinessJsonLd = buildLocalBusinessJsonLd(backendTreatments)
 
   // `displayNameFor`: el nombre del panel sin el grito de las MAYÚSCULAS.
   // Nunca `seoTitleFor`, que renombraba «Toxina Botulínica» a «Botox».

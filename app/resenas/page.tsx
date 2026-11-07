@@ -112,12 +112,91 @@ export default async function ResenasPage({
     ],
   }
 
+  /**
+   * Reseñas como datos estructurados.
+   *
+   * ──────────────────────────────────────────────────────────────────────────
+   * LO QUE ESTO NO HACE: ESTRELLAS EN GOOGLE
+   *
+   * Hay que decirlo claro porque es la confusión más común con este marcado.
+   * Desde 2019 Google NO muestra fragmentos de reseña para `LocalBusiness` ni
+   * `Organization` cuando la propia entidad controla las reseñas: una reseña
+   * sobre la doctora, publicada en el sitio de la doctora, es «autoservida».
+   * No importa si el marcado es correcto. No habrá estrellas.
+   *
+   * Por eso aquí NO se declara `aggregateRating` sobre el consultorio ni sobre
+   * la doctora. No por miedo a una penalización —Google dice expresamente que
+   * esto no acarrea acción manual— sino porque sería declarar una media para
+   * ganar un adorno que no va a aparecer, y en una página de salud el marcado
+   * que no sirve para nada es marcado que alguien tendrá que mantener.
+   *
+   * Las estrellas de verdad salen de la ficha de Google Business Profile. Ese
+   * es el sitio donde pelear esto, y el flujo de `/resena` ya empuja a las
+   * pacientes justo ahí.
+   *
+   * ──────────────────────────────────────────────────────────────────────────
+   * PARA QUÉ SÍ SIRVE
+   *
+   * Para los motores de respuestas. Cuando alguien pregunta a una IA «¿qué tal
+   * es la Dra. Yasmin Medrano?», lo que puede citar es el texto de las reseñas.
+   * Declararlas como `Review` con autora, fecha y tratamiento le dice qué es
+   * cada bloque de texto en vez de dejarlo como párrafos sueltos.
+   *
+   * Todo sale de reseñas reales aprobadas en el panel. Nada se genera: si no
+   * hay reseñas, no hay marcado.
+   */
+  const reviewsLd =
+    reviews.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          name: "Reseñas de pacientes",
+          itemListElement: reviews.map((r, i) => {
+            const autor = [r.patient_name, r.patient_lastname]
+              .map((x) => (x ?? "").trim())
+              .filter(Boolean)
+              .join(" ")
+            const fecha = r.approved_at ? new Date(r.approved_at) : null
+            const fechaValida = fecha && !Number.isNaN(fecha.getTime()) ? fecha : null
+            return {
+              "@type": "ListItem",
+              position: i + 1,
+              item: {
+                "@type": "Review",
+                // `itemReviewed` apunta al consultorio por `@id`: la reseña es
+                // SOBRE él, y sin esto sería una reseña huérfana de objeto.
+                itemReviewed: { "@id": `${BASE_URL}/#business` },
+                reviewBody: r.body,
+                inLanguage: "es-BO",
+                ...(autor ? { author: { "@type": "Person", name: autor } } : {}),
+                ...(fechaValida
+                  ? { datePublished: fechaValida.toISOString().slice(0, 10) }
+                  : {}),
+                ...(r.treatment ? { about: r.treatment } : {}),
+                reviewRating: {
+                  "@type": "Rating",
+                  ratingValue: r.rating,
+                  bestRating: 5,
+                  worstRating: 1,
+                },
+              },
+            }
+          }),
+        }
+      : null
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }}
       />
+      {reviewsLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(reviewsLd) }}
+        />
+      )}
       <Navbar links={navLinks} />
 
       <main>

@@ -6,7 +6,8 @@ import { AuthorBox } from "@/components/blog/AuthorBox"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
 import { seoTitleFor, searchAliasesFor, displayNameFor, alternateNamesFor, matchTreatmentsInText, normalizeHeadline } from "@/lib/seo/treatment-names"
-import { buildMetaDescription } from "@/lib/seo/meta"
+import { buildMetaDescription, pageTitle, absoluteUrl, absoluteUrls } from "@/lib/seo/meta"
+import { treatmentFaqs, faqPageLd } from "@/lib/seo/faq"
 import { permanentRedirect } from "next/navigation"
 import {
   getActiveTreatments,
@@ -32,6 +33,7 @@ import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { EcgHero } from "@/components/ui/EcgHero"
 import { BeforeAfter } from "@/components/sections/BeforeAfter"
 import { FaqPrompt } from "@/components/ui/FaqPrompt"
+import { TreatmentFaq } from "@/components/sections/TreatmentFaq"
 
 export const revalidate = 300 // 5 minutos — ISR; fuerza refresco si el admin edita el tratamiento
 
@@ -96,9 +98,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const imagen = treatment.ogImageUrl ? treatment.ogImageUrl : treatment.imageUrl
 
   return {
-    // Sin sufijo de marca: el template del layout ya añade "| Dra. Yasmin
-    // Medrano Avila" y el título salía con el nombre repetido dos veces.
-    title: `${seoName} en Cochabamba`,
+    // `pageTitle` añade la marca SOLO si el resultado cabe en los ~60
+    // caracteres que Google muestra. Antes se dejaba al template del layout,
+    // que la añadía siempre: 20 de las 37 URLs del sitio pasaban de 60 y el
+    // peor título medía 93. Lo que no puede cortarse es el servicio y la
+    // ciudad; la marca es lo prescindible.
+    title: pageTitle(`${seoName} en Cochabamba`),
     description,
     // Variantes geográficas y de escritura.
     //
@@ -132,7 +137,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       // Sin foto se OMITE la clave: `images: []` pisaba el `opengraph-image`
       // del sitio y la ficha se compartía en WhatsApp sin imagen.
       ...(imagen
-        ? { images: [{ url: imagen, width: 1200, height: 630, alt: `${seoName} — Dra. Yasmin Medrano Avila, Cochabamba` }] }
+        ? { images: [{ url: absoluteUrl(imagen, BASE_URL), width: 1200, height: 630, alt: `${seoName} — Dra. Yasmin Medrano Avila, Cochabamba` }] }
         : {}),
       locale: "es_BO",
     },
@@ -216,51 +221,30 @@ export default async function TratamientoDetallePage({ params }: Props) {
     ],
   }
 
-  const faqLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        // Se usa `seoName`, no `treatment.name`: el nombre del panel viene en
-        // MAYÚSCULAS SOSTENIDAS y las preguntas salían gritando
-        // («¿Cuánto cuesta ÁCIDO HIALURÓNICO en Cochabamba?»).
-        "@type": "Question",
-        name: `¿Cuánto cuesta ${seoName} en Cochabamba?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          // Sin precio en el panel, la respuesta apunta a WhatsApp, que es el
-          // canal por el que el consultorio da precios. La versión anterior
-          // decía «agenda una consulta» sin explicar cómo: dejaba a la paciente
-          // con la pregunta sin responder y sin siguiente paso.
-          text: treatment.price > 0
-            ? `El precio de ${seoName} en el consultorio de la Dra. Yasmin Medrano Avila es Bs. ${treatment.price.toLocaleString("es-BO")}. Escríbenos por WhatsApp para agendar tu valoración.`
-            // Con el número dentro de la respuesta: es lo que un motor de
-            // respuestas puede citar entero cuando alguien pregunta «cuánto
-            // cuesta el bótox en Cochabamba», y lo que evita que la paciente
-            // tenga que volver a buscar cómo contactar.
-            : `El precio de ${seoName} depende de la valoración de cada paciente: la zona a tratar y el producto necesario cambian el presupuesto. ${telefono ? `Escribe al ${formatPhone(telefono)} por WhatsApp` : "Escríbenos por WhatsApp"} y te damos el precio para tu caso.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `¿Es seguro el tratamiento de ${seoName}?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `${seoName} lo realiza la Dra. Yasmin Medrano Avila, médica especialista en medicina estética en Cochabamba, Bolivia${trayectoria ? `, con ${trayectoria}` : ""}, siguiendo protocolos médicos certificados.`,
-        },
-      },
-      {
-        "@type": "Question",
-        name: `¿Dónde puedo realizarme ${seoName} en Cochabamba?`,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: `En el consultorio de la Dra. Yasmin Medrano Avila, en Cochabamba, Bolivia. Escríbenos por WhatsApp para agendar tu consulta de valoración.`,
-        },
-      },
-    ],
-  }
+  /**
+   * Preguntas frecuentes de ESTA ficha, generadas desde el panel.
+   *
+   * Un solo origen (lib/seo/faq.ts) para dos usos: la sección visible que ve
+   * la paciente y el `FAQPage` del schema. Antes se construían aquí y solo
+   * alimentaban el schema, así que la página declaraba un FAQ que no mostraba
+   * — marcado invisible, que incumple la política de Google y desperdicia la
+   * respuesta que un motor de IA podría citar.
+   */
+  const faqs = treatmentFaqs(treatment, {
+    seoName,
+    price: treatment.price,
+    phone: telefono,
+    trackRecord: trayectoria,
+  })
+  const faqLd = faqPageLd(faqs)
 
-  const procedureImages = [treatment.imageUrl, treatment.beforeImageUrl, treatment.afterImageUrl].filter(Boolean)
+  // Absolutas: schema.org descarta en silencio una ruta relativa, así que
+  // las 29 imágenes que el sitio declaraba («/api/uploads/…») no existían para
+  // nadie que leyera el marcado.
+  const procedureImages = absoluteUrls(
+    [treatment.imageUrl, treatment.beforeImageUrl, treatment.afterImageUrl],
+    BASE_URL
+  )
 
   // Contenido de salud: Google pondera QUIÉN lo firma y CUÁNDO se revisó.
   // `reviewedBy` apunta a la ficha Physician del sitio (@id #doctor), y
@@ -309,6 +293,29 @@ export default async function TratamientoDetallePage({ params }: Props) {
             "@type": "MedicalIndication",
             name: motivo,
           })),
+        }
+      : {}),
+    // Oferta con precio REAL del panel, en bolivianos, y solo si lo hay.
+    //
+    // El sitio declaraba `Offer`/`OfferCatalog` sin un solo `price`: una oferta
+    // sin precio no le dice nada a nadie. Y una cifra fija inventada sería
+    // peor, porque en medicina estética el presupuesto depende de la zona y
+    // del producto. Así que se declara lo que la doctora escribió, cuando lo
+    // escribió, y si no hay precio no se declara la oferta.
+    //
+    // `priceCurrency: BOB` importa: sin moneda, un «150» es ambiguo entre
+    // bolivianos y dólares, y el sitio ya se contradecía entre «BOB» y
+    // «BOB, USD» en dos bloques distintos.
+    ...(treatment.price > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: treatment.price,
+            priceCurrency: "BOB",
+            availability: "https://schema.org/InStock",
+            url: `${BASE_URL}/tratamientos/${slug}`,
+            seller: { "@id": `${BASE_URL}/#business` },
+          },
         }
       : {}),
   }
@@ -422,7 +429,11 @@ export default async function TratamientoDetallePage({ params }: Props) {
               />
             )}
 
-            {/* Antes y Después — DEMO con imágenes de prueba */}
+            {/* Antes y Después.
+                Solo si existe al menos una foto: el encabezado sobre dos
+                huecos que decían «Foto próximamente» salía en 10 de las 19
+                fichas, y en estética la prueba visual es lo que convierte. */}
+            {(treatment.beforeImageUrl || treatment.afterImageUrl) && (
             <section className="mt-14" aria-labelledby="antes-despues-heading">
               <div className="text-center mb-8">
                 <p
@@ -451,6 +462,14 @@ export default async function TratamientoDetallePage({ params }: Props) {
                 * Imágenes referenciales. Los resultados varían según cada paciente.
               </p>
             </section>
+            )}
+
+            {/* Preguntas frecuentes de esta ficha.
+                Mismo array que alimenta el `FAQPage` del schema: no pueden
+                divergir porque son el mismo dato. Van antes del CTA a
+                propósito — resolver la duda es lo que hace que el botón de
+                WhatsApp se pulse. */}
+            <TreatmentFaq faqs={faqs} treatmentName={displayName} />
 
             {/* CTA bottom */}
             <div

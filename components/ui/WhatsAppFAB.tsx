@@ -8,6 +8,43 @@ import { trackWhatsAppClick } from "@/lib/analytics"
 import { useWhatsAppLink } from "@/components/providers/WhatsAppProvider"
 
 const WA_MESSAGE = "Hola, me gustaría más información sobre sus tratamientos."
+
+/**
+ * Mensaje del botón flotante según dónde esté la paciente.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * POR QUÉ
+ *
+ * El botón mandaba siempre el mismo texto genérico, también cuando la paciente
+ * llevaba cinco minutos leyendo la ficha de rinomodelación. Al otro lado llega
+ * «me gustaría más información sobre sus tratamientos» y hay que preguntar de
+ * cuál — un paso de más justo en el momento de agendar, y el consultorio
+ * pierde el dato de qué tratamiento la trajo.
+ *
+ * El nombre se deduce del slug de la URL, que el componente ya lee con
+ * `usePathname()`. Es una función pura sobre una cadena: ni contexto nuevo, ni
+ * prop drilling, ni una segunda petición al backend. El botón vive en el
+ * layout, por ENCIMA de la página en el árbol, así que la página no podría
+ * pasárselo hacia arriba de todas formas.
+ *
+ * El nombre derivado puede no coincidir letra por letra con el del panel
+ * («NCTF 135 HA Oro Rosa» frente a «NCTF 135 HA - Oro Rosa»). Para un mensaje
+ * de WhatsApp eso da igual: lo que importa es que al otro lado se sepa de qué
+ * tratamiento se habla.
+ */
+export function mensajeSegunRuta(pathname: string | null): string {
+  const m = pathname?.match(/^\/tratamientos\/([^/]+)\/?$/)
+  if (!m) return WA_MESSAGE
+  const nombre = decodeURIComponent(m[1])
+    // Los slugs con separador largo («hiperhidrosis---tratamiento-…») dejaban
+    // huecos dobles al convertirlos.
+    .replace(/-{2,}/g, " ")
+    .replace(/-/g, " ")
+    .trim()
+  if (!nombre) return WA_MESSAGE
+  const legible = nombre.charAt(0).toLocaleUpperCase("es") + nombre.slice(1)
+  return `Hola, me interesa el tratamiento de ${legible}. ¿Me pueden dar más información?`
+}
 /** Aparece pasado el hero: sobre la primera pantalla estorbaría el mensaje principal. */
 const SHOW_AFTER_PX = 300
 /** La etiqueta se despliega sola una vez, lo justo para que se lea qué es. */
@@ -37,8 +74,9 @@ export function WhatsAppFAB() {
   const prefersReduced = useReducedMotionSafe()
   // El panel es una herramienta interna: nadie se escribe a sí mismo por
   // WhatsApp, y el botón se colaba por encima del overlay de carga.
-  const isDashboard = usePathname()?.startsWith("/dashboard") ?? false
-  const href = useWhatsAppLink(WA_MESSAGE)
+  const pathname = usePathname()
+  const isDashboard = pathname?.startsWith("/dashboard") ?? false
+  const href = useWhatsAppLink(mensajeSegunRuta(pathname))
 
   useEffect(() => {
     function onScroll() {

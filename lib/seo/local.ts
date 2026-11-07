@@ -23,7 +23,25 @@ export const ADDRESS = {
   addressLocality: "Cochabamba",
   addressRegion: "Cochabamba",
   addressCountry: "BO",
+  // Bolivia no usa códigos postales en direcciones de calle. «0000» es la
+  // convención para rellenar el campo cuando el país no tiene sistema postal
+  // en uso, y es lo que pide la Prueba de Resultados Enriquecidos de Google,
+  // que lo marcaba como campo opcional ausente (verificado el 2026-11-06).
+  postalCode: "0000",
 } as const
+
+/**
+ * Rango de precios del consultorio, en bolivianos.
+ *
+ * Antes era `"$$"`, la escala genérica de Google. Eso no dice nada a una
+ * paciente que busca «bótox cochabamba precio» ni a un motor de respuestas que
+ * intenta contestar cuánto cuesta algo aquí.
+ *
+ * El rango real va de Bs 500 a más de Bs 7000 según el caso: la zona a tratar y
+ * la cantidad de producto cambian el presupuesto, y por eso el extremo alto se
+ * deja abierto en vez de fingir un techo.
+ */
+export const PRICE_RANGE = "Bs 500 - Bs 7000+" as const
 
 export type OpeningHoursSpec = {
   "@type": "OpeningHoursSpecification"
@@ -101,6 +119,20 @@ export const AREA_SERVED = [
   { "@type": "AdministrativeArea", name: "Departamento de Cochabamba" },
   { "@type": "Country", name: "Bolivia" },
 ] as const
+
+/**
+ * Monedas y formas de pago aceptadas.
+ *
+ * Estaban escritas en tres sitios y ya se contradecían: el `@graph` del layout
+ * declaraba «BOB, USD» mientras el bloque de la portada y `/llms.txt` decían
+ * solo «BOB», las tres sobre la misma entidad. Un motor de respuestas que lea
+ * dos de las tres contesta cosas distintas sobre en qué moneda se paga.
+ *
+ * Fuente única. Si el consultorio empieza a cobrar en dólares, se cambia aquí
+ * y cambia en el schema, en la portada y en `llms.txt` a la vez.
+ */
+export const CURRENCIES = "BOB" as const
+export const PAYMENT_ACCEPTED = "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR" as const
 
 /** Idiomas en que se atiende. Bolivia es oficialmente plurilingüe. */
 export const LANGUAGES = ["es-BO", "es"] as const

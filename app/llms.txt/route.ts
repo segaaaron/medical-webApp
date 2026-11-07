@@ -1,5 +1,6 @@
 import { BASE_URL } from "@/lib/seo/site-url"
 import { seoTitleFor, searchAliasesFor } from "@/lib/seo/treatment-names"
+import { CURRENCIES } from "@/lib/seo/local"
 import { concernSentence } from "@/lib/seo/vocabulary"
 import { getFooter } from "@/lib/content/footer"
 import { getContact } from "@/lib/content/contact"
@@ -60,7 +61,7 @@ export async function GET() {
     ...(ct.phone ? [`Teléfono: ${ct.phone}.`] : []),
     ...(ct.whatsappNumber ? [`WhatsApp: ${ct.whatsappNumber}.`] : []),
     ...(horario ? [`Horario: ${horario}.`] : []),
-    "Consulta de valoración con cita previa. Precios en bolivianos (BOB).",
+    `Consulta de valoración con cita previa. Precios en ${CURRENCIES === "BOB" ? "bolivianos" : CURRENCIES} (${CURRENCIES}).`,
     "",
     "## Perfiles oficiales",
     "Son las mismas cuentas que la web declara en `sameAs`; cualquier otra no es del consultorio.",

@@ -419,8 +419,14 @@ h1, h2, h3, h4 {
 .hero-in-line { animation-name: heroLine; }
 
 @keyframes heroRise { from { transform: translateY(var(--hero-from, 14px)); } }
-@keyframes heroRiseSoft { from { transform: translateY(0.35em); filter: blur(4px); } }
-@keyframes heroAssemble { from { transform: translateX(var(--hero-x, 0)); filter: blur(3px); } }
+/* Sin `filter: blur()` en los keyframes.
+   El hero anima 29 letras por separado; un blur por letra es trabajo de
+   rasterizado por fotograma justo al lado del elemento LCP
+   (`p.hero__description`), y el LCP de móvil está medido en 8,3 s simulados
+   con el 89 % en render delay. El desplazamiento se conserva: el movimiento
+   se sigue viendo, lo que desaparece es el coste de pintarlo desenfocado. */
+@keyframes heroRiseSoft { from { transform: translateY(0.35em); } }
+@keyframes heroAssemble { from { transform: translateX(var(--hero-x, 0)); } }
 @keyframes heroLine { from { transform: scaleX(0); } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1080,3 +1086,79 @@ a:focus-visible,
 /* Botón de confirmación del diálogo del panel. */
 .dash-confirm-btn { transition: filter var(--duration-fast) var(--ease-out-expo); }
 .dash-confirm-btn:hover { filter: brightness(0.92); }
+
+/* Preguntas frecuentes de la ficha de tratamiento (components/sections/TreatmentFaq.tsx).
+   `<details>` nativo: las respuestas quedan en el HTML del servidor, extraíbles
+   por Google y por los motores de respuestas, sin JavaScript. Solo hace falta
+   quitar el triángulo del navegador y girar el «+» a «−» al abrir. */
+.faq-plus-v {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+details[open] .faq-plus-v {
+  transform: rotate(90deg);
+  opacity: 0;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary::marker {
+  content: "";
+}
+summary:focus-visible {
+  outline: 2px solid var(--vintage-gold);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-plus-v {
+    transition: none;
+  }
+}
+
+/* Aviso de consentimiento (components/analytics/ConsentNotice.tsx).
+   Se anima con CSS y no con framer-motion: el componente va montado fuera de
+   <LazyMotion>, donde un `m.*` no llega a pintarse. */
+.consent-notice {
+  animation: consentIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes consentIn {
+  from { transform: translateY(24px); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .consent-notice { animation: none; }
+}
+
+/* Casilla de consentimiento del formulario (components/sections/ContactForm.tsx).
+   `accent-color` solo tiñe el estado MARCADO: sin marcar, el navegador pinta
+   la casilla del sistema —un cuadro blanco— que sobre el burdeos del
+   formulario se veía como un error de maquetación. Con `appearance: none` se
+   dibuja entera, acorde a la paleta. */
+.consent-check {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(184, 151, 59, 0.55);
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.06);
+  display: grid;
+  place-content: center;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+.consent-check::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  transform: scale(0);
+  transition: transform 0.12s ease-in-out;
+  box-shadow: inset 1em 1em var(--primary-darkest);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+.consent-check:checked {
+  background-color: var(--vintage-gold);
+  border-color: var(--vintage-gold);
+}
+.consent-check:checked::before {
+  transform: scale(1);
+}
+.consent-check:focus-visible {
+  outline: 2px solid var(--vintage-gold);
+  outline-offset: 2px;
+}

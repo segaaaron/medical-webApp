@@ -8,12 +8,17 @@ const T = { id: "t1", slug: "toxina-botulinica", name: "TOXINA BOTULÍNICA", des
 const params = Promise.resolve({ slug: "toxina-botulinica" })
 
 describe("metadata del tratamiento", () => {
-  it("given seoTitle, then el título lo usa", async () => {
+  // El título pasó de string a `{ absolute }`: la marca se decide por
+  // presupuesto de caracteres en `pageTitle` (lib/seo/meta.ts) en vez de
+  // dejarla al template del layout, que la añadía siempre y pasaba de 60.
+  it("given seoTitle, then el título lo usa y la marca cabe", async () => {
     const t = { ...T, seoTitle: "Botox" }
     serve("/treatments", [t])
     serve("/treatments/t1", t)
     serve("/blog", [])
-    expect((await generateMetadata({ params })).title).toBe("Botox en Cochabamba")
+    expect((await generateMetadata({ params })).title).toEqual({
+      absolute: "Botox en Cochabamba | Dra. Yasmin Medrano Avila",
+    })
   })
 
   it("given seoTitle vacío, then el nombre del panel sin el grito", async () => {
@@ -21,7 +26,33 @@ describe("metadata del tratamiento", () => {
     serve("/treatments", [t])
     serve("/treatments/t1", t)
     serve("/blog", [])
-    expect((await generateMetadata({ params })).title).toBe("Toxina Botulínica en Cochabamba")
+    // 31 + 28 de marca = 59: entra justo.
+    expect((await generateMetadata({ params })).title).toEqual({
+      absolute: "Toxina Botulínica en Cochabamba | Dra. Yasmin Medrano Avila",
+    })
+  })
+
+  it("given un nombre largo, then se sacrifica la marca, no el servicio", async () => {
+    const t = { ...T, seoTitle: "Skinbooster — Hidratación Profunda Inyectable" }
+    serve("/treatments", [t])
+    serve("/treatments/t1", t)
+    serve("/blog", [])
+    const { title } = await generateMetadata({ params })
+    expect(title).toEqual({
+      absolute: "Skinbooster — Hidratación Profunda Inyectable en Cochabamba",
+    })
+  })
+
+  it("given la ciudad ya escrita en el seoTitle, then no se duplica", async () => {
+    // El fallo real de `/tratamientos/aumento-de-gluteos-con-acido-hialuronico`.
+    const t = { ...T, seoTitle: "Aumento de Glúteos en Cochabamba" }
+    serve("/treatments", [t])
+    serve("/treatments/t1", t)
+    serve("/blog", [])
+    const { title } = await generateMetadata({ params })
+    expect((title as { absolute: string }).absolute).toBe(
+      "Aumento de Glúteos en Cochabamba | Dra. Yasmin Medrano Avila"
+    )
   })
 })
 

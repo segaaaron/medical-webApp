@@ -10,7 +10,31 @@ interface AboutSectionProps {
 }
 
 function useCountUp(target: string, duration = 2000, prefersReduced = false) {
-  const [display, setDisplay] = useState("0")
+  /**
+   * Arranca en el valor REAL, no en "0".
+   *
+   * ──────────────────────────────────────────────────────────────────────────
+   * EL FALLO QUE CORRIGE
+   *
+   * `useState("0")` es el estado inicial, y el estado inicial es lo que se
+   * renderiza en el servidor. Resultado medido en el HTML de `/nosotros`:
+   *
+   *   0 Años de Experiencia · 0 Pacientes Atendidos · 0 Tratamientos Disponibles
+   *
+   * mientras el JSON-LD de esa MISMA página afirmaba 12+ años y 1000
+   * pacientes. La página se contradecía a sí misma, y la versión que lee un
+   * buscador o un motor de respuestas —el HTML del servidor, antes de que
+   * corra ningún JavaScript— era la que decía cero. En la página canónica de
+   * la doctora, que es justo donde Google resuelve quién es.
+   *
+   * Nadie lo veía en el navegador porque la animación lo tapa en cuanto
+   * hidrata.
+   *
+   * Empezando en `target`: el servidor sirve el número verdadero, el primer
+   * render del cliente coincide (sin desajuste de hidratación) y la animación
+   * baja a cero y sube cuando la sección entra en pantalla.
+   */
+  const [display, setDisplay] = useState(target)
   const ref = useRef<HTMLDivElement>(null)
   const rafId = useRef<number>(0)
   const inView = useInView(ref, { once: true, margin: "-50px" })
@@ -23,6 +47,10 @@ function useCountUp(target: string, duration = 2000, prefersReduced = false) {
 
   useEffect(() => {
     if (!willAnimate || !inView) return
+    // El cero NO se asigna aquí a mano: el primer fotograma de `tick` ya da
+    // `progress = 0` y por tanto `current = 0`, así que la animación arranca en
+    // cero por sí sola. Ponerlo además en el cuerpo del efecto era un
+    // `setState` directo (react-hooks/set-state-in-effect) y un render extra.
     const start = Date.now()
     const tick = () => {
       const elapsed = Date.now() - start

@@ -168,3 +168,76 @@ export function pageSeoMetadata(
     },
   }
 }
+
+/**
+ * Marca que el template del layout añade a cada título.
+ * Debe coincidir con `title.template` de app/layout.tsx.
+ */
+const MARCA = " | Dra. Yasmin Medrano Avila"
+
+/** Lo que Google muestra antes de cortar con «…». */
+const LARGO_VISIBLE = 60
+
+/**
+ * Título de página con la marca solo si cabe.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * EL PROBLEMA QUE RESUELVE
+ *
+ * La home medía un presupuesto de caracteres antes de elegir cuántos
+ * tratamientos nombrar (ver `app/page.tsx`). Ninguna otra plantilla lo hacía, y
+ * el template del layout añade 28 caracteres de marca por detrás. Resultado
+ * medido sobre las 37 URLs del sitio: 20 títulos pasados de 60, el peor de 93.
+ *
+ *   Skinbooster — Hidratación Profunda Inyectable en Cochabamba | Dra. Yasm…
+ *
+ * Lo que se corta es siempre el final, y el final es la marca. Pero cuando el
+ * título propio ya mide 59, la marca no cabe y arrastra consigo la última
+ * palabra útil.
+ *
+ * REGLA: lo que tiene que caber en los ~60 visibles es el servicio y la ciudad
+ * —eso es por lo que la gente busca—. La marca es lo prescindible, así que se
+ * añade solo si sobra sitio. Devuelve `title.absolute`, que le dice a Next que
+ * no aplique el template: la marca ya está decidida aquí.
+ *
+ * @param propio Título sin marca («Botox en Cochabamba»).
+ */
+export function pageTitle(propio: string): { absolute: string } {
+  const limpio = propio.replace(/\s+/g, " ").trim()
+  const conMarca = `${limpio}${MARCA}`
+  return { absolute: conMarca.length <= LARGO_VISIBLE ? conMarca : limpio }
+}
+
+/**
+ * URL absoluta para los datos estructurados.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * POR QUÉ
+ *
+ * Las imágenes del schema se declaraban con la ruta tal cual sale del panel:
+ *
+ *   "image": "/api/uploads/1781912074002-a3f.webp"
+ *
+ * Schema.org exige URL absolutas. Una relativa no da error en ninguna
+ * herramienta de validación —simplemente se descarta en silencio—, así que las
+ * 29 imágenes de los artículos y las fichas no existían para nadie que leyera
+ * el schema: ni Google, ni los motores de respuestas que muestran una miniatura
+ * al citar una fuente.
+ *
+ * @param url  Ruta del panel, absoluta o relativa.
+ * @param base Origen del sitio.
+ * @returns URL absoluta, o "" si no hay nada que declarar.
+ */
+export function absoluteUrl(url: string | null | undefined, base: string): string {
+  const raw = (url ?? "").trim()
+  if (!raw) return ""
+  if (/^https?:\/\//i.test(raw)) return raw
+  // `data:` y `blob:` no son direcciones públicas: no se declaran.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) return ""
+  return `${base.replace(/\/+$/, "")}/${raw.replace(/^\/+/, "")}`
+}
+
+/** Las que sí se pueden declarar, ya absolutas y sin repetir. */
+export function absoluteUrls(urls: (string | null | undefined)[], base: string): string[] {
+  return [...new Set(urls.map((u) => absoluteUrl(u, base)).filter(Boolean))]
+}

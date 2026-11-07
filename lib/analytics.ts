@@ -17,6 +17,13 @@ declare global {
     fbq?: FbqFn
     ttq?: TtqFn
     gtag?: (...args: unknown[]) => void
+    /**
+     * Cola de Google Ads. La crea el `<Script id="google-ads-init">`, que va
+     * EAGER justamente para que exista antes del primer clic: `gtag()` empuja
+     * aquí y el script externo la drena cuando carga. Ver la cabecera de
+     * components/analytics/AnalyticsScripts.tsx.
+     */
+    dataLayer?: unknown[]
     /** Eventos anteriores a la carga diferida del pixel; los vacía AnalyticsScripts. */
     __fbqPending?: unknown[][]
     __ttqPending?: [string, Record<string, unknown> | undefined][]

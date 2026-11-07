@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { getPosts } from "@/lib/content/blog"
 import { getActiveTreatments } from "@/lib/content/treatments"
+import { getReviews } from "@/lib/content/reviews"
 
 export const revalidate = 86400
 
@@ -59,17 +60,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Ambas lecturas van cacheadas y en paralelo, y etiquetadas por recurso:
   // publicar o borrar un post/tratamiento refresca el sitemap al instante.
   // Con servicio, solo lo que el servicio publica; sin él, su respaldo entero.
-  const [posts, treatments] = await Promise.all([getPosts(), getActiveTreatments()])
+  const [posts, treatments, reviews] = await Promise.all([
+    getPosts(),
+    getActiveTreatments(),
+    getReviews(),
+  ])
 
   const blogEntries: MetadataRoute.Sitemap = posts.data.map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: fecha(post.publishedAt),
+    // `updatedAt` primero: el tipo ya lo trae (lib/content/parse/blog.ts) y
+    // sin él una corrección de un artículo no cambiaba su `lastmod`, así que
+    // Google no tenía motivo para volver a leerlo.
+    lastModified: fecha(post.updatedAt, post.publishedAt),
     changeFrequency: "monthly" as const,
     priority: 0.6,
     images: absoluteImages(post.imageUrl),
   }))
 
   const now = STATIC_PAGES_LAST_MODIFIED
+
   const treatmentEntries: MetadataRoute.Sitemap = treatments.data
     .filter((t) => t.active)
     .map((t) => ({
@@ -84,16 +93,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       images: absoluteImages(t.imageUrl, t.beforeImageUrl, t.afterImageUrl),
     }))
 
+  /**
+   * Fecha del hub = la del hijo más reciente.
+   *
+   * `/blog`, `/tratamientos` y `/resenas` cambian cada vez que se publica un
+   * artículo, se edita un tratamiento o se aprueba una reseña — y las tres
+   * declaraban la constante de páginas fijas, congelada en el 2026-09-02.
+   * Decirle a Google que el índice del blog no cambia desde septiembre,
+   * mientras se publican artículos, es pedirle que no vuelva a pasar por ahí.
+   *
+   * Sin hijos se cae a la constante: un hub vacío no tiene fecha propia que
+   * declarar.
+   */
+  function masReciente(fechas: Date[]): Date {
+    const validas = fechas.filter((d) => !Number.isNaN(d.getTime()))
+    if (validas.length === 0) return STATIC_PAGES_LAST_MODIFIED
+    return new Date(Math.max(...validas.map((d) => d.getTime())))
+  }
+
+  // Se recalcula desde los registros, no desde las entradas ya construidas:
+  // así no hace falta un `as Date` que esconda el tipo real de `lastModified`.
+  const blogLastMod = masReciente(posts.data.map((x) => fecha(x.updatedAt, x.publishedAt)))
+  const treatmentsLastMod = masReciente(
+    treatments.data.filter((t) => t.active).map((t) => fecha(t.updatedAt, t.createdAt))
+  )
+  const reviewsLastMod = masReciente(
+    reviews.data.reviews.map((r) => new Date(r.approved_at))
+  )
+  // La portada muestra tratamientos y reseñas: cambia cuando cambia cualquiera.
+  const homeLastMod = masReciente([treatmentsLastMod, reviewsLastMod, blogLastMod])
   return [
     {
       url: BASE_URL,
-      lastModified: now,
+      lastModified: homeLastMod,
       changeFrequency: "monthly",
       priority: 1,
     },
     {
       url: `${BASE_URL}/tratamientos`,
-      lastModified: now,
+      lastModified: treatmentsLastMod,
       changeFrequency: "monthly",
       priority: 0.9,
     },
@@ -105,13 +143,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${BASE_URL}/blog`,
-      lastModified: now,
+      lastModified: blogLastMod,
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
       url: `${BASE_URL}/resenas`,
-      lastModified: now,
+      lastModified: reviewsLastMod,
       changeFrequency: "weekly",
       priority: 0.7,
     },

@@ -1,4 +1,8 @@
+"use client"
+
 import Script from "next/script"
+import { useFirstInteraction } from "./useFirstInteraction"
+import { useTrackingConsent } from "./useTrackingConsent"
 import {
   UMAMI_URL,
   UMAMI_WEBSITE_ID,
@@ -10,8 +14,49 @@ import {
 /**
  * Umami (self-hosted, privacy-first) + optional Meta / TikTok Pixel / Google Ads.
  * Scripts only load when env vars are set — dev/staging stay clean.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * QUÉ CARGA CUÁNDO, Y POR QUÉ
+ *
+ * Umami va inmediato: son 2,7 KB comprimidos, mismo origen, y es la medición
+ * que de verdad se usa. No compite con nada.
+ *
+ * Los tres píxeles publicitarios (~472 KB y cuatro tareas largas de más de
+ * 50 ms) esperan al primer gesto de la visitante. No hacen falta para pintar
+ * la página y sacarlos de la ruta crítica fue, junto con el vídeo del hero, el
+ * cambio de mayor efecto sobre el LCP de móvil.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * EL DETALLE QUE NO SE PUEDE TOCAR: EL `init` DE GOOGLE ADS VA EAGER
+ *
+ * Meta y TikTok tienen cola propia en `lib/analytics.ts`
+ * (`window.__fbqPending`, `window.__ttqPending`) y sus scripts de arranque la
+ * vacían al cargar, así que un clic a WhatsApp anterior a la carga no se
+ * pierde.
+ *
+ * Google Ads NO tiene esa cola: `gtag()` en `lib/analytics.ts` comprueba
+ * `typeof window.gtag === "function"` y, si no existe, DESCARTA el evento en
+ * silencio. Escenario real: una paciente entra y lo primero que hace es tocar
+ * «Agendar por WhatsApp». Ese gesto es a la vez la primera interacción y la
+ * conversión, así que si el `init` esperara, `gadsConversion()` correría antes
+ * de que `gtag` existiera y la conversión se perdería sin ningún error visible.
+ *
+ * La solución es separar las dos piezas: el `init` —tres líneas que definen
+ * `gtag()` empujando a `dataLayer`, que ES la cola— se queda inmediato, y lo
+ * que espera es el script externo de 160 KB. Cuando llega, drena `dataLayer`.
+ *
+ * NO fusionar estos dos `<Script>` ni mover el `init` detrás de la
+ * interacción.
  */
 export function AnalyticsScripts() {
+  const interactuado = useFirstInteraction()
+  const { aceptado } = useTrackingConsent()
+
+  // Dos condiciones, no una. El consentimiento decide SI se cargan; la primera
+  // interacción decide CUÁNDO. Quien acepta y no toca nada sigue sin pagar los
+  // ~472 KB durante el primer pintado.
+  const cargarPublicidad = aceptado && interactuado
+
   return (
     <>
       {UMAMI_URL && UMAMI_WEBSITE_ID && (
@@ -24,10 +69,10 @@ export function AnalyticsScripts() {
         />
       )}
 
-      {META_PIXEL_ID && (
+      {META_PIXEL_ID && cargarPublicidad && (
         <>
-          {/* lazyOnload: el pixel no compite con la carga. Los eventos previos
-              esperan en window.__fbqPending (lib/analytics.ts) y se envían aquí. */}
+          {/* Tras la primera interacción. Los eventos anteriores esperan en
+              window.__fbqPending (lib/analytics.ts) y se vacían abajo. */}
           <Script id="meta-pixel-init" strategy="lazyOnload">
             {`
               !function(f,b,e,v,n,t,s)
@@ -57,7 +102,7 @@ export function AnalyticsScripts() {
         </>
       )}
 
-      {TIKTOK_PIXEL_ID && (
+      {TIKTOK_PIXEL_ID && cargarPublicidad && (
         <Script id="tiktok-pixel-init" strategy="lazyOnload">
           {`
             !function (w, d, t) {
@@ -71,12 +116,13 @@ export function AnalyticsScripts() {
         </Script>
       )}
 
-      {GOOGLE_ADS_ID && (
+      {GOOGLE_ADS_ID && aceptado && (
         <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
-            strategy="afterInteractive"
-          />
+          {/* EAGER a propósito. Define `window.gtag` y la cola `dataLayer`
+              antes de que nadie pueda pulsar nada. Son ~100 bytes inline, sin
+              petición de red. Si esto esperara, la conversión de la paciente
+              que entra y toca WhatsApp de inmediato se perdería en silencio
+              (ver la cabecera de este archivo). */}
           <Script id="google-ads-init" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
@@ -85,6 +131,14 @@ export function AnalyticsScripts() {
               gtag('config', '${GOOGLE_ADS_ID}');
             `}
           </Script>
+          {/* Los 160 KB sí esperan. Al cargar, drena lo que haya en
+              `dataLayer`, incluidas las conversiones ya encoladas. */}
+          {cargarPublicidad && (
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+              strategy="lazyOnload"
+            />
+          )}
         </>
       )}
     </>

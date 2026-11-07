@@ -8,6 +8,7 @@ import { SkipNav } from "@/components/ui/SkipNav";
 import { safeJsonLd } from "@/lib/seo-utils";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
+import { ConsentNotice } from "@/components/analytics/ConsentNotice";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 import { WhatsAppProvider } from "@/components/providers/WhatsAppProvider";
 import { doctorKnowsAbout, displayNameFor, alternateNamesFor, type TreatmentRef } from "@/lib/seo/treatment-names"
@@ -16,7 +17,7 @@ import { getFooter } from "@/lib/content/footer"
 import { getActiveTreatments } from "@/lib/content/treatments"
 import { getAbout, statsClaim } from "@/lib/content/about"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
-import { ADDRESS, AREA_SERVED, LANGUAGES, geoFields } from "@/lib/seo/local"
+import { ADDRESS, AREA_SERVED, LANGUAGES, geoFields, CURRENCIES, PAYMENT_ACCEPTED, PRICE_RANGE } from "@/lib/seo/local"
 
 /* Roboto se cargaba aquí con tres pesos —300, 400 y 700— y su variable
    `--font-roboto` no la usaba NINGUNA regla de `globals.css`: el texto del
@@ -170,13 +171,13 @@ function buildSiteJsonLd(
       url: BASE_URL,
       image: `${BASE_URL}/opengraph-image`,
       description: `Consultorio de medicina estética en Cochabamba, Bolivia.${claim ? ` ${claim.charAt(0).toLocaleUpperCase("es")}${claim.slice(1)}.` : ""} Tratamientos faciales con la Dra. Yasmin Medrano Avila.`,
-      priceRange: "$$",
-      currenciesAccepted: "BOB, USD",
+      priceRange: PRICE_RANGE,
+      currenciesAccepted: CURRENCIES,
       // Hasta dónde llega el servicio. Quien busca «cerca de mí» escribe desde
       // todo el eje metropolitano, no solo desde Cercado.
       areaServed: AREA_SERVED,
       availableLanguage: LANGUAGES,
-      paymentAccepted: "Efectivo, Tarjeta de crédito, Tarjeta de débito, QR",
+      paymentAccepted: PAYMENT_ACCEPTED,
       medicalSpecialty: "Medicina Estética",
       // Mapa y coordenadas salen del panel (Dashboard → Contacto). Estaban
       // escritos a mano y apuntaban 90 metros más allá, sobre otra calle, aun
@@ -230,6 +231,14 @@ function buildSiteJsonLd(
       "@type": "Physician",
       "@id": `${BASE_URL}/#doctor`,
       name: "Dra. Yasmin Medrano Avila",
+      // `address` y `priceRange`: los dos los pedía la Prueba de Resultados
+      // Enriquecidos de Google como campos opcionales ausentes en este nodo
+      // (verificado el 2026-11-06). `Physician` hereda de `LocalBusiness`, así
+      // que Google lo evalúa como ficha local y espera ambos. Son los mismos
+      // datos del consultorio —atiende ahí— desde la fuente única de
+      // lib/seo/local.ts, no una segunda copia.
+      address: ADDRESS,
+      priceRange: PRICE_RANGE,
       jobTitle: "Médica Especialista en Medicina Estética",
       description: `Médica especialista en medicina estética en Cochabamba, Bolivia${claim ? `, con ${claim}` : ""}.`,
       // «Casa de la entidad»: la URL que Google trata como fuente de verdad
@@ -333,8 +342,12 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://service.drayasminmedrano-services.cloud" />
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Sin preconnect a fonts.googleapis/gstatic: `next/font` AUTOALOJA las
+            cuatro familias (ver arriba), así que el navegador nunca habla con
+            Google Fonts. Eran dos conexiones abiertas para nada, compitiendo
+            por los slots del navegador con las que sí se usan.
+            El de Unsplash SÍ se queda: `components/sections/PresetsSection.tsx:16`
+            carga imágenes desde ahí. */}
         {/* Sin `hreflang`: el sitio es monolingüe y no tiene versiones
             alternativas. Los tres que había vivían aquí, en el layout raíz, así
             que TODAS las páginas declaraban que su alternativa en es-BO era la
@@ -364,6 +377,7 @@ export default async function RootLayout({
           </LazyMotion>
         </WhatsAppProvider>
         <AnalyticsScripts />
+        <ConsentNotice />
       </body>
     </html>
   );

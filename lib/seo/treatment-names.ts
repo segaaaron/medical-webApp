@@ -157,14 +157,43 @@ export function displayNameFor(t: Pick<TreatmentRef, "name">): string {
 }
 
 /**
+ * Ciudad al final del texto, que las plantillas añaden por su cuenta.
+ *
+ * El fallo que evita: la plantilla de la ficha hace `${seoName} en Cochabamba`,
+ * y si la doctora ya escribió la ciudad en el `seoTitle` del panel —algo
+ * razonable, porque ahí dice «cómo se busca»— el título salía con la ciudad
+ * dos veces. Pasó de verdad:
+ *
+ *   Aumento de Glúteos con Hialurónico en Cochabamba en Cochabamba | Dra. …
+ *
+ * 90 caracteres, la mitad desperdiciados, y Google corta en ~60. No se arregla
+ * editando ese registro: se arregla aquí, para que el siguiente tratamiento
+ * que alguien escriba igual no lo repita.
+ */
+const COLA_CIUDAD = /[\s,·|–-]*\ben\s+(?:cochabamba|bolivia|cochabamba,?\s*bolivia)\s*$/i
+
+/**
  * Término de búsqueda del tratamiento: el `seoTitle` del panel («Botox») o, si
  * está vacío, el nombre del panel sin el grito. Va al `<title>` («Botox en
  * Cochabamba») y a los metadatos; nunca a texto visible: ahí va
  * `displayNameFor`.
+ *
+ * Se le quita la ciudad final si la trae: la pone la plantilla, no el panel.
  */
 export function seoTitleFor(t: Pick<TreatmentRef, "name" | "seoTitle">): string {
-  const seo = (t.seoTitle ?? "").trim()
+  const seo = (t.seoTitle ?? "").trim().replace(COLA_CIUDAD, "").trim()
   return seo || normalizeName(t.name ?? "")
+}
+
+/**
+ * ¿El nombre ya empieza nombrando el procedimiento?
+ *
+ * Para no construir «el tratamiento de Tratamiento de Ojeras», que es lo que
+ * salía en las preguntas frecuentes generadas. Si el término ya dice
+ * «tratamiento», se usa tal cual.
+ */
+export function readsAsTreatment(name: string): boolean {
+  return /^(tratamiento|terapia|procedimiento)\b/i.test(name.trim())
 }
 
 /**
@@ -185,7 +214,11 @@ export function searchAliasesFor(t: Pick<TreatmentRef, "name" | "seoTitle">): st
  * nombre como alternativo no le dice nada nuevo a Google.
  */
 export function alternateNamesFor(t: Pick<TreatmentRef, "name" | "seoTitle">): string[] {
-  const seo = (t.seoTitle ?? "").trim()
+  // Misma limpieza de ciudad que `seoTitleFor`. Visto en el schema en vivo:
+  // «alternateName: Aumento de Glúteos con Hialurónico en Cochabamba». Un
+  // nombre alternativo es cómo TAMBIÉN se llama el procedimiento, no dónde se
+  // hace; el sitio entero ya declara la ciudad en `areaServed` y `address`.
+  const seo = (t.seoTitle ?? "").trim().replace(COLA_CIUDAD, "").trim()
   const same = seo.toLocaleLowerCase("es") === displayNameFor(t).toLocaleLowerCase("es")
   return seo && !same ? [seo] : []
 }

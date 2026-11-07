@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { ImageIcon, X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react"
+import { X, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react"
 
 interface BeforeAfterProps {
   before: string | null
@@ -13,12 +13,28 @@ interface BeforeAfterProps {
  * Cards "Antes y Después" del detalle de tratamiento.
  * - Cards: object-fit:fill (la foto cubre toda la caja, como pidió el cliente).
  * - Tap/click → lightbox con la imagen REAL (object-contain, sin recorte ni deformación).
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * SIN FOTO NO SE PINTA NADA
+ *
+ * Antes se pintaba un recuadro con un icono y el texto «Foto próximamente».
+ * Salía en 10 de las 19 fichas del sitio, incluida la que mejor posicionaba.
+ *
+ * En medicina estética el antes y después ES la demostración: es lo que la
+ * paciente viene a ver antes de escribir por WhatsApp. Un hueco que promete la
+ * prueba para más adelante es peor que no tener la sección — señala que falta
+ * algo justo en el momento de decidir, y lo hace dos veces por página.
+ *
+ * Devuelve `null` sin ninguna foto, para que la ficha no muestre ni el
+ * encabezado «Antes y Después» sobre un vacío.
  */
 export function BeforeAfter({ before, after, name }: BeforeAfterProps) {
+  // Solo los lados con foto real. Un «antes» sin «después» sigue valiendo:
+  // es media prueba, no una promesa vacía.
   const items = [
     { label: "Antes", src: before, gold: false },
     { label: "Después", src: after, gold: true },
-  ]
+  ].filter((it) => Boolean(it.src))
   const filled = items.map((it) => it.src).filter(Boolean) as string[]
   const [lb, setLb] = useState<number | null>(null)
 
@@ -41,6 +57,10 @@ export function BeforeAfter({ before, after, name }: BeforeAfterProps) {
     }
   }, [lb, close, prev, next])
 
+  // Después de los hooks, nunca antes: salir temprano por encima de ellos
+  // cambiaría el número de hooks entre renders.
+  if (filled.length === 0) return null
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
@@ -55,7 +75,7 @@ export function BeforeAfter({ before, after, name }: BeforeAfterProps) {
             }}
           >
             <div className="relative aspect-[4/5] overflow-hidden">
-              {side.src ? (
+              {side.src && (
                 <button
                   type="button"
                   onClick={() => setLb(filled.indexOf(side.src!))}
@@ -76,18 +96,6 @@ export function BeforeAfter({ before, after, name }: BeforeAfterProps) {
                     </span>
                   </span>
                 </button>
-              ) : (
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-3"
-                  style={{ background: "linear-gradient(155deg, var(--vintage-parchment, #FAF6EE) 0%, var(--vintage-cream-dark, #EDE5D5) 100%)" }}
-                >
-                  <div className="flex items-center justify-center w-14 h-14 rounded-full" style={{ backgroundColor: "rgba(184,151,59,0.12)", border: "1px solid rgba(184,151,59,0.3)" }}>
-                    <ImageIcon size={22} aria-hidden="true" style={{ color: "var(--vintage-gold)" }} />
-                  </div>
-                  <span className="text-[11px] uppercase" style={{ color: "rgba(58,15,32,0.45)", fontFamily: "var(--font-mono, ui-monospace, monospace)", letterSpacing: "0.16em" }}>
-                    Foto próximamente
-                  </span>
-                </div>
               )}
             </div>
           </figure>

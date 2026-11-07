@@ -50,3 +50,7 @@ CLAUDE.md
 docs/backend/
 docs/handoffs/
 .claude/settings.local.json.bak
+
+# Informe de auditoría SEO: 32 MB con capturas. Útil para consultar,
+# no para versionar — se regenera y no es código del sitio.
+yasminmedrano.com-audit/

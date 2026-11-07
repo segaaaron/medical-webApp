@@ -65,6 +65,59 @@ function tipos(nodo) {
 
 const reglas = [
   {
+    nombre: "Sin promesas médicas absolutas",
+    /**
+     * AVISO, no fallo: no rompe el build.
+     *
+     * El texto lo escribe la doctora en el panel, y si afirma algo sobre un
+     * procedimiento es una decisión clínica suya, no un defecto del código.
+     * Esta red avisa para que la frase no pase inadvertida en un despliegue;
+     * decidir si se cambia le corresponde a ella.
+     *
+     * Para que vuelva a bloquear: quitar esta línea.
+     */
+    nivel: "aviso",
+    /**
+     * Un procedimiento médico no es «completamente seguro», y decirlo en una
+     * web de salud es un problema legal antes que de posicionamiento.
+     *
+     * Esto estuvo en producción: la ficha de ácido hialurónico —la página con
+     * más tráfico de su categoría— anunciaba «✓ Reversible y completamente
+     * seguro» y «garantiza un procedimiento seguro y de total confianza», sin
+     * una sola mención a contraindicaciones, listando además las zonas de
+     * inyección de mayor riesgo (ojeras y nariz).
+     *
+     * El texto viene del panel, así que el código no puede corregirlo: lo
+     * escribe la doctora. Lo que sí puede es avisar antes de desplegar, para
+     * que la frase no vuelva sin que nadie la vea. Las preguntas frecuentes
+     * generadas ya tienen su propia prueba (tests/seo-dynamic.test.ts); esto
+     * cubre el texto redactado a mano.
+     */
+    check: (html) => {
+      const texto = html
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\s+/g, " ")
+      const prohibidas = [
+        /completamente segur[oa]/i,
+        /totalmente segur[oa]/i,
+        /100\s*%\s*segur[oa]/i,
+        /absolutamente segur[oa]/i,
+        /sin ning[úu]n riesgo/i,
+        /riesgo cero/i,
+        /resultados garantizados/i,
+        /garantiza(?:mos)? (?:el |un )?resultado/i,
+      ]
+      const encontradas = prohibidas
+        .map((re) => texto.match(re)?.[0])
+        .filter(Boolean)
+      return encontradas.length
+        ? `promesa absoluta en el texto: «${encontradas.join("», «")}»`
+        : null
+    },
+  },
+  {
     nombre: "El JSON-LD es válido",
     check: (html) => {
       bloquesJsonLd(html)
@@ -181,6 +234,8 @@ function paginas(dir, acc = []) {
 
 function revisar(rutas) {
   const fallos = []
+  // Los avisos se muestran pero NO cambian el código de salida.
+  const avisos = []
   for (const ruta of rutas) {
     const html = readFileSync(ruta, "utf8")
     const pagina = ruta.replace(`${DIR}/`, "").replace(/\.html$/, "")
@@ -191,10 +246,13 @@ function revisar(rutas) {
       } catch (e) {
         problema = e.message
       }
-      if (problema) fallos.push(`${pagina}: ${regla.nombre} → ${problema}`)
+      if (!problema) continue
+      const linea = `${pagina}: ${regla.nombre} → ${problema}`
+      if (regla.nivel === "aviso") avisos.push(linea)
+      else fallos.push(linea)
     }
   }
-  return fallos
+  return { fallos, avisos }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -229,6 +287,26 @@ function selfTest() {
     ["sin canonical", '<html><head><title>t</title><meta name="description" content="c"/></head><body><h1>u</h1></body></html>', 1],
     ["dos h1", base().replace("<h1>uno</h1>", "<h1>uno</h1><h1>dos</h1>"), 1],
     ["description larga", base("", "x".repeat(161)), 1],
+    // La frase real que estuvo en producción en la ficha de ácido hialurónico.
+    [
+      "promesa absoluta",
+      base().replace("<h1>uno</h1>", "<h1>uno</h1><p>Reversible y completamente seguro</p>"),
+      1,
+    ],
+    [
+      "promesa absoluta (resultados garantizados)",
+      base().replace("<h1>uno</h1>", "<h1>uno</h1><p>Resultados garantizados en una sesión</p>"),
+      1,
+    ],
+    // Y el caso contrario: un texto honesto NO debe disparar la regla.
+    [
+      "texto honesto no dispara",
+      base().replace(
+        "<h1>uno</h1>",
+        "<h1>uno</h1><p>Es un procedimiento médico con indicaciones, contraindicaciones y posibles efectos secundarios.</p>"
+      ),
+      0,
+    ],
   ]
 
   let malos = 0
@@ -261,11 +339,18 @@ if (process.argv.includes("--self-test")) {
     console.error(`No se encontró ninguna página en ${DIR}.`)
     process.exit(2)
   }
-  const fallos = revisar(rutas)
+  const { fallos, avisos } = revisar(rutas)
+
+  if (avisos.length) {
+    console.warn(`\n${avisos.length} aviso(s) — no bloquean el despliegue:\n`)
+    for (const a of avisos) console.warn(`  ${a}`)
+  }
+
   if (fallos.length) {
     console.error(`\n${fallos.length} problema(s) de SEO en ${rutas.length} páginas:\n`)
     for (const f of fallos) console.error(`  ${f}`)
     process.exit(1)
   }
-  console.log(`${rutas.length} páginas revisadas, sin problemas de SEO.`)
+  const cola = avisos.length ? ` (${avisos.length} aviso(s) arriba)` : ""
+  console.log(`\n${rutas.length} páginas revisadas, sin problemas de SEO${cola}.`)
 }

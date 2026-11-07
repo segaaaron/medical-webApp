@@ -1,13 +1,12 @@
-import { getAbout, statsClaim } from "@/lib/content/about"
+import { getAbout } from "@/lib/content/about"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { getFooter } from "@/lib/content/footer"
 import { getNavLinks } from "@/lib/content/site-main"
 import { getReviews } from "@/lib/content/reviews"
 import { getActiveTreatments } from "@/lib/content/treatments"
-import { getContact, businessContactOf } from "@/lib/content/contact"
 import { getSiteSeo } from "@/lib/content/seo"
 import { doctorKnowsAbout, type TreatmentRef } from "@/lib/seo/treatment-names"
-import { normalizeSocialUrl, pageSeoMetadata } from "@/lib/seo/meta"
+import { pageSeoMetadata } from "@/lib/seo/meta"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -39,14 +38,15 @@ const breadcrumbLd = {
   ],
 }
 
-function buildAboutJsonLd(
-  treatments: TreatmentRef[],
-  perfiles: string[],
-  // Teléfono de Dashboard → Contacto (o de su respaldo entero).
-  telephone: string,
-  // Estadísticas de Dashboard → Acerca de como frase; "" = se omite.
-  claim: string
-) {
+/**
+ * `ProfilePage` de la doctora.
+ *
+ * Solo necesita los tratamientos: el resto de su identidad —nombre, foto,
+ * teléfono, descripción, perfiles— la declara el `@graph` del layout en todas
+ * las páginas bajo el mismo `@id`, y repetirla aquí es lo que producía valores
+ * contradictorios sobre una misma entidad.
+ */
+function buildAboutJsonLd(treatments: TreatmentRef[]) {
 
   return {
     "@context": "https://schema.org",
@@ -58,13 +58,22 @@ function buildAboutJsonLd(
       // para Google eran dos entidades distintas y las señales de autoridad
       // —reseñas incluidas— se repartían entre ambas en vez de sumar.
       "@id": `${BASE_URL}/#doctor`,
-      name: "Dra. Yasmin Medrano Avila",
-      jobTitle: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia",
-      description: `Médica especialista en medicina estética en Cochabamba, Bolivia${claim ? `, con ${claim}` : ""}.`,
-      url: `${BASE_URL}/nosotros`,
-      image: `${BASE_URL}/images/DraMedrano.jpeg`,
-      ...(telephone ? { telephone } : {}),
-      medicalSpecialty: "Medicina Estética",
+      // ──────────────────────────────────────────────────────────────────────
+      // SOLO LO QUE EL LAYOUT NO DECLARA.
+      //
+      // El `@id` compartido ya estaba bien resuelto, pero este nodo seguía
+      // repitiendo name, description, url, image, telephone, medicalSpecialty
+      // y sameAs — y el `jobTitle` CONTRADECÍA al del layout sobre el mismo
+      // `@id`:
+      //
+      //   layout:   "Médica Especialista en Medicina Estética"
+      //   nosotros: "Médica Especialista en Medicina Estética — Cochabamba, Bolivia"
+      //
+      // Un `@id` con dos valores distintos para la misma propiedad en la misma
+      // carga de página no refuerza la entidad: la hace ambigua. El layout es
+      // la fuente; aquí solo se añade lo que esta página sabe y él no.
+      // ──────────────────────────────────────────────────────────────────────
+      //
       // Derivado del panel: la lista fija incluía armonización facial y
       // depilación láser, que el consultorio no ofrece.
       knowsAbout: doctorKnowsAbout(treatments),
@@ -77,42 +86,22 @@ function buildAboutJsonLd(
           containedInPlace: { "@type": "Country", name: "Bolivia" },
         },
       },
-      // Sin `aggregateRating`: reseñas que la propia entidad publica sobre sí
-      // misma («self-serving») son inelegibles para las estrellas en Google y
-      // marcarlas arriesga una acción manual. Se muestran solo como contenido.
-      // Perfiles del panel, no escritos a mano: la lista fija se quedó sin
-      // TikTok y contradecía la del layout sobre la misma entidad.
-      sameAs: perfiles,
     },
   }
 }
 
 export default async function NosotrosPage() {
-  const [navLinks, footerData, about, reviews, treatments, contact] = await Promise.all([
+  const [navLinks, footerData, about, reviews, treatments] = await Promise.all([
     getNavLinks(),
     getFooter(),
     getAbout(),
     getReviews(),
     getActiveTreatments(),
-    getContact(),
   ])
   const aboutData = about.data
   const { reviews: approvedReviews, aggregate: reviewAggregate } = reviews.data
 
-  const perfilesSociales = [
-    footerData.facebookUrl,
-    footerData.instagramUrl,
-    footerData.tiktokUrl,
-  ]
-    .map(normalizeSocialUrl)
-    .filter(Boolean)
-
-  const aboutJsonLd = buildAboutJsonLd(
-    treatments.data,
-    perfilesSociales,
-    businessContactOf(contact.data).telephone,
-    statsClaim(aboutData.stats)
-  )
+  const aboutJsonLd = buildAboutJsonLd(treatments.data)
 
   return (
     <>

@@ -12,7 +12,7 @@ import type { Metadata } from "next"
 
 
 // Última actualización del documento. Cambiar al editar el contenido legal.
-const LAST_UPDATED = "16 de junio de 2026"
+const LAST_UPDATED = "6 de noviembre de 2026"
 
 export const metadata: Metadata = {
   // Sin marca: el template del layout la añade.
@@ -162,7 +162,32 @@ export default async function PrivacidadPage() {
                 </P>
               </Block>
 
-              <Block title="6. Conservación de los datos">
+              <Block title="6. Cookies, medición y publicidad">
+                <P>
+                  Usamos herramientas de medición para saber qué páginas se visitan y si los anuncios funcionan. Estas
+                  son <strong>todas</strong> las que empleamos:
+                </P>
+                <List
+                  items={[
+                    "Umami (analítica propia, alojada en nuestro servidor): cuenta visitas y clics de forma agregada. No usa cookies ni envía datos a terceros.",
+                    "Meta Pixel (Meta Platforms, Inc.): mide la eficacia de nuestros anuncios en Facebook e Instagram.",
+                    "TikTok Pixel (TikTok Technology Limited): mide la eficacia de nuestros anuncios en TikTok.",
+                    "Google Ads (Google LLC): mide las conversiones de nuestros anuncios en Google.",
+                  ]}
+                />
+                <P>
+                  Los tres últimos pertenecen a plataformas publicitarias y pueden usar cookies para reconocer tu
+                  navegador entre sitios. Se cargan solo cuando interactúas con la página, no al abrirla. Puedes
+                  bloquearlos desde la configuración de tu navegador o con una extensión de bloqueo; el sitio seguirá
+                  funcionando igual y podrás agendar tu consulta sin problema.
+                </P>
+                <P>
+                  Para conocer cómo tratan tus datos, consulta las políticas de privacidad de{" "}
+                  <strong>Meta</strong>, <strong>TikTok</strong> y <strong>Google</strong>.
+                </P>
+              </Block>
+
+              <Block title="7. Conservación de los datos">
                 <P>
                   Conservamos tus datos durante el tiempo necesario para atenderte y cumplir con obligaciones legales o
                   contables. Cuando dejan de ser necesarios, los eliminamos o anonimizamos de forma segura. Puedes
@@ -170,7 +195,7 @@ export default async function PrivacidadPage() {
                 </P>
               </Block>
 
-              <Block title="7. Seguridad">
+              <Block title="8. Seguridad">
                 <P>
                   Aplicamos medidas razonables, técnicas y organizativas, para proteger tu información frente a accesos
                   no autorizados, pérdida o uso indebido. Ningún sistema es completamente infalible, pero trabajamos para
@@ -178,7 +203,7 @@ export default async function PrivacidadPage() {
                 </P>
               </Block>
 
-              <Block title="8. Tus derechos">
+              <Block title="9. Tus derechos">
                 <P>Tienes derecho a:</P>
                 <List
                   items={[
@@ -193,14 +218,14 @@ export default async function PrivacidadPage() {
                 </P>
               </Block>
 
-              <Block title="9. Menores de edad">
+              <Block title="10. Menores de edad">
                 <P>
                   Nuestros servicios están dirigidos a personas mayores de edad. Los tratamientos en menores de edad
                   requieren la autorización y acompañamiento de su padre, madre o tutor legal.
                 </P>
               </Block>
 
-              <Block title="10. Cambios en esta política">
+              <Block title="11. Cambios en esta política">
                 <P>
                   Podemos actualizar esta Política de Privacidad para reflejar cambios en nuestras prácticas o por
                   motivos legales. Publicaremos la versión vigente en esta misma página, indicando la fecha de última
@@ -208,7 +233,7 @@ export default async function PrivacidadPage() {
                 </P>
               </Block>
 
-              <Block title="11. Contacto">
+              <Block title="12. Contacto">
                 <P>
                   Si tienes preguntas sobre esta política o sobre el tratamiento de tus datos personales, contáctanos:
                 </P>

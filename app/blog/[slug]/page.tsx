@@ -2,7 +2,7 @@ import { sanitizeBody } from "@/lib/html/sanitize"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { safeJsonLd } from "@/lib/seo-utils"
 import { matchTreatmentsInText, displayNameFor } from "@/lib/seo/treatment-names"
-import { buildMetaDescription } from "@/lib/seo/meta"
+import { buildMetaDescription, absoluteUrl } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
 import { getFooter } from "@/lib/content/footer"
@@ -165,7 +165,12 @@ export default async function BlogPostPage({ params }: Props) {
     // El panel deja el resumen vacío a menudo; entonces se deriva del propio
     // artículo, igual que la meta description.
     description: post.seoDescription ? post.seoDescription : buildMetaDescription(post.excerpt || post.content, ""),
-    ...(post.imageUrl ? { image: post.imageUrl } : {}),
+    // Absoluta: schema.org descarta una ruta relativa en silencio, así que la
+    // portada de los 10 artículos no existía para quien leyera el marcado —ni
+    // Google ni los motores de respuestas, que muestran miniatura al citar.
+    ...(absoluteUrl(post.imageUrl, BASE_URL)
+      ? { image: absoluteUrl(post.imageUrl, BASE_URL) }
+      : {}),
     datePublished: post.publishedAt,
     // `dateModified` faltaba: sin él, Google no distingue un artículo revisado
     // este mes de uno abandonado hace dos años, y en salud la vigencia pesa.

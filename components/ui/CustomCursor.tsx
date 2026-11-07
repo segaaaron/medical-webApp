@@ -2,7 +2,13 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react"
 import { usePathname } from "next/navigation"
-import { motion, useSpring, useReducedMotion } from "framer-motion"
+// `m` en vez de `motion`: este componente es el ÚNICO de los 25 que importaba
+// `motion`, y un solo `motion.*` arrastra el paquete completo de framer-motion
+// aunque todo el árbol esté envuelto en `<LazyMotion features={domAnimation}>`
+// (app/layout.tsx:356) — es decir, anulaba el montaje ligero del sitio entero.
+// Solo se animan transformaciones por `style` con MotionValues, que es
+// exactamente lo que `domAnimation` incluye.
+import { m, useSpring, useReducedMotion } from "framer-motion"
 
 const VINTAGE_GOLD = "var(--vintage-gold-dark)"
 const ROSE = "var(--meteorite)"
@@ -144,7 +150,7 @@ export function CustomCursor() {
   return (
     <>
       {/* ── Syringe ───────────────────────────────────────────────── */}
-      <motion.div
+      <m.div
         className="fixed top-0 left-0 pointer-events-none z-[9999]"
         style={{
           x: syringeX,
@@ -156,10 +162,10 @@ export function CustomCursor() {
         }}
       >
         <SyringeSVG color={color} scale={clicked ? 0.88 : 1} />
-      </motion.div>
+      </m.div>
 
       {/* ── Lagging ring ──────────────────────────────────────────── */}
-      <motion.div
+      <m.div
         className="fixed top-0 left-0 pointer-events-none z-[9998] rounded-full"
         style={{
           x: ringX,

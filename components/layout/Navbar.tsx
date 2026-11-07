@@ -63,7 +63,10 @@ export function Navbar({ links }: NavbarProps) {
             width={130}
             height={80}
             className="object-contain"
-            priority
+            // Sin `priority`: implica un `<link rel="preload">`, y el logo
+            // entraba así en la ruta crítica compitiendo con el elemento LCP.
+            // Son 3,9 KB tras optimizar (medido) y está sobre el pliegue de
+            // todas formas, así que carga a tiempo sin precargarse.
           />
         </Link>
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { m, useReducedMotion, useScroll, useTransform } from "framer-motion"
-import { Fragment, useSyncExternalStore, type CSSProperties } from "react"
+import { Fragment, useEffect, useState, useSyncExternalStore, type CSSProperties } from "react"
 import { LinkButton } from "@/components/ui/Button"
 import { StatCard } from "@/components/ui/StatCard"
 import { trackHeroCTA } from "@/lib/analytics"
@@ -65,6 +65,90 @@ const clientStore = {
   getServerSnapshot: () => false,
 }
 
+/** `navigator.connection`, que TypeScript no tipa. */
+interface NetworkInformation {
+  saveData?: boolean
+  effectiveType?: string
+}
+
+/**
+ * ¿Conviene gastar 388 KB de vídeo decorativo en esta conexión?
+ *
+ * `Save-Data` es el usuario pidiendo explícitamente que no. `2g` y `slow-2g`
+ * son redes donde el vídeo de fondo llegaría después de que la paciente ya
+ * decidió irse. En Cochabamba una parte del tráfico llega por datos móviles,
+ * así que esto no es un caso teórico.
+ */
+function mediaPesadaDesaconsejada(): boolean {
+  if (typeof navigator === "undefined") return false
+  const conn = (navigator as Navigator & { connection?: NetworkInformation }).connection
+  if (!conn) return false
+  if (conn.saveData) return true
+  return conn.effectiveType === "2g" || conn.effectiveType === "slow-2g"
+}
+
+/**
+ * Carga diferida del vídeo de fondo del hero.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * EL PROBLEMA QUE RESUELVE
+ *
+ * `<video autoPlay preload="none">` NO respeta el `preload`: por especificación
+ * `autoplay` implica cargar el recurso. Así que los 388 KB de
+ * `hero-mobile.webm` se descargaban igual, compitiendo por ancho de banda y por
+ * hilo principal con el elemento LCP (`p.hero__description`). Medido: ~1 s de
+ * descarga en móvil, con el LCP ya en 8,3 s simulados.
+ *
+ * El vídeo es decorativo (`aria-hidden`) y el póster —que el CSS ya pinta como
+ * fondo— es un hero perfectamente válido por sí mismo; el propio código lo dice
+ * más abajo. Así que no hay nada que perder esperando.
+ *
+ * ────────────────────────────────────────────────────────────────────────────
+ * POR QUÉ SOLO EN VERTICAL
+ *
+ * En escritorio el LCP ya está en 2,4 s y la conexión suele aguantar el vídeo
+ * sin penalizar nada: ahí se monta igual que antes, en cuanto hidrata. El
+ * diferido se aplica donde el problema está medido, no en todas partes.
+ *
+ * @param diferir  true en vertical/móvil; false mantiene el comportamiento anterior.
+ */
+function useVideoDiferido(diferir: boolean): boolean {
+  // El estado SOLO registra "el idle ya llegó". El caso no diferido se resuelve
+  // en el valor devuelto, no con un `setState` dentro del efecto: asignar
+  // estado en el cuerpo de un efecto provoca un render extra y lo prohíbe
+  // `react-hooks/set-state-in-effect`.
+  const [idleListo, setListo] = useState(false)
+
+  useEffect(() => {
+    if (!diferir) return
+    if (mediaPesadaDesaconsejada()) return
+
+    // `requestIdleCallback` espera a que el hilo principal esté libre, que es
+    // justo después de pintar lo que importa. Safari no lo implementa, así que
+    // cae a un temporizador: 1,5 s es más que el LCP observado (2,2 s) menos el
+    // margen de pintado, y el póster cubre el hueco.
+    const idle = (window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+    }).requestIdleCallback
+
+    if (typeof idle === "function") {
+      const id = idle(() => setListo(true), { timeout: 3000 })
+      return () => {
+        const cancel = (window as Window & { cancelIdleCallback?: (h: number) => void })
+          .cancelIdleCallback
+        if (typeof cancel === "function") cancel(id)
+      }
+    }
+    const t = setTimeout(() => setListo(true), 1500)
+    return () => clearTimeout(t)
+  }, [diferir])
+
+  // Sin diferir (escritorio) se monta igual que antes; diferido, cuando el
+  // hilo principal quedó libre. En conexión lenta o con Save-Data nunca: el
+  // póster se queda, y es un hero válido.
+  return !diferir || idleListo
+}
+
 export interface HeroLayoutProps {
   tagline: string         // top eyebrow text
   doctorName: string      // animated word-by-word
@@ -114,6 +198,10 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
 
   const videoSrc = isPortrait ? "/videos/hero-mobile" : "/videos/hero"
 
+  // En vertical el vídeo espera a que el hilo principal esté libre; en
+  // escritorio se monta igual que antes. Ver `useVideoDiferido`.
+  const videoListo = useVideoDiferido(isPortrait)
+
   return (
     <section
       className="hero__section gradient-hero relative flex flex-col items-center justify-center overflow-hidden"
@@ -135,7 +223,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
         }}
         aria-hidden="true"
       >
-        {mounted && (
+        {mounted && videoListo && (
           /* Sin atributo `poster`: el contenedor ya pinta el póster correcto
              como fondo, y duplicarlo aquí descargaba las dos versiones —medido,
              38 KB de más— porque el atributo se resuelve antes de que la
@@ -177,16 +265,39 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
           {tagline}
         </p>}
 
-        {/* Doctor name — letter assembly from sides */}
+        {/* Doctor name — letter assembly from sides.
+            ────────────────────────────────────────────────────────────────────
+            EL ESPACIO ENTRE PALABRAS ES TEXTO REAL, NO SOLO `gap`.
+
+            Cada letra va en su propio `<span>` para animarla, y la separación
+            entre palabras la pintaba únicamente `gap: 0 0.3em`. Visualmente
+            perfecto; en el texto del DOM, no:
+
+              Dra.YasminLoreleyMedranoAvila
+
+            Eso es lo que extrae cualquiera que lea el HTML sin aplicar CSS —un
+            buscador, un motor de respuestas— del encabezado más importante de
+            la página más enlazada del sitio. El nombre de la doctora, que es la
+            entidad que todo el sitio intenta posicionar, llegaba como una sola
+            palabra inexistente.
+
+            La solución ya estaba en este archivo veinte líneas más abajo: el
+            `<p>` de especialidad intercala `{i > 0 && " "}` entre palabras. Se
+            usa lo mismo aquí. El `gap` se mantiene para el espaciado óptico.
+
+            Y se quita el `aria-label`: ahora el texto del elemento ES el nombre
+            con sus espacios, así que el lector de pantalla lo lee bien sin
+            necesidad de una etiqueta que lo duplique. */}
         {doctorName && <h1
           className="font-bold text-[2.4rem] sm:text-5xl md:text-6xl lg:text-7xl mb-4 sm:mb-4 leading-[1.12]"
-          aria-label={doctorName}
           style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "baseline", fontFamily: "var(--font-display)", fontWeight: 300, letterSpacing: "-0.02em", gap: "0 0.3em" }}
         >
           {doctorName.split(" ").map((word, wordIdx, words) => {
             const charOffset = words.slice(0, wordIdx).reduce((acc, w) => acc + w.length + 1, 0)
             return (
-              <span key={wordIdx} aria-hidden="true" style={{ display: "inline-flex", whiteSpace: "nowrap" }}>
+              <Fragment key={wordIdx}>
+                {wordIdx > 0 && " "}
+              <span aria-hidden="true" style={{ display: "inline-flex", whiteSpace: "nowrap" }}>
                 {word.split("").map((char, charIdx) => {
                   const i = charOffset + charIdx
                   const x = Math.max(-140, Math.min(140, (i - center) * 12))
@@ -201,6 +312,7 @@ export function HeroLayout({ tagline, doctorName, specialty, description, ctas, 
                   )
                 })}
               </span>
+              </Fragment>
             )
           })}
         </h1>}
