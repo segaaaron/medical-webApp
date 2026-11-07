@@ -1,7 +1,7 @@
 import { sanitizeBody } from "@/lib/html/sanitize"
 import { BASE_URL } from "@/lib/seo/site-url"
 import { safeJsonLd } from "@/lib/seo-utils"
-import { matchTreatmentsInText, displayNameFor } from "@/lib/seo/treatment-names"
+import { matchTreatmentsInText } from "@/lib/seo/treatment-names"
 import { buildMetaDescription, absoluteUrl } from "@/lib/seo/meta"
 import { Navbar } from "@/components/layout/Navbar"
 import { Footer } from "@/components/layout/Footer"
@@ -14,6 +14,7 @@ import { AuthorBox } from "@/components/blog/AuthorBox"
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs"
 import { normalizeSocialUrl } from "@/lib/seo/meta"
 import { BlogCard } from "@/components/blog/BlogCard"
+import { TreatmentCard } from "@/components/sections/TreatmentCard"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { ReadingProgressBar } from "@/components/ui/ReadingProgressBar"
 import { Calendar, Clock, ArrowLeft } from "lucide-react"
@@ -339,24 +340,15 @@ export default async function BlogPostPage({ params }: Props) {
               >
                 Tratamientos que menciona este artículo
               </h2>
-              <ul className="flex flex-wrap gap-3">
+              {/* Tarjetas con foto, iguales a las de «Artículos relacionados»
+                  de más abajo. Es el salto del artículo a la reserva: quien
+                  acaba de leer sobre bótox y ve la ficha con su imagen entiende
+                  qué va a agendar mucho mejor que con un enlace de texto. */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {relatedTreatments.map((t) => (
-                  <li key={t.id}>
-                    <Link
-                      href={`/tratamientos/${t.slug}`}
-                      className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors"
-                      style={{
-                        border: "1px solid var(--vintage-gold)",
-                        color: "var(--primary-darkest)",
-                        borderRadius: "2px",
-                      }}
-                    >
-                      {displayNameFor(t)}
-                      <span aria-hidden="true">→</span>
-                    </Link>
-                  </li>
+                  <TreatmentCard key={t.id} treatment={t} source="blog-tratamientos-mencionados" />
                 ))}
-              </ul>
+              </div>
             </div>
           </section>
         )}

@@ -32,6 +32,8 @@ import { TrackWhatsAppLink } from "@/components/analytics/TrackWhatsAppLink"
 import { ImageWithFallback } from "@/components/ui/ImageWithFallback"
 import { EcgHero } from "@/components/ui/EcgHero"
 import { BeforeAfter } from "@/components/sections/BeforeAfter"
+import { TreatmentCard } from "@/components/sections/TreatmentCard"
+import { BlogCard } from "@/components/blog/BlogCard"
 import { FaqPrompt } from "@/components/ui/FaqPrompt"
 import { TreatmentFaq } from "@/components/sections/TreatmentFaq"
 
@@ -570,24 +572,14 @@ export default async function TratamientoDetallePage({ params }: Props) {
             >
               Otros tratamientos de la Dra. Yasmin Medrano
             </h2>
-            <ul className="flex flex-wrap gap-3">
+            {/* Tarjetas con foto en vez de una fila de enlaces: en medicina
+                estética la imagen ES la información, y un nombre suelto como
+                «Hilos PDO» no dice nada a quien no lo conoce. */}
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {otherTreatments.map((t) => (
-                <li key={t.id}>
-                  <Link
-                    href={`/tratamientos/${t.slug}`}
-                    className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition-colors"
-                    style={{
-                      border: "1px solid var(--vintage-gold)",
-                      color: "var(--primary-darkest)",
-                      borderRadius: "2px",
-                    }}
-                  >
-                    {displayNameFor(t)}
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                </li>
+                <TreatmentCard key={t.id} treatment={t} source="ficha-otros-tratamientos" />
               ))}
-            </ul>
+            </div>
           </div>
         </section>
       )}
@@ -606,23 +598,26 @@ export default async function TratamientoDetallePage({ params }: Props) {
             >
               Artículos sobre {displayName}
             </h2>
-            <ul className="flex flex-col gap-3">
+            {/* Mismas tarjetas que usa el blog para sus artículos relacionados:
+                la tira se lee igual aquí que allí. `normalizeHeadline` sigue
+                aplicándose —el título del panel llega en MAYÚSCULAS— porque
+                `BlogCard` pinta el texto tal cual se lo pasen. */}
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {relatedPosts.map((p) => (
-                <li key={p.slug}>
-                  <Link
-                    href={`/blog/${p.slug}`}
-                    className="flex items-baseline gap-3 text-sm font-semibold transition-opacity hover:opacity-80"
-                    style={{ color: "var(--primary-darkest)" }}
-                  >
-                    <span aria-hidden="true" style={{ color: "var(--vintage-gold)" }}>→</span>
-                    {/* Tercer consumidor del título del panel, y el que se me
-                        escapó al sanear los otros dos: aquí salía «SUDORACIÓN
-                        EXCESIVA EN AXILAS - BOTOX UNA SOLUCIÓN» gritando. */}
-                    {normalizeHeadline(p.title)}
-                  </Link>
-                </li>
+                <BlogCard
+                  key={p.slug}
+                  id={p.id}
+                  title={normalizeHeadline(p.title)}
+                  slug={p.slug}
+                  excerpt={p.excerpt}
+                  imageUrl={p.imageUrl}
+                  publishedAt={p.publishedAt}
+                  readTime={p.readTime}
+                  tags={p.tags}
+                  variant="grid"
+                />
               ))}
-            </ul>
+            </div>
           </div>
         </section>
       )}
