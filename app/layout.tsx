@@ -8,7 +8,6 @@ import { SkipNav } from "@/components/ui/SkipNav";
 import { safeJsonLd } from "@/lib/seo-utils";
 import { LazyMotion, domAnimation } from "framer-motion";
 import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
-import { ConsentNotice } from "@/components/analytics/ConsentNotice";
 import { WhatsAppFAB } from "@/components/ui/WhatsAppFAB";
 import { WhatsAppProvider } from "@/components/providers/WhatsAppProvider";
 import { doctorKnowsAbout, displayNameFor, alternateNamesFor, type TreatmentRef } from "@/lib/seo/treatment-names"
@@ -377,7 +376,6 @@ export default async function RootLayout({
           </LazyMotion>
         </WhatsAppProvider>
         <AnalyticsScripts />
-        <ConsentNotice />
       </body>
     </html>
   );

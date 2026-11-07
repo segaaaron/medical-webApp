@@ -2,7 +2,6 @@
 
 import Script from "next/script"
 import { useFirstInteraction } from "./useFirstInteraction"
-import { useTrackingConsent } from "./useTrackingConsent"
 import {
   UMAMI_URL,
   UMAMI_WEBSITE_ID,
@@ -22,9 +21,13 @@ import {
  * que de verdad se usa. No compite con nada.
  *
  * Los tres píxeles publicitarios (~472 KB y cuatro tareas largas de más de
- * 50 ms) esperan al primer gesto de la visitante. No hacen falta para pintar
- * la página y sacarlos de la ruta crítica fue, junto con el vídeo del hero, el
- * cambio de mayor efecto sobre el LCP de móvil.
+ * 50 ms) esperan al primer gesto de la visitante, o a un respaldo por tiempo.
+ * No hacen falta para pintar la página y sacarlos de la ruta crítica fue,
+ * junto con el vídeo del hero, el cambio de mayor efecto sobre el LCP móvil.
+ *
+ * NO hay puerta de consentimiento: miden a todo el mundo, como antes. Se probó
+ * una y se retiró porque dejaba fuera del recuento a quien no aceptaba, y eso
+ * subregistraba las campañas sin que el tráfico real hubiera cambiado.
  *
  * ────────────────────────────────────────────────────────────────────────────
  * EL DETALLE QUE NO SE PUEDE TOCAR: EL `init` DE GOOGLE ADS VA EAGER
@@ -49,13 +52,7 @@ import {
  * interacción.
  */
 export function AnalyticsScripts() {
-  const interactuado = useFirstInteraction()
-  const { aceptado } = useTrackingConsent()
-
-  // Dos condiciones, no una. El consentimiento decide SI se cargan; la primera
-  // interacción decide CUÁNDO. Quien acepta y no toca nada sigue sin pagar los
-  // ~472 KB durante el primer pintado.
-  const cargarPublicidad = aceptado && interactuado
+  const cargarPublicidad = useFirstInteraction()
 
   return (
     <>
@@ -116,7 +113,7 @@ export function AnalyticsScripts() {
         </Script>
       )}
 
-      {GOOGLE_ADS_ID && aceptado && (
+      {GOOGLE_ADS_ID && (
         <>
           {/* EAGER a propósito. Define `window.gtag` y la cola `dataLayer`
               antes de que nadie pueda pulsar nada. Son ~100 bytes inline, sin

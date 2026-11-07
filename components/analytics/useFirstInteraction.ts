@@ -25,10 +25,26 @@ import { useEffect, useState } from "react"
  * contaría nunca en los píxeles y la vista de página se perdería. El
  * temporizador garantiza que el `PageView` acabe saliendo.
  *
+ * ────────────────────────────────────────────────────────────────────────────
+ * POR QUÉ 2 SEGUNDOS Y NO 4
+ *
+ * El respaldo es un equilibrio entre dos pérdidas:
+ *
+ * - Demasiado pronto: los píxeles vuelven a competir con el primer pintado y
+ *   se pierde la mejora de LCP que motivó este archivo.
+ * - Demasiado tarde: quien entra y se va antes del plazo no se cuenta en Meta,
+ *   TikTok ni Google, y las campañas quedan subregistradas aunque el tráfico
+ *   real no haya cambiado.
+ *
+ * Con 4 s se perdían demasiados rebotes. A los 2 s la página ya está pintada
+ * —el LCP móvil medido ronda los 2,2 s— y casi cualquier visita real llega a
+ * contarse. Es el único número que gobierna ese equilibrio: si algún día se
+ * prefiere medición por encima de velocidad, se baja; al revés, se sube.
+ *
  * Los eventos se registran en `capture` y con `once`, así que el oyente se
  * desengancha solo y no vuelve a costar nada.
  */
-export function useFirstInteraction(delayMs = 4000): boolean {
+export function useFirstInteraction(delayMs = 2000): boolean {
   const [interactuado, setInteractuado] = useState(false)
 
   useEffect(() => {

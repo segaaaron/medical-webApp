@@ -1114,18 +1114,6 @@ summary:focus-visible {
   }
 }
 
-/* Aviso de consentimiento (components/analytics/ConsentNotice.tsx).
-   Se anima con CSS y no con framer-motion: el componente va montado fuera de
-   <LazyMotion>, donde un `m.*` no llega a pintarse. */
-.consent-notice {
-  animation: consentIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes consentIn {
-  from { transform: translateY(24px); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .consent-notice { animation: none; }
-}
 
 /* Casilla de consentimiento del formulario (components/sections/ContactForm.tsx).
    `accent-color` solo tiñe el estado MARCADO: sin marcar, el navegador pinta
