@@ -63,7 +63,18 @@ export function BeforeAfter({ before, after, name }: BeforeAfterProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+      {/* Con UNA sola foto no se usa la rejilla de dos columnas: la imagen
+          quedaba a la izquierda con un hueco vacío al lado, y eso se lee como
+          «falta algo» en vez de como una foto que la doctora sí subió. Una
+          columna centrada y con ancho acotado la presenta como lo que es.
+          Con las dos, la comparación va lado a lado como siempre. */}
+      <div
+        className={
+          filled.length === 1
+            ? "mx-auto max-w-md"
+            : "grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6"
+        }
+      >
         {items.map((side) => (
           <figure
             key={side.label}
